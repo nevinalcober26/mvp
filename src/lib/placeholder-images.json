@@ -5,6 +5,30 @@
       "description": "User avatar",
       "imageUrl": "https://images.unsplash.com/photo-1530268729831-4b0b9e170218?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGVyc29uJTIwZmFjZXxlbnwwfHx8fDE3NjQ4NTI2OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person face"
+    },
+    {
+      "id": "classic-cheese-burger",
+      "description": "Classic Cheese Burger",
+      "imageUrl": "https://images.unsplash.com/photo-1562817981-221763b0c0e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjaGVlc2UlMjBidXJnZXJ8ZW58MHx8fHwxNzY0ODU4MDQ5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cheese burger"
+    },
+    {
+      "id": "caesar-salad",
+      "description": "Caesar Salad",
+      "imageUrl": "https://images.unsplash.com/photo-1546793665-c74683f339c1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjYWVzYXIlMjBzYWxhZHxlbnwwfHx8fDE3NjQ3OTc4Mzh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "caesar salad"
+    },
+    {
+      "id": "red-velvet-cupcake",
+      "description": "Red Velvet Cupcake",
+      "imageUrl": "https://images.unsplash.com/photo-1640292767657-3c817244f77b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxyZWQlMjB2ZWx2ZXR8ZW58MHx8fHwxNzY0ODU4MDQ5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red velvet"
+    },
+    {
+      "id": "red-velvet-cupcake-2",
+      "description": "Red Velvet Cupcake duplicate",
+      "imageUrl": "https://images.unsplash.com/photo-1586788680434-30d324b2d46f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxyZWQlMjB2ZWx2ZXR8ZW58MHx8fHwxNzY0ODU4MDQ5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red velvet"
     }
   ]
 }

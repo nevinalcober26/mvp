@@ -9,6 +9,7 @@ import { WelcomeBanner } from '@/components/dashboard/welcome-banner';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { InventoryAlerts } from '@/components/dashboard/inventory-alerts';
 import { PerformanceSummary } from '@/components/dashboard/performance-summary';
+import { PopularItems } from '@/components/dashboard/popular-items';
 
 export default function Home() {
   return (
@@ -26,7 +27,7 @@ export default function Home() {
               <MenuItemsTable />
             </div>
             <div className="space-y-6">
-              {/* Other components can go here if needed */}
+              <PopularItems />
             </div>
           </div>
           
