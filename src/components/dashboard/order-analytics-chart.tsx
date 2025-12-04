@@ -6,6 +6,7 @@ import {
   AreaChart,
   CartesianGrid,
   ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
@@ -23,7 +24,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ChartContainer } from '@/components/ui/chart';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
 
 const generateChartData = () => [
   { date: 'Mon', orders: Math.floor(Math.random() * 25) + 30 },
@@ -55,7 +60,7 @@ export function OrderAnalyticsChart() {
         <div>
           <CardTitle>Order Analytics</CardTitle>
           <CardDescription>
-            A list of the most recent open and in-progress tickets.
+            An overview of your order volume over the past week.
           </CardDescription>
         </div>
         <Select defaultValue="7">
@@ -104,6 +109,10 @@ export function OrderAnalyticsChart() {
               axisLine={false}
               domain={[0, 'dataMax + 10']}
               tickFormatter={(value) => `${value}`}
+            />
+            <Tooltip
+              cursor={false}
+              content={<ChartTooltipContent indicator="dot" />}
             />
             <Area
               type="monotone"
