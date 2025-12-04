@@ -1,3 +1,4 @@
+'use client';
 import {
   Card,
   CardContent,
@@ -22,6 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
+import { useEffect, useState } from 'react';
 
 const menuItems = [
   {
@@ -62,6 +64,15 @@ const menuItems = [
 ];
 
 export function MenuItemsTable() {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return null;
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">

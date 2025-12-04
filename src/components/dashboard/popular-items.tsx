@@ -1,3 +1,4 @@
+'use client';
 import Image from 'next/image';
 import {
   Card,
@@ -10,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { ArrowDown } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useEffect, useState } from 'react';
 
 const popularItemsData = [
   {
@@ -39,8 +41,17 @@ const popularItemsData = [
 ];
 
 export function PopularItems() {
-  const popularItems = popularItemsData.map(item => {
-    const placeholder = PlaceHolderImages.find(p => p.id === item.id);
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return null;
+  }
+
+  const popularItems = popularItemsData.map((item) => {
+    const placeholder = PlaceHolderImages.find((p) => p.id === item.id);
     return { ...item, ...placeholder };
   });
 
@@ -71,9 +82,7 @@ export function PopularItems() {
                 {item.orders} orders
               </p>
             </div>
-            <p className="font-semibold">
-              ${item.revenue.toLocaleString()}
-            </p>
+            <p className="font-semibold">${item.revenue.toLocaleString()}</p>
           </div>
         ))}
       </CardContent>
