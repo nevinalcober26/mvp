@@ -6,6 +6,7 @@ import { OrderAnalyticsChart } from '@/components/dashboard/order-analytics-char
 import { PerformanceSummary } from '@/components/dashboard/performance-summary';
 import { Promotions } from '@/components/dashboard/promotions';
 import { StatCards } from '@/components/dashboard/stat-cards';
+import { WelcomeBanner } from '@/components/dashboard/welcome-banner';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
       <SidebarInset>
         <DashboardHeader />
         <main className="p-4 sm:p-6 lg:p-8 space-y-6">
+          <WelcomeBanner />
           <StatCards />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
