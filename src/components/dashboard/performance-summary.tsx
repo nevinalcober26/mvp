@@ -1,40 +1,33 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { ArrowUp, DollarSign, ShoppingBag } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TrendingUp, BarChart } from 'lucide-react';
 
 export function PerformanceSummary() {
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Weekly Revenue</CardTitle>
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">$15,231.89</div>
-          <p className="text-xs text-muted-foreground flex items-center">
-            <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
-            +20.1% from last week
+    <Card className="bg-gray-800 text-white">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+          <BarChart className="h-5 w-5" />
+          This Week Performance
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-sm text-gray-400">Total Revenue</p>
+          <p className="text-3xl font-bold">$12,450</p>
+          <p className="text-xs text-green-400 flex items-center">
+            <TrendingUp className="h-4 w-4 mr-1" />
+            +15.3%
           </p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Avg. Order Value</CardTitle>
-          <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">$21.50</div>
-          <p className="text-xs text-muted-foreground flex items-center">
-            <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
-            +5.2% from last week
+        </div>
+        <div>
+          <p className="text-sm text-gray-400">Avg. Order Value</p>
+          <p className="text-3xl font-bold">$28.50</p>
+          <p className="text-xs text-green-400 flex items-center">
+            <TrendingUp className="h-4 w-4 mr-1" />
+            +8.7%
           </p>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
