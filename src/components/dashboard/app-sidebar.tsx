@@ -16,7 +16,7 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 
-const EMenuIcon = () => (
+export const EMenuIcon = () => (
   <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="32" height="32" rx="6" fill="hsl(var(--primary))"/>
     <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontFamily="PT Sans, sans-serif" fontSize="16" fontWeight="bold" fill="hsl(var(--primary-foreground))">eM</text>
@@ -26,7 +26,7 @@ const EMenuIcon = () => (
 export function AppSidebar() {
   return (
     <Sidebar variant="inset" collapsible="icon" className="border-r">
-      <SidebarHeader>
+      <SidebarHeader className="hidden">
         <div className="flex items-center gap-2">
           <EMenuIcon />
           <span className="text-lg font-semibold font-headline">eMenu</span>
