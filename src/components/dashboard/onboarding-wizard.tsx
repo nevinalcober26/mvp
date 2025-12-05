@@ -255,7 +255,7 @@ const MenuStep = ({
         </Button>
         <div className="flex items-center gap-4">
           <Button variant="link" onClick={onSkip}>
-            I&apos;ll do this later
+            I'll do this later
           </Button>
           <Button onClick={onNext}>
             Continue to Design <ArrowRight className="ml-2 h-4 w-4" />
@@ -414,7 +414,7 @@ export function OnboardingWizard() {
                 </div>
               ))}
             </div>
-            <Progress value={progressPercentage} className="w-full" />
+            <Progress value={progressPercentage} className="w-full h-2" />
             <div className="text-center text-sm text-muted-foreground mt-2">
               You&apos;re {Math.round(progressPercentage)}% done!
             </div>
@@ -426,3 +426,5 @@ export function OnboardingWizard() {
     </Dialog>
   );
 }
+
+    
