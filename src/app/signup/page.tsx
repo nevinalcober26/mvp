@@ -14,15 +14,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
 import { useAuth } from '@/firebase';
-import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
+import { initiateEmailSignUp } from '@/firebase/non-blocking-login';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
-export default function LoginPage() {
+export default function SignupPage() {
   const auth = useAuth();
   const router = useRouter();
   const { user, isUserLoading } = useUser();
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -32,12 +34,6 @@ export default function LoginPage() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         router.push('/dashboard');
-      }
-    }, (error) => {
-      if (error.code === 'auth/invalid-credential') {
-        setError('Invalid email or password. Please try again.');
-      } else {
-        setError(error.message);
       }
     });
 
@@ -49,17 +45,18 @@ export default function LoginPage() {
   }
 
   if (user) {
-    // router.push('/dashboard') is handled by onAuthStateChanged
     return null;
   }
 
-  const handleSignIn = async () => {
-    if (!email) {
-      setError('Please enter a valid email address.');
+  const handleSignUp = async () => {
+    if (!firstName || !lastName || !email || !password) {
+      setError('Please fill out all fields.');
       return;
     }
     setError('');
-    initiateEmailSignIn(auth, email, password);
+    // For now, we are just creating the user in Firebase Auth.
+    // In a real application, you would also create a user profile in Firestore here.
+    initiateEmailSignUp(auth, email, password);
   };
 
   return (
@@ -69,12 +66,34 @@ export default function LoginPage() {
           <div className="flex justify-center mb-4">
             <EMenuIcon />
           </div>
-          <CardTitle className="text-2xl text-center">Login</CardTitle>
+          <CardTitle className="text-2xl text-center">Create an account</CardTitle>
           <CardDescription className="text-center">
-            Enter your email below to login to your account
+            Enter your information to create an account
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="first-name">First name</Label>
+              <Input
+                id="first-name"
+                placeholder="Max"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="last-name">Last name</Label>
+              <Input
+                id="last-name"
+                placeholder="Robinson"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+              />
+            </div>
+          </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -99,13 +118,13 @@ export default function LoginPage() {
           {error && <p className="text-red-500 text-sm">{error}</p>}
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full" onClick={handleSignIn}>
-            Sign in
+          <Button className="w-full" onClick={handleSignUp}>
+            Create account
           </Button>
           <div className="text-center text-sm">
-            Don&apos;t have an account?{' '}
-            <NextLink href="/signup" className="underline">
-              Sign up
+            Already have an account?{' '}
+            <NextLink href="/" className="underline">
+              Sign in
             </NextLink>
           </div>
         </CardFooter>
