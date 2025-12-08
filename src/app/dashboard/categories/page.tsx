@@ -108,7 +108,7 @@ function SortableItem({
   
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
-        <Card className="mb-2 group/item" onClick={() => onSelect(item)}>
+        <Card className="mb-2 group/item cursor-pointer" onClick={() => onSelect(item)}>
             <CardContent className="p-2 flex items-center justify-between">
                 <div className="flex items-center gap-2 flex-grow">
                  <button {...listeners} className="cursor-grab p-1 text-muted-foreground hover:text-foreground" onClick={(e) => e.stopPropagation()}>
@@ -117,8 +117,8 @@ function SortableItem({
                 {[...Array(depth)].map((_, i) => (
                   <CornerDownRight key={i} className="h-4 w-4 text-muted-foreground" />
                 ))}
-                 <div className="flex-grow" onClick={(e) => { e.stopPropagation(); onSelect(item);}}>
-                    <span className="font-medium text-sm cursor-pointer py-1 px-2 block">{item.name}</span>
+                 <div className="flex-grow">
+                    <span className="font-medium text-sm py-1 px-2 block">{item.name}</span>
                  </div>
                 </div>
                 <DropdownMenu>
@@ -222,7 +222,7 @@ function BoardColumn({
     <div ref={setNodeRef} style={style} className="flex-shrink-0 w-80">
       <Card>
         <CardHeader {...attributes} className="p-3 flex flex-row items-center justify-between border-b" >
-           <div className="flex-grow" onClick={(e) => { e.stopPropagation(); onTitleClick(); }}>
+           <div className="flex-grow cursor-pointer" onClick={(e) => { e.stopPropagation(); onTitleClick(); }}>
             {isEditing ? (
               <Input
                   ref={inputRef}
@@ -237,7 +237,7 @@ function BoardColumn({
                   className="text-base font-semibold border-2 border-primary h-8"
               />
             ) : (
-              <CardTitle className="text-base font-semibold py-1 px-2 cursor-pointer">
+              <CardTitle className="text-base font-semibold py-1 px-2">
                   {column.name}
               </CardTitle>
             )}
@@ -272,7 +272,7 @@ function BoardColumn({
              ))}
           </SortableContext>
         </CardContent>
-        <CardFooter className="p-3 border-t mt-auto">
+        <CardFooter className="p-3 border-t">
             {isAddingItem ? (
               <div className="w-full space-y-2">
                 <Textarea 
@@ -497,7 +497,6 @@ export default function CategoriesPage() {
         if (overIsColumn) {
           // Case 1: Dropped in a column (but not on an item)
           const targetColumn = draft.find(c => c.id === overId);
-          // Simple approach: add to the end. A more complex check could find the closest item to drop near.
           targetColumn?.items.push(activeItem);
         } else {
           // Case 2: Dropped on another item (nesting or reordering)
@@ -506,34 +505,27 @@ export default function CategoriesPage() {
             const { item: overItem, parent: overParent, index: overIndex } = findItemAndParent(overId, col.items);
   
             if (overItem) {
-              // Option A: Dropped ON an item to nest it
+              // Dropped ON an item to nest it
               overItem.children.push(activeItem);
-              dropped = true;
-              break;
-            } else if (overParent) {
-              // Option B: Dropped in a list to reorder
-              overParent.splice(overIndex, 0, activeItem);
               dropped = true;
               break;
             }
           }
-  
+          
           if (!dropped) {
-            // Fallback for when dropping in an empty space within a list
-            // Find the column where overId might be an item.
-            const overColumnId = findContainer(overId);
-            const overColumn = draft.find(c => c.id === overColumnId);
-            if(overColumn) {
-                const { parent, index } = findItemAndParent(overId, overColumn.items);
-                if(parent && index > -1){
-                  parent.splice(index, 0, activeItem);
-                  dropped = true;
+            // Dropped BETWEEN items to reorder
+             for (const col of draft) {
+                const { parent, index } = findItemAndParent(overId, col.items);
+                if (parent) {
+                    parent.splice(index, 0, activeItem);
+                    dropped = true;
+                    break;
                 }
             }
           }
   
           if (!dropped && originalParent) {
-            // If we still haven't dropped it, return it to its original spot
+            // If we still haven't dropped it (e.g. invalid drop), return it to its original spot
             originalParent.splice(originalIndex, 0, activeItem);
           }
         }
@@ -570,7 +562,6 @@ export default function CategoriesPage() {
                     isEditing={editingColumnId === column.id}
                     onTitleClick={() => {
                         setEditingColumnId(column.id);
-                        setSelectedCategory(null);
                     }}
                     onTitleChange={(e) => handleColumnNameChange(column.id, e.target.value)}
                     onTitleBlur={() => setEditingColumnId(null)}
