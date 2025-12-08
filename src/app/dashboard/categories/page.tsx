@@ -260,7 +260,7 @@ function BoardColumn({
             </DropdownMenu>
           </div>
         </CardHeader>
-        <CardContent className={cn(column.items.length > 0 && 'p-3', isDragging && "min-h-[100px]")}>
+        <CardContent className={cn(column.items.length > 0 ? 'p-3' : 'p-0', isDragging && "min-h-[100px]")}>
           <SortableContext items={allItemIds} strategy={verticalListSortingStrategy}>
             {column.items.map((item) => (
                 <SortableItem
