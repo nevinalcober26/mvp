@@ -34,7 +34,6 @@ import { CSS } from '@dnd-kit/utilities';
 import { produce } from 'immer';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
 
 type Item = {
   id: UniqueIdentifier;
@@ -156,10 +155,10 @@ function SortableItem({
                         key={child.id} 
                         item={child} 
                         depth={depth + 1} 
-                        isEditing={isEditing && child.id === (isEditing as any)}
-                        onTitleClick={() => onTitleClick()}
-                        onTitleChange={onTitleChange}
-                        onTitleBlur={onTitleBlur}
+                        isEditing={editingItemId === child.id}
+                        onTitleClick={() => setEditingItemId(child.id)}
+                        onTitleChange={(e) => handleItemNameChange(child.id, e.target.value)}
+                        onTitleBlur={() => setEditingItemId(null)}
                       />)}
                  </SortableContext>
             </div>
@@ -197,7 +196,7 @@ function BoardColumn({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: column.id, data: { type: 'Column' }, disabled: isEditing });
+  } = useSortable({ id: column.id, data: { type: 'Column' } });
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -221,23 +220,15 @@ function BoardColumn({
   
   const renderSortableItem = (item: Item, depth = 0) => {
     return (
-        <div key={item.id}>
-            <SortableItem
-                item={item}
-                depth={depth}
-                isEditing={editingItemId === item.id}
-                onTitleClick={() => setEditingItemId(item.id)}
-                onTitleChange={(e) => handleItemNameChange(item.id, e.target.value)}
-                onTitleBlur={() => setEditingItemId(null)}
-            />
-            {item.children && item.children.length > 0 && (
-                <div className="pl-6">
-                    <SortableContext items={item.children.map(i => i.id)} strategy={verticalListSortingStrategy}>
-                        {item.children.map(child => renderSortableItem(child, depth + 1))}
-                    </SortableContext>
-                </div>
-            )}
-        </div>
+        <SortableItem
+            key={item.id}
+            item={item}
+            depth={depth}
+            isEditing={editingItemId === item.id}
+            onTitleClick={() => setEditingItemId(item.id)}
+            onTitleChange={(e) => handleItemNameChange(item.id, e.target.value)}
+            onTitleBlur={() => setEditingItemId(null)}
+        />
     );
 };
 
@@ -330,6 +321,8 @@ export default function CategoriesPage() {
     }
     return { item: null, parent: null, column: null, itemIndexInParent: -1 };
   }
+  
+  const findColumn = (columnId: UniqueIdentifier) => board.find(c => c.id === columnId);
 
   const handleAddNewColumn = () => {
     const newColumnId = `col-${Date.now()}`;
@@ -377,16 +370,18 @@ export default function CategoriesPage() {
 
 
   const handleAddNewItem = (columnId: UniqueIdentifier) => {
+      const newItemId = `item-${Date.now()}`;
       setBoard(produce(draft => {
           const column = draft.find(c => c.id === columnId);
           if (column) {
               column.items.push({
-                  id: `item-${Date.now()}`,
+                  id: newItemId,
                   name: `New Item`,
                   children: []
               });
           }
       }));
+      setEditingItemId(newItemId);
   }
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -402,77 +397,6 @@ export default function CategoriesPage() {
       const { item } = findItemData(activeId);
       setActiveItem(item);
     }
-  };
-
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over || !active.data.current?.type) return;
-
-    const activeId = active.id;
-    const overId = over.id;
-
-    if (activeId === overId) return;
-
-    if (active.data.current.type !== 'Item') return;
-
-    setBoard(produce(draft => {
-        let activeItemData: Item | null = null;
-        let sourceParent: Item[] | null = null;
-        let sourceColumn: Column | null = null;
-        let sourceIndex = -1;
-
-        // Find and remove the active item from its original position
-        for (const col of draft) {
-            const { item, parent, index } = findItemRecursive(activeId, col.items);
-            if (item) {
-                activeItemData = item;
-                sourceParent = parent;
-                sourceColumn = col;
-                sourceIndex = index;
-                sourceParent!.splice(sourceIndex, 1);
-                break;
-            }
-        }
-        
-        if (!activeItemData) return;
-
-        // Now, find where to place it
-        
-        // Case 1: Dropping into a column directly
-        const overIsColumn = draft.some(c => c.id === overId);
-        if (overIsColumn) {
-            const targetColumn = draft.find(c => c.id === overId);
-            if(targetColumn) {
-              targetColumn.items.push(activeItemData);
-            }
-            return;
-        }
-
-        // Case 2: Dropping on another item (to nest) or near another item (to reorder)
-        for (const col of draft) {
-            const {item: overItem, parent: overItemParent, index: overItemIndex} = findItemRecursive(overId, col.items);
-            if(overItem) {
-                // Heuristic: for now, assume dropping ON an item means making it a child.
-                // A more robust solution might use drop zones.
-                const isDroppingOnItemItself = true; 
-                if(isDroppingOnItemItself) {
-                    overItem.children.push(activeItemData);
-                } else {
-                    // This logic for dropping "near" an item is more complex and not fully implemented here
-                    // overItemParent!.splice(overItemIndex, 0, activeItemData);
-                }
-                return; // Stop searching once we've placed the item
-            }
-        }
-
-        // Case 3: If dropping area isn't an item or a column, put it back in its original column (or handle as needed)
-        // For simplicity, we'll try to add it to the original source column if no other target was found.
-        const originalColumn = draft.find(c => c.id === sourceColumn?.id);
-        if(originalColumn) {
-          originalColumn.items.push(activeItemData);
-        }
-
-    }));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -499,6 +423,46 @@ export default function CategoriesPage() {
         }));
         return;
     }
+
+    const isItemDrag = active.data.current?.type === 'Item';
+    if(isItemDrag) {
+        setBoard(produce(draft => {
+            const { item: activeItem, parent: activeParent, column: activeColumn } = findItemData(activeId);
+            if (!activeItem || !activeParent || !activeColumn) return;
+
+            // Remove active item from its original position
+            const activeIndex = activeParent.findIndex(i => i.id === activeId);
+            activeParent.splice(activeIndex, 1);
+
+            let { item: overItem, parent: overParent, column: overColumn, itemIndexInParent: overIndex } = findItemData(overId);
+            
+            // Scenario 1: Dropping over a column
+            const overIsColumn = findColumn(overId);
+            if (overIsColumn) {
+                const targetColumn = draft.find(c => c.id === overId);
+                targetColumn?.items.push(activeItem);
+                return;
+            }
+
+            if (!overItem || !overParent || !overColumn) return;
+
+            // Scenario 2: Dropping over an item (nesting)
+            // For simplicity, we'll assume a direct drop ON an item is for nesting.
+            // A more advanced solution could use drop indicators.
+            // We also need to find the item in the draft state.
+            const { item: draftOverItem } = findItemRecursive(overId, draft.flatMap(c => c.items));
+            if(draftOverItem) {
+                 draftOverItem.children.push(activeItem);
+                 return;
+            }
+
+            // Scenario 3: Reordering within the same or different list
+            const { item: draftOverItemForReorder, parent: draftOverParent, index: draftOverIndex } = findItemRecursive(overId, draft.flatMap(c => c.items));
+            if (draftOverParent) {
+                draftOverParent.splice(draftOverIndex, 0, activeItem);
+            }
+        }));
+    }
   };
   
   const flattenItems = (items: Item[]): Item[] => {
@@ -522,7 +486,6 @@ export default function CategoriesPage() {
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
           measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
         >
@@ -534,7 +497,6 @@ export default function CategoriesPage() {
                     column={column} 
                     isEditing={editingColumnId === column.id}
                     onTitleClick={() => {
-                        if (activeColumn || activeItem) return;
                         setEditingColumnId(column.id);
                     }}
                     onTitleChange={(e) => handleColumnNameChange(column.id, e.target.value)}
@@ -565,11 +527,7 @@ export default function CategoriesPage() {
                           <CardTitle className="text-base font-semibold">{activeColumn.name}</CardTitle>
                         </CardHeader>
                         <CardContent className="p-3 min-h-[100px]">
-                            <SortableContext items={flattenItems(activeColumn.items).map(i => i.id)} strategy={verticalListSortingStrategy}>
-                                {activeColumn.items.map(item => (
-                                    <SortableItem key={item.id} item={item} isEditing={false} onTitleClick={()=>{}} onTitleChange={()=>{}} onTitleBlur={()=>{}} />
-                                ))}
-                            </SortableContext>
+                            {/* Overlay doesn't need full sortable context */}
                         </CardContent>
                     </Card>
                 </div>
