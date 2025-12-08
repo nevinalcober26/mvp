@@ -84,13 +84,12 @@ function SortableItem({ item, depth = 0 }: { item: Item, depth?: number }) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: item.id });
+  } = useSortable({ id: item.id, data: {type: 'Item'} });
 
   const style = {
     transform: CSS.Translate.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    marginLeft: `${depth * 24}px`,
   };
 
   return (
@@ -101,13 +100,15 @@ function SortableItem({ item, depth = 0 }: { item: Item, depth?: number }) {
                  <button {...listeners} className="cursor-grab p-1 text-muted-foreground hover:text-foreground">
                     <GripVertical className="h-5 w-5" />
                 </button>
-                {depth > 0 && <CornerDownRight className="h-4 w-4 text-muted-foreground" />}
+                {[...Array(depth)].map((_, i) => (
+                  <CornerDownRight key={i} className="h-4 w-4 text-muted-foreground" />
+                ))}
                 <span className="font-medium text-sm">{item.name}</span>
                 </div>
                 <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
             </CardContent>
         </Card>
-        {item.children.length > 0 && (
+        {item.children && item.children.length > 0 && (
             <div className="pl-6">
                  <SortableContext items={item.children.map(i => i.id)} strategy={verticalListSortingStrategy}>
                     {item.children.map(child => <SortableItem key={child.id} item={child} depth={depth + 1} />)}
@@ -148,7 +149,7 @@ function BoardColumn({
   };
   
   const flattenItems = (items: Item[]): Item[] => {
-    return items.flatMap(item => [item, ...flattenItems(item.children)]);
+    return items.flatMap(item => [item, ...flattenItems(item.children || [])]);
   };
   
   const allItemIds = useMemo(() => flattenItems(column.items).map(i => i.id), [column.items]);
@@ -221,38 +222,43 @@ export default function CategoriesPage() {
 
   const findColumn = (id: UniqueIdentifier) => board.find(col => col.id === id);
 
-  const findItemAndParent = (itemId: UniqueIdentifier, items: Item[]): {item: Item | null, parent: Item[] | null, index: number} => {
-    for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item.id === itemId) {
-            return { item, parent: items, index: i };
-        }
-        if (item.children.length > 0) {
-            const found = findItemAndParent(itemId, item.children);
-            if (found.item) {
-                return found;
-            }
+  const findItemRecursive = (itemId: UniqueIdentifier, items: Item[]): {item: Item | null, parent: Item[] | null, index: number} => {
+      for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (item.id === itemId) {
+              return { item, parent: items, index: i };
+          }
+          if (item.children && item.children.length > 0) {
+              const found = findItemRecursive(itemId, item.children);
+              if (found.item) {
+                  return found;
+              }
+          }
+      }
+      return { item: null, parent: null, index: -1 };
+  };
+
+  const findContainer = (id: UniqueIdentifier) => {
+    if (board.some(col => col.id === id)) {
+        return board.find(col => col.id === id);
+    }
+    for (const column of board) {
+        const { item } = findItemRecursive(id, column.items);
+        if (item) {
+            return item;
         }
     }
-    return { item: null, parent: null, index: -1 };
+    return null;
   };
 
   const findItemData = (itemId: UniqueIdentifier) => {
     for (const column of board) {
-        const { item, parent, index } = findItemAndParent(itemId, column.items);
+        const { item, parent, index } = findItemRecursive(itemId, column.items);
         if (item) {
-            return { item, parent, columnIndex: board.indexOf(column), itemIndex: index };
+            return { item, parent, column, itemIndexInParent: index };
         }
     }
-    return { item: null, parent: null, columnIndex: -1, itemIndex: -1 };
-  }
-
-  const findColumnOfItem = (itemId: UniqueIdentifier): Column | null => {
-      for (const column of board) {
-          const { item } = findItemAndParent(itemId, column.items);
-          if (item) return column;
-      }
-      return null;
+    return { item: null, parent: null, column: null, itemIndexInParent: -1 };
   }
 
   const handleAddNewColumn = () => {
@@ -280,94 +286,82 @@ export default function CategoriesPage() {
     setEditingColumnId(null);
     const { active } = event;
     const activeId = active.id;
-    const column = findColumn(activeId);
-    if (column) {
-      setActiveColumn(column);
+    if (active.data.current?.type === 'Column') {
+      setActiveColumn(board.find(col => col.id === activeId) || null);
       return;
     }
-    const { item } = findItemData(activeId);
-    if (item) {
+    if(active.data.current?.type === 'Item') {
+      const { item } = findItemData(activeId);
       setActiveItem(item);
     }
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-    const { active, over, draggingRect } = event;
-    if (!over || !activeItem) return;
-  
+    const { active, over } = event;
+    if (!over || !active.data.current?.type) return;
+
     const activeId = active.id;
     const overId = over.id;
-  
+
     if (activeId === overId) return;
-  
-    setBoard(produce(draft => {
-      // Find active item and its original location
-      let activeColumnIndex = -1;
-      let activeParent: Item[] | null = null;
-      let activeIndex = -1;
-      let activeItemData: Item | null = null;
-  
-      for (let i = 0; i < draft.length; i++) {
-        const { item, parent, index } = findItemAndParent(activeId, draft[i].items);
-        if (item) {
-          activeColumnIndex = i;
-          activeParent = parent;
-          activeIndex = index;
-          activeItemData = item;
-          break;
+
+    // This handles item drags
+    if (active.data.current.type === 'Item') {
+      setBoard(produce(draft => {
+        // Find active item and its original location
+        let activeItemData: Item | null = null;
+        let sourceParent: Item[] | null = null;
+        let sourceIndex = -1;
+
+        for (const col of draft) {
+            const { item, parent, index } = findItemRecursive(activeId, col.items);
+            if (item) {
+                activeItemData = item;
+                sourceParent = parent;
+                sourceIndex = index;
+                break;
+            }
         }
-      }
-  
-      if (!activeItemData || !activeParent) return;
-  
-      // Find drop target
-      let overColumnIndex = -1;
-      let overParent: Item[] | null = null;
-      let overIndex = -1;
-      let overItemData: Item | null = null;
-  
-      // Is the target a column?
-      const overIsColumn = draft.some(c => c.id === overId);
-      if (overIsColumn) {
-        overColumnIndex = draft.findIndex(c => c.id === overId);
-        overParent = draft[overColumnIndex].items;
-        overIndex = overParent.length; // Add to end of column
-      } else {
-        // Target is another item
-        for (let i = 0; i < draft.length; i++) {
-          const { item, parent, index } = findItemAndParent(overId, draft[i].items);
-          if (item) {
-            overColumnIndex = i;
-            overParent = parent;
-            overIndex = index;
-            overItemData = item;
-            break;
+
+        if (!activeItemData || !sourceParent) return;
+
+        // Find drop target
+        let targetParent: Item[] | null = null;
+        let targetIndex = 0; // Default to start of list
+
+        const overIsColumn = draft.some(c => c.id === overId);
+        const overIsItem = !overIsColumn;
+
+        if (overIsColumn) {
+          const targetColumn = draft.find(c => c.id === overId);
+          if (targetColumn) {
+            targetParent = targetColumn.items;
+            targetIndex = targetParent.length; // Add to end of column
           }
+        } else if (overIsItem) {
+            for (const col of draft) {
+                const {item: overItem, parent: overItemParent, index: overItemIndex} = findItemRecursive(overId, col.items);
+                if(overItem) {
+                    const isDroppingOnItemItself = true; // Simplified for now
+                    if(isDroppingOnItemItself) {
+                        targetParent = overItem.children;
+                        targetIndex = overItem.children.length;
+                    } else {
+                        targetParent = overItemParent;
+                        targetIndex = overItemIndex;
+                    }
+                    break;
+                }
+            }
         }
-      }
-       
-      if (!overParent) return;
-      
-      // --- Perform the move ---
-  
-      // 1. Remove item from its original position
-      const [movedItem] = activeParent.splice(activeIndex, 1);
-  
-      // 2. Add item to its new position
-      if (overItemData) { // Dropping on another item
-        if (activeColumnIndex === overColumnIndex) {
-            // Same column move
-            const isBelow = over && active.id !== over.id && draggingRect && draggingRect.top > over.rect.top + over.rect.height / 2;
-            const finalIndex = isBelow ? overIndex + 1 : overIndex;
-            overParent.splice(finalIndex, 0, movedItem);
-        } else {
-            // Different column move - just add to the parent of the over item
-            overParent.splice(overIndex, 0, movedItem);
-        }
-      } else { // Dropping on a column
-         overParent.push(movedItem);
-      }
-    }));
+
+        if (!targetParent) return;
+
+        // Perform the move
+        const [movedItem] = sourceParent.splice(sourceIndex, 1);
+        targetParent.splice(targetIndex, 0, movedItem);
+      }));
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -383,7 +377,7 @@ export default function CategoriesPage() {
     
     const isColumnDrag = active.data.current?.type === 'Column';
 
-    if (isColumnDrag && findColumn(overId)) {
+    if (isColumnDrag) {
         setBoard(produce(board => {
             const oldIndex = board.findIndex(c => c.id === activeId);
             const newIndex = board.findIndex(c => c.id === overId);
@@ -398,7 +392,7 @@ export default function CategoriesPage() {
   };
   
   const flattenItems = (items: Item[]): Item[] => {
-    return items.flatMap(item => [item, ...flattenItems(item.children)]);
+    return items.flatMap(item => [item, ...flattenItems(item.children || [])]);
   };
 
   return (
