@@ -674,7 +674,7 @@ export default function CategoriesPage() {
     const newCategory: Item = { id: newItemId, name, children: [] };
 
     setBoard(produce(draft => {
-      if (parentId === 'none') {
+      if (parentId === 'none' || !parentId) {
         // It's a new top-level column
         const newColumnId = `col-${Date.now()}`;
         draft.push({
@@ -700,6 +700,14 @@ export default function CategoriesPage() {
               break;
             }
           }
+        }
+         if (!parentFound) {
+            const newColumnId = `col-${Date.now()}`;
+            draft.push({
+                id: newColumnId,
+                name: name,
+                items: [],
+            });
         }
       }
     }));
@@ -881,7 +889,6 @@ export default function CategoriesPage() {
                       isEditing={editingColumnId === column.id}
                       onTitleClick={() => {
                           setEditingColumnId(column.id);
-                          // setSelectedCategory(null);
                       }}
                       onTitleChange={(e) => handleColumnNameChange(column.id, e.target.value)}
                       onTitleBlur={() => setEditingColumnId(null)}
