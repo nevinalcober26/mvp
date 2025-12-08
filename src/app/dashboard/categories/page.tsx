@@ -27,7 +27,8 @@ import {
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
-} from '@dnd-kit/dnd-kit-sortable';
+  horizontalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { produce } from 'immer';
 import { Badge } from '@/components/ui/badge';
@@ -440,26 +441,53 @@ export default function CategoriesPage() {
      const overIsItem = over.data.current?.type === 'Item';
      const overIsColumn = over.data.current?.type === 'Column';
 
-     // This handles dropping an item into an empty column
-     if (activeIsItem && overIsColumn) {
-        setBoard(produce(draft => {
-            const activeContainerId = findContainer(active.id);
-            const overContainerId = over.id;
+     if (!activeIsItem) return;
 
-            if (activeContainerId !== overContainerId) {
-                const activeCol = draft.find(c => c.id === activeContainerId);
-                const overCol = draft.find(c => c.id === overContainerId);
-                if (!activeCol || !overCol) return;
+      setBoard((board) => produce(board, (draft) => {
+          // Find active item and its parent
+          let activeItem: Item | null = null;
+          let activeParent: Item[] | null = null;
+          for (const col of draft) {
+              const result = findItemAndParent(active.id, col.items);
+              if (result.item) {
+                  activeItem = result.item;
+                  activeParent = result.parent;
+                  break;
+              }
+          }
 
-                const { item: activeItem, parent: activeParent } = findItemAndParent(active.id, activeCol.items);
-                if (activeItem && activeParent) {
-                    const activeIndex = activeParent.findIndex(i => i.id === active.id);
-                    activeParent.splice(activeIndex, 1);
-                    overCol.items.push(activeItem);
-                }
-            }
-        }));
-     }
+          if (!activeItem || !activeParent) return;
+
+          // Remove active item from its original position
+          const activeIndex = activeParent.findIndex(i => i.id === active.id);
+          activeParent.splice(activeIndex, 1);
+
+          // Find over item and its parent
+          let overItem: Item | null = null;
+          let overParent: Item[] | null = null;
+          let overCol: Column | null = null;
+          
+          if (overIsItem) {
+              for (const col of draft) {
+                  const result = findItemAndParent(overId, col.items);
+                  if (result.item) {
+                      overItem = result.item;
+                      overParent = result.parent;
+                      break;
+                  }
+              }
+              if (overItem) {
+                  // Make it a child
+                  overItem.children.unshift(activeItem);
+              }
+          } else if (overIsColumn) {
+              overCol = draft.find(c => c.id === overId) || null;
+              if (overCol) {
+                  // Add to column
+                  overCol.items.push(activeItem);
+              }
+          }
+      }));
   }
 
 
@@ -518,8 +546,9 @@ export default function CategoriesPage() {
                   overIndex = 0; // Insert at the beginning of children
                   break;
               } else if (parent) { // Dropped in a sortable list (could be root or nested)
+                  const isBelow = event.delta.y > 0;
                   overParent = parent;
-                  overIndex = index + 1; // Insert after the item we dropped over
+                  overIndex = index + (isBelow ? 1 : 0);
                   break;
               }
           }
@@ -538,7 +567,10 @@ export default function CategoriesPage() {
           } else if (activeParent) {
               // Fallback: if drop target is invalid, return to original position
               const activeCol = draft.find(c => c.items === activeParent);
-              activeCol?.items.push(activeItem);
+              if(activeCol) {
+                 const originalIndex = findItemAndParent(activeId, initialBoardData.find(c => c.id === activeCol.id)?.items || [])?.index;
+                 activeCol.items.splice(originalIndex, 0, activeItem);
+              }
           }
       }));
     }
@@ -637,5 +669,3 @@ export default function CategoriesPage() {
     </>
   );
 }
-
-    
