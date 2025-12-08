@@ -292,47 +292,81 @@ export default function CategoriesPage() {
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
+    const { active, over, draggingRect } = event;
     if (!over || !activeItem) return;
-
+  
     const activeId = active.id;
     const overId = over.id;
-
+  
     if (activeId === overId) return;
-
-    const activeContainerId = findColumnOfItem(activeId)?.id;
-    const overContainerId = findColumn(overId)?.id ?? findColumnOfItem(overId)?.id;
-    
-    if (!activeContainerId || !overContainerId || activeContainerId !== overContainerId) {
-        // This simplified logic only handles reordering within the same column.
-        // Moving items between columns or nesting would require more complex logic here.
-        return;
-    }
-    
+  
     setBoard(produce(draft => {
-        const activeColumn = draft.find(c => c.id === activeContainerId);
-        if (!activeColumn) return;
-
-        const { item: activeItem, parent: activeParent, index: activeIndex } = findItemAndParent(activeId, activeColumn.items);
-        if (!activeItem || !activeParent) return;
-        
-        const { item: overItem, parent: overParent, index: overIndex } = findItemAndParent(overId, activeColumn.items);
-        if (!overItem || !overParent) return;
-
-        if (activeParent === overParent) {
-          // Reorder in same list
-          const [moved] = activeParent.splice(activeIndex, 1);
-          overParent.splice(overIndex, 0, moved);
-        } else {
-            // Move to different level
-            const [moved] = activeParent.splice(activeIndex, 1);
-            
-            // Logic to move into a new parent (overItem) or adjacent to it
-            // Simplified: just add as child
-            if(overItem.children) {
-                overItem.children.push(moved);
-            }
+      // Find active item and its original location
+      let activeColumnIndex = -1;
+      let activeParent: Item[] | null = null;
+      let activeIndex = -1;
+      let activeItemData: Item | null = null;
+  
+      for (let i = 0; i < draft.length; i++) {
+        const { item, parent, index } = findItemAndParent(activeId, draft[i].items);
+        if (item) {
+          activeColumnIndex = i;
+          activeParent = parent;
+          activeIndex = index;
+          activeItemData = item;
+          break;
         }
+      }
+  
+      if (!activeItemData || !activeParent) return;
+  
+      // Find drop target
+      let overColumnIndex = -1;
+      let overParent: Item[] | null = null;
+      let overIndex = -1;
+      let overItemData: Item | null = null;
+  
+      // Is the target a column?
+      const overIsColumn = draft.some(c => c.id === overId);
+      if (overIsColumn) {
+        overColumnIndex = draft.findIndex(c => c.id === overId);
+        overParent = draft[overColumnIndex].items;
+        overIndex = overParent.length; // Add to end of column
+      } else {
+        // Target is another item
+        for (let i = 0; i < draft.length; i++) {
+          const { item, parent, index } = findItemAndParent(overId, draft[i].items);
+          if (item) {
+            overColumnIndex = i;
+            overParent = parent;
+            overIndex = index;
+            overItemData = item;
+            break;
+          }
+        }
+      }
+       
+      if (!overParent) return;
+      
+      // --- Perform the move ---
+  
+      // 1. Remove item from its original position
+      const [movedItem] = activeParent.splice(activeIndex, 1);
+  
+      // 2. Add item to its new position
+      if (overItemData) { // Dropping on another item
+        if (activeColumnIndex === overColumnIndex) {
+            // Same column move
+            const isBelow = over && active.id !== over.id && draggingRect && draggingRect.top > over.rect.top + over.rect.height / 2;
+            const finalIndex = isBelow ? overIndex + 1 : overIndex;
+            overParent.splice(finalIndex, 0, movedItem);
+        } else {
+            // Different column move - just add to the parent of the over item
+            overParent.splice(overIndex, 0, movedItem);
+        }
+      } else { // Dropping on a column
+         overParent.push(movedItem);
+      }
     }));
   };
 
@@ -361,8 +395,6 @@ export default function CategoriesPage() {
         return;
     }
     
-    // The drag over logic should handle most cases, this is a final state update.
-    // The logic here would be similar or identical to onDragOver
   };
   
   const flattenItems = (items: Item[]): Item[] => {
@@ -398,7 +430,7 @@ export default function CategoriesPage() {
                     column={column} 
                     isEditing={editingColumnId === column.id}
                     onTitleClick={() => {
-                        if (activeColumn) return; // Don't allow edit while dragging column
+                        if (activeColumn || activeItem) return;
                         setEditingColumnId(column.id);
                     }}
                     onTitleChange={(e) => handleColumnNameChange(column.id, e.target.value)}
