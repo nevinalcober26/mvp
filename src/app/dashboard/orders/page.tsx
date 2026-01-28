@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import Image from 'next/image';
+import { format, isSameDay } from 'date-fns';
 import {
   Card,
   CardContent,
@@ -31,7 +32,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   MoreHorizontal,
   Printer,
-  Calendar,
+  Calendar as CalendarIcon,
   CreditCard,
   User,
   Info,
@@ -62,6 +63,12 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 import { cn } from '@/lib/utils';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 
 type OrderItem = {
   id: string;
@@ -180,7 +187,7 @@ const generateMockOrders = (count: number): Order[] => {
     let customerAvatar = '';
 
     // Majority of orders will be from Guests
-    if (i % 5 !== 0) { // Changed this to make more guests
+    if (i % 5 !== 0) {
       // Guest order
     } else {
       const assignedName = names[Math.floor(i / 5) % names.length];
@@ -255,6 +262,7 @@ export default function OrdersPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [date, setDate] = useState<Date | undefined>(new Date());
 
   const [filters, setFilters] = useState({
     search: '',
@@ -301,8 +309,11 @@ export default function OrdersPage() {
         filters.branch === 'all' || order.branch === filters.branch;
       const matchesStatus =
         filters.status === 'all' || order.orderStatus === filters.status;
+      
+      const orderDate = new Date(order.orderTimestamp);
+      const matchesDate = date ? isSameDay(orderDate, date) : true;
 
-      return matchesSearch && matchesBranch && matchesStatus;
+      return matchesSearch && matchesBranch && matchesStatus && matchesDate;
     });
 
     if (sortConfig !== null) {
@@ -318,7 +329,7 @@ export default function OrdersPage() {
     }
 
     return filtered;
-  }, [allOrders, filters, sortConfig]);
+  }, [allOrders, filters, sortConfig, date]);
 
   const totalPages = Math.ceil(filteredAndSortedOrders.length / itemsPerPage);
 
@@ -433,7 +444,7 @@ export default function OrdersPage() {
             <CardDescription>
               View and manage all recent orders.
             </CardDescription>
-            <div className="mt-4 flex items-center gap-4">
+            <div className="mt-4 flex flex-wrap items-center gap-4">
               <Input
                 placeholder="Search by ID, customer, table..."
                 className="max-w-xs"
@@ -469,6 +480,28 @@ export default function OrdersPage() {
                   <SelectItem value="Refunded">Refunded</SelectItem>
                 </SelectContent>
               </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={'outline'}
+                    className={cn(
+                      'w-[280px] justify-start text-left font-normal',
+                      !date && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, 'PPP') : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </CardHeader>
           <CardContent>
@@ -635,7 +668,7 @@ export default function OrdersPage() {
                   Order {selectedOrder.orderId}
                 </SheetTitle>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
+                  <CalendarIcon className="h-4 w-4" />
                   <span>{selectedOrder.orderDate}</span>
                 </div>
               </SheetHeader>
