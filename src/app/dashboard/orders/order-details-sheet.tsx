@@ -174,97 +174,100 @@ export function OrderDetailsSheet({
 
                 <Separator className="my-4" />
                 
-                <h4 className="font-semibold mb-3">Payment History</h4>
-                
-                {order.splitType ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 p-3 bg-secondary rounded-md border">
-                    {order.splitType === 'equally' ? (
-                      <Users className="h-5 w-5" />
-                    ) : (
-                      <Package className="h-5 w-5" />
-                    )}
-                    <span>
-                      Payment split <strong>{order.splitType}</strong>.
-                    </span>
-                  </div>
-                ) : order.paymentState === 'Partial' ? (
-                     <p className="text-sm text-muted-foreground mb-3">
-                      A partial payment was made.
-                    </p>
-                ) : null }
+                <div className="max-h-56 overflow-y-auto pr-4">
 
-                { (order.payments.length > 0 || (order.totalAmount - order.paidAmount > 0.01)) ? (
-                  <div className="flow-root">
-                    <ul className="-mb-8">
-                      {order.payments.map((payment, index) => {
-                        const isLastPayment = index === order.payments.length - 1;
-                        const hasPendingAmount = (order.totalAmount - order.paidAmount) > 0.01;
-                        const showLineAndPadding = !isLastPayment || hasPendingAmount;
-
-                        return (
-                          <li key={`payment-${index}`}>
-                            <div className={cn("relative", showLineAndPadding && "pb-8")}>
-                              { showLineAndPadding && (
-                                <span className="absolute left-2.5 top-4 -ml-px h-full w-0.5 bg-border" aria-hidden="true" />
-                              )}
-                              <div className="relative flex items-start space-x-3">
-                                <div>
-                                  <span className="h-5 w-5 rounded-full bg-primary flex items-center justify-center ring-4 ring-background">
-                                    <Check className="h-3 w-3 text-primary-foreground" />
-                                  </span>
-                                </div>
-                                <div className="min-w-0 flex-1 flex justify-between items-start">
-                                  <div>
-                                    <p className="font-medium text-sm">
-                                      Paid ${payment.amount} via {payment.method === 'Credit Card' ? 'Credit Card (Network International)' : payment.method}
-                                    </p>
-                                    <p className="mt-0.5 text-sm text-muted-foreground">
-                                      {payment.guestName} - {payment.date}
-                                    </p>
-                                  </div>
-                                  <Badge variant="outline" className="bg-green-100 text-green-700 border-transparent">
-                                    Success
-                                  </Badge>
-                                </div>
-                              </div>
-                            </div>
-                          </li>
-                        )
-                      })}
-
-                      { (order.totalAmount - order.paidAmount > 0.01) && (
-                          <li key="pending">
-                            <div className="relative">
-                              <div className="relative flex items-start space-x-3">
-                                <div>
-                                  <span className="h-5 w-5 rounded-full bg-destructive flex items-center justify-center ring-4 ring-background">
-                                    <Hourglass className="h-3 w-3 text-destructive-foreground" />
-                                  </span>
-                                </div>
-                                <div className="min-w-0 flex-1 flex justify-between items-start">
-                                  <div>
-                                    <p className="font-medium text-sm text-red-600">
-                                      Pending Amount
-                                    </p>
-                                    <p className="mt-0.5 text-sm text-muted-foreground">
-                                      Awaiting payment
-                                    </p>
-                                  </div>
-                                  <span className="font-mono font-semibold text-red-600">
-                                    ${(order.totalAmount - order.paidAmount).toFixed(2)}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </li>
+                  <h4 className="font-semibold mb-3">Payment History</h4>
+                  
+                  {order.splitType ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 p-3 bg-secondary rounded-md border">
+                      {order.splitType === 'equally' ? (
+                        <Users className="h-5 w-5" />
+                      ) : (
+                        <Package className="h-5 w-5" />
                       )}
-                    </ul>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    This order is fully paid.
-                  </p>
-                )}
+                      <span>
+                        Payment split <strong>{order.splitType}</strong>.
+                      </span>
+                    </div>
+                  ) : order.paymentState === 'Partial' ? (
+                       <p className="text-sm text-muted-foreground mb-3">
+                        A partial payment was made.
+                      </p>
+                  ) : null }
+
+                  { (order.payments.length > 0 || (order.totalAmount - order.paidAmount > 0.01)) ? (
+                    <div className="flow-root">
+                      <ul className="-mb-8">
+                        {order.payments.map((payment, index) => {
+                          const isLastPayment = index === order.payments.length - 1;
+                          const hasPendingAmount = (order.totalAmount - order.paidAmount) > 0.01;
+                          const showLineAndPadding = !isLastPayment || hasPendingAmount;
+
+                          return (
+                            <li key={`payment-${index}`}>
+                              <div className={cn("relative", showLineAndPadding && "pb-8")}>
+                                { showLineAndPadding && (
+                                  <span className="absolute left-2.5 top-4 -ml-px h-full w-0.5 bg-border" aria-hidden="true" />
+                                )}
+                                <div className="relative flex items-start space-x-3">
+                                  <div>
+                                    <span className="h-5 w-5 rounded-full bg-primary flex items-center justify-center ring-4 ring-background">
+                                      <Check className="h-3 w-3 text-primary-foreground" />
+                                    </span>
+                                  </div>
+                                  <div className="min-w-0 flex-1 flex justify-between items-start">
+                                    <div>
+                                      <p className="font-medium text-sm">
+                                        Paid ${payment.amount} via {payment.method === 'Credit Card' ? 'Credit Card (Network International)' : payment.method}
+                                      </p>
+                                      <p className="mt-0.5 text-sm text-muted-foreground">
+                                        {payment.guestName} - {payment.date}
+                                      </p>
+                                    </div>
+                                    <Badge variant="outline" className="bg-green-100 text-green-700 border-transparent">
+                                      Success
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+                            </li>
+                          )
+                        })}
+
+                        { (order.totalAmount - order.paidAmount > 0.01) && (
+                            <li key="pending">
+                              <div className="relative">
+                                <div className="relative flex items-start space-x-3">
+                                  <div>
+                                    <span className="h-5 w-5 rounded-full bg-destructive flex items-center justify-center ring-4 ring-background">
+                                      <Hourglass className="h-3 w-3 text-destructive-foreground" />
+                                    </span>
+                                  </div>
+                                  <div className="min-w-0 flex-1 flex justify-between items-start pt-0.5">
+                                    <div>
+                                      <p className="font-medium text-sm text-red-600">
+                                        Pending Amount
+                                      </p>
+                                      <p className="mt-0.5 text-sm text-muted-foreground">
+                                        Awaiting payment
+                                      </p>
+                                    </div>
+                                    <span className="font-mono font-semibold text-red-600">
+                                      ${(order.totalAmount - order.paidAmount).toFixed(2)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </li>
+                        )}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      This order is fully paid.
+                    </p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
