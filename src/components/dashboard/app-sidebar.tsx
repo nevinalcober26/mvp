@@ -14,6 +14,8 @@ import {
   FileText,
   LifeBuoy,
   ChevronDown,
+  ClipboardList,
+  LayoutDashboard,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -108,7 +110,9 @@ export function AppSidebar() {
                 asChild
                 isActive={
                   pathname.startsWith('/dashboard') &&
-                  !pathname.includes('categories')
+                  !pathname.includes('categories') &&
+                  !pathname.includes('orders') &&
+                  !pathname.includes('tables')
                 }
                 tooltip="Dashboard"
               >
@@ -188,6 +192,36 @@ export function AppSidebar() {
               <SidebarMenuButton href="#" tooltip="Feedback Forms">
                 <MessageSquare />
                 <span>Feedback Forms</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+        <SidebarSeparator />
+        <SidebarGroup>
+          <SidebarGroupLabel>Orders</SidebarGroupLabel>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith('/dashboard/orders')}
+                tooltip="Order List"
+              >
+                <NextLink href="/dashboard/orders">
+                  <ClipboardList />
+                  <span>Order List</span>
+                </NextLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith('/dashboard/tables')}
+                tooltip="Table States"
+              >
+                <NextLink href="/dashboard/tables">
+                  <LayoutDashboard />
+                  <span>Table States</span>
+                </NextLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
