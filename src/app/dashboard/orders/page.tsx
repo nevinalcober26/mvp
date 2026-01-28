@@ -54,6 +54,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetFooter,
+  SheetClose,
 } from '@/components/ui/sheet';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { Separator } from '@/components/ui/separator';
@@ -578,12 +579,9 @@ export default function OrdersPage() {
                 <Button variant="outline">
                   <Printer className="mr-2 h-4 w-4" /> Print Receipt
                 </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => setSelectedOrder(null)}
-                >
-                  Close
-                </Button>
+                <SheetClose asChild>
+                  <Button variant="secondary">Close</Button>
+                </SheetClose>
               </SheetFooter>
             </div>
           )}
