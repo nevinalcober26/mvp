@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import {
   Card,
@@ -205,6 +205,7 @@ const getStatusBadgeVariant = (status: string) => {
 export default function OrdersPage() {
   const [orders, setOrders] = useState(initialOrders);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const handleStatusChange = (
     orderId: string,
@@ -216,12 +217,6 @@ export default function OrdersPage() {
       )
     );
   };
-
-  const handleSheetOpenChange = useCallback((isOpen: boolean) => {
-    if (!isOpen) {
-      setSelectedOrder(null);
-    }
-  }, []);
 
   return (
     <>
@@ -329,7 +324,10 @@ export default function OrdersPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() => setSelectedOrder(order)}
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setIsSheetOpen(true);
+                            }}
                           >
                             View Details
                           </DropdownMenuItem>
@@ -403,8 +401,8 @@ export default function OrdersPage() {
       </main>
 
       <Sheet
-        open={!!selectedOrder}
-        onOpenChange={handleSheetOpenChange}
+        open={isSheetOpen}
+        onOpenChange={setIsSheetOpen}
       >
         <SheetContent className="sm:max-w-lg w-full p-0">
           {selectedOrder && (
