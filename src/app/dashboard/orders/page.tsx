@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import {
   Card,
@@ -65,7 +65,6 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 
-
 type OrderItem = {
   id: string;
   name: string;
@@ -97,120 +96,119 @@ type Order = {
   payments: Payment[];
 };
 
-const initialOrders: Order[] = [
-  {
-    orderId: '#3210',
-    branch: 'Ras Al Khaimah',
-    table: 'T5',
-    orderType: 'Post-Paid',
-    orderStatus: 'Paid',
-    paymentState: 'Fully Paid',
-    totalAmount: 55.5,
-    paidAmount: 55.5,
-    customerName: 'Alice Johnson',
-    customerEmail: 'alice@example.com',
-    customerAvatar: 'https://picsum.photos/seed/alice/100/100',
-    orderDate: '2024-07-23 10:30 AM',
-    items: [
-      { id: '1', name: 'Classic Pancakes', quantity: 1, price: 12.5 },
-      { id: '2', name: 'Orange Juice', quantity: 2, price: 5.0 },
-      { id: '3', name: 'Espresso', quantity: 1, price: 3.5 },
-    ],
-    payments: [
-      {
-        method: 'Credit Card',
-        amount: '55.50',
-        date: '2024-07-23 10:32 AM',
-        transactionId: 'txn_12345',
-      },
-    ],
-  },
-  {
-    orderId: '#3209',
-    branch: 'Ras Al Khaimah',
-    table: 'T2',
-    orderType: 'Prepaid',
-    orderStatus: 'Open',
-    paymentState: 'Partial',
-    totalAmount: 30.0,
-    paidAmount: 15.0,
-    customerName: 'Bob Williams',
-    customerEmail: 'bob@example.com',
-    customerAvatar: 'https://picsum.photos/seed/bob/100/100',
-    orderDate: '2024-07-23 09:45 AM',
-    items: [
-      { id: '4', name: 'Avocado Toast', quantity: 1, price: 15.0 },
-      { id: '5', name: 'Latte', quantity: 1, price: 5.5 },
-    ],
-    payments: [
-      {
-        method: 'Cash',
-        amount: '15.00',
-        date: '2024-07-23 09:46 AM',
-        transactionId: 'txn_67890',
-      },
-    ],
-  },
-  {
-    orderId: '#3208',
-    branch: 'Ras Al Khaimah',
-    table: 'T12',
-    orderType: 'Post-Paid',
-    orderStatus: 'Draft',
-    paymentState: 'Unpaid',
-    totalAmount: 89.9,
-    paidAmount: 0.0,
-    customerName: 'Charlie Brown',
-    customerEmail: 'charlie@example.com',
-    customerAvatar: 'https://picsum.photos/seed/charlie/100/100',
-    orderDate: '2024-07-22 08:15 PM',
-    items: [
-      { id: '6', name: 'Ribeye Steak', quantity: 1, price: 45.0 },
-      { id: '7', name: 'Red Wine', quantity: 1, price: 12.0 },
-      { id: '8', name: 'Cheesecake', quantity: 1, price: 8.9 },
-    ],
-    payments: [],
-  },
-  {
-    orderId: '#3207',
-    branch: 'Dubai Mall',
-    table: 'T8',
-    orderType: 'Post-Paid',
-    orderStatus: 'Cancelled',
-    paymentState: 'Unpaid',
-    totalAmount: 25.0,
-    paidAmount: 0.0,
-    customerName: 'Diana Prince',
-    customerEmail: 'diana@example.com',
-    customerAvatar: 'https://picsum.photos/seed/diana/100/100',
-    orderDate: '2024-07-22 07:00 PM',
-    items: [{ id: '9', name: 'Margherita Pizza', quantity: 1, price: 20.0 }],
-    payments: [],
-  },
-  {
-    orderId: '#3206',
-    branch: 'Dubai Mall',
-    table: 'T1',
-    orderType: 'Prepaid',
-    orderStatus: 'Refunded',
-    paymentState: 'Fully Paid',
-    totalAmount: 18.0,
-    paidAmount: 18.0,
-    customerName: 'Eve Adams',
-    customerEmail: 'eve@example.com',
-    customerAvatar: 'https://picsum.photos/seed/eve/100/100',
-    orderDate: '2024-07-21 05:20 PM',
-    items: [{ id: '10', name: 'Iced Coffee', quantity: 2, price: 9.0 }],
-    payments: [
-      {
-        method: 'Credit Card',
-        amount: '18.00',
-        date: '2024-07-21 05:21 PM',
-        transactionId: 'txn_11223',
-      },
-    ],
-  },
-];
+const generateMockOrders = (count: number): Order[] => {
+  const statuses: Order['orderStatus'][] = [
+    'Paid',
+    'Open',
+    'Draft',
+    'Cancelled',
+    'Refunded',
+  ];
+  const paymentStates: Order['paymentState'][] = [
+    'Fully Paid',
+    'Partial',
+    'Unpaid',
+  ];
+  const branches = ['Ras Al Khaimah', 'Dubai Mall'];
+  const names = [
+    'Liam Smith',
+    'Olivia Johnson',
+    'Noah Williams',
+    'Emma Brown',
+    'Oliver Jones',
+    'Ava Garcia',
+    'Elijah Miller',
+    'Charlotte Davis',
+    'William Rodriguez',
+    'Sophia Martinez',
+  ];
+  const menuItems = [
+    { id: '1', name: 'Classic Pancakes', price: 12.5 },
+    { id: '2', name: 'Orange Juice', price: 5.0 },
+    { id: '3', name: 'Espresso', price: 3.5 },
+    { id: '4', name: 'Avocado Toast', price: 15.0 },
+    { id: '5', name: 'Latte', price: 5.5 },
+    { id: '6', name: 'Ribeye Steak', price: 45.0 },
+    { id: '7', name: 'Margherita Pizza', price: 20.0 },
+    { id: '8', name: 'Cheesecake', price: 8.9 },
+  ];
+
+  const orders: Order[] = [];
+  for (let i = 0; i < count; i++) {
+    const customerName = names[i % names.length];
+    const orderStatus = statuses[i % statuses.length];
+    
+    let paymentState = paymentStates[i % paymentStates.length];
+    // Align payment state with order status
+    if (orderStatus === 'Paid') paymentState = 'Fully Paid';
+    if (orderStatus === 'Cancelled' || orderStatus === 'Draft' || orderStatus === 'Refunded') paymentState = 'Unpaid';
+    if (orderStatus === 'Open' && paymentState === 'Fully Paid') paymentState = 'Partial';
+
+
+    const orderItemsCount = Math.floor(Math.random() * 3) + 1;
+    const currentItems = Array.from({ length: orderItemsCount }, (_, j) => {
+      const item = menuItems[Math.floor(Math.random() * menuItems.length)];
+      return {
+        ...item,
+        id: `${item.id}-${i}-${j}`,
+        quantity: Math.floor(Math.random() * 2) + 1,
+      };
+    });
+
+    const totalAmount = currentItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    let paidAmount = 0;
+    if (paymentState === 'Fully Paid') {
+      paidAmount = totalAmount;
+    } else if (paymentState === 'Partial') {
+      paidAmount = totalAmount / 2;
+    }
+    
+    if (orderStatus === 'Refunded') {
+        paidAmount = totalAmount;
+    }
+
+    orders.push({
+      orderId: `#${3210 + i}`,
+      branch: branches[i % branches.length],
+      table: `T${(i % 12) + 1}`,
+      orderType: i % 2 === 0 ? 'Post-Paid' : 'Prepaid',
+      orderStatus,
+      paymentState,
+      totalAmount,
+      paidAmount,
+      customerName,
+      customerEmail: `${customerName.toLowerCase().replace(' ', '.')}@example.com`,
+      customerAvatar: `https://picsum.photos/seed/${customerName
+        .split(' ')[0]
+        .toLowerCase()}/100/100`,
+      orderDate: new Date(Date.now() - i * 3600000).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      items: currentItems,
+      payments:
+        paidAmount > 0
+          ? [
+              {
+                method: i % 2 === 0 ? 'Credit Card' : 'Cash',
+                amount: paidAmount.toFixed(2),
+                date: new Date(
+                  Date.now() - i * 3600000 + 120000
+                ).toLocaleString(),
+                transactionId: `txn_${12345 + i}`,
+              },
+            ]
+          : [],
+    });
+  }
+  return orders;
+};
 
 const getStatusBadgeVariant = (status: string) => {
   switch (status.toLowerCase()) {
@@ -232,12 +230,25 @@ const getStatusBadgeVariant = (status: string) => {
 };
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState(initialOrders);
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setAllOrders(generateMockOrders(50));
+  }, []);
+
+  const totalPages = Math.ceil(allOrders.length / itemsPerPage);
+
+  const paginatedOrders = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return allOrders.slice(startIndex, startIndex + itemsPerPage);
+  }, [allOrders, currentPage]);
 
   const kpiCards: StatCardData[] = useMemo(() => {
-    const successfulOrders = orders.filter(
+    const successfulOrders = allOrders.filter(
       (order) =>
         order.orderStatus !== 'Cancelled' && order.orderStatus !== 'Refunded'
     );
@@ -247,12 +258,12 @@ export default function OrdersPage() {
       0
     );
 
-    const totalOrders = orders.length;
+    const totalOrders = allOrders.length;
 
     const averageOrderValue =
       successfulOrders.length > 0 ? totalRevenue / successfulOrders.length : 0;
     
-    const cancelledCount = orders.filter(
+    const cancelledCount = allOrders.filter(
       (order) => order.orderStatus === 'Cancelled' || order.orderStatus === 'Refunded'
     ).length;
 
@@ -292,13 +303,13 @@ export default function OrdersPage() {
             color: 'green',
         },
     ];
-  }, [orders]);
+  }, [allOrders]);
 
   const handleStatusChange = (
     orderId: string,
     newStatus: Order['orderStatus']
   ) => {
-    setOrders((currentOrders) =>
+    setAllOrders((currentOrders) =>
       currentOrders.map((order) =>
         order.orderId === orderId ? { ...order, orderStatus: newStatus } : order
       )
@@ -372,7 +383,7 @@ export default function OrdersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {orders.map((order) => (
+                {paginatedOrders.map((order) => (
                   <TableRow key={order.orderId}>
                     <TableCell className="font-medium">{order.orderId}</TableCell>
                     <TableCell>{order.branch}</TableCell>
@@ -477,14 +488,31 @@ export default function OrdersPage() {
           </CardContent>
           <CardFooter className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              Showing <strong>1</strong> to <strong>{orders.length}</strong> of{' '}
-              <strong>{orders.length}</strong> orders
+              Showing{' '}
+              <strong>
+                {Math.min((currentPage - 1) * itemsPerPage + 1, allOrders.length)}
+              </strong>{' '}
+              to{' '}
+              <strong>
+                {Math.min(currentPage * itemsPerPage, allOrders.length)}
+              </strong>{' '}
+              of <strong>{allOrders.length}</strong> orders
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" disabled>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+              >
                 Previous
               </Button>
-              <Button variant="outline" size="sm" disabled>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
                 Next
               </Button>
             </div>
