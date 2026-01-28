@@ -3,12 +3,6 @@
 import { useState, useEffect } from 'react';
 import { RefreshCw, AlertCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 
 export function PosSyncStatus() {
@@ -25,53 +19,44 @@ export function PosSyncStatus() {
     return () => clearInterval(interval);
   }, [lastSync]);
 
-  // Function to simulate a sync error or successful sync
-  const handleToggle = () => {
-    // If we are currently in an error state, clicking fixes it and we log a new sync time.
-    if (hasError) {
-      const newSyncTime = new Date();
-      setLastSync(newSyncTime);
-      setTimeAgo('just now'); // Immediately update UI
-    }
-    setHasError(!hasError);
+  const handleRetry = () => {
+    setHasError(false);
+    const newSyncTime = new Date();
+    setLastSync(newSyncTime);
+    setTimeAgo('just now');
   };
 
+  const simulateError = () => {
+    setHasError(true);
+  };
+  
+  if (hasError) {
+    return (
+        <div className="flex items-center gap-3 rounded-lg bg-destructive/10 border border-destructive/50 p-2 text-sm text-destructive">
+            <AlertCircle className="h-5 w-5" />
+            <div className="flex-grow">
+                <p className="font-semibold">Sync Failed</p>
+                <p className="text-xs">Could not connect to POS server.</p>
+            </div>
+            <Button variant="destructive" size="sm" onClick={handleRetry}>Retry</Button>
+        </div>
+    );
+  }
+
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            className="flex items-center gap-2 text-sm text-muted-foreground"
-            onClick={handleToggle}
-          >
-            {hasError ? (
-              <AlertCircle className="h-4 w-4 text-red-500" />
-            ) : (
-              <RefreshCw
-                className="h-4 w-4 text-green-500 animate-spin"
-                style={{ animationDuration: '2s' }}
-              />
-            )}
-            <span>{hasError ? 'Sync Failed' : `Synced ${timeAgo}`}</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          {hasError ? (
-            <div>
-              <p>Last attempt failed. Click to retry.</p>
-              <p className="font-bold">Error: Connection timed out.</p>
-            </div>
-          ) : (
-            <div>
-              <p>Last successful sync: {lastSync.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Click to simulate an error.
-              </p>
-            </div>
-          )}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <div 
+        className="flex items-center gap-2 rounded-lg bg-secondary p-2.5 text-sm text-muted-foreground cursor-pointer"
+        onClick={simulateError}
+        title="Click to simulate a sync error"
+    >
+        <RefreshCw
+            className="h-4 w-4 text-green-500 animate-spin"
+            style={{ animationDuration: '2s' }}
+        />
+        <div>
+            <span className="font-medium text-foreground">POS Synced</span>
+            <span className="ml-2">Last sync: {timeAgo}</span>
+        </div>
+    </div>
   );
 }
