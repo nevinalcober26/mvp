@@ -23,6 +23,8 @@ import {
   Info,
   Printer,
   Check,
+  Users,
+  Package,
 } from 'lucide-react';
 import type { Order } from './types';
 import { getStatusBadgeVariant } from './utils';
@@ -159,7 +161,20 @@ export function OrderDetailsSheet({
                     </span>
                   </div>
                 </div>
+
                 <Separator className="my-4" />
+                <div className="grid grid-cols-2 gap-4">
+                  <Button variant="outline">
+                    <Users className="mr-2 h-4 w-4" />
+                    Split by Guest
+                  </Button>
+                  <Button variant="outline">
+                    <Package className="mr-2 h-4 w-4" />
+                    Split by Item
+                  </Button>
+                </div>
+                <Separator className="my-4" />
+                
                 <h4 className="font-semibold mb-3">Payment History</h4>
                 {order.paymentState === 'Partial' &&
                   order.payments.length > 1 && (
