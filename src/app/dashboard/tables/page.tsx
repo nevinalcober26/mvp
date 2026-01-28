@@ -20,7 +20,6 @@ import {
   Circle,
   Hourglass,
   CirclePercent,
-  CheckCircle,
   Dot,
 } from 'lucide-react';
 
@@ -90,12 +89,12 @@ const statusConfig: Record<
 };
 
 const filterOptions = [
-  { name: 'All', color: 'bg-gray-500' },
-  { name: 'Vacant', color: 'bg-green-500' },
-  { name: 'Occupied', color: 'bg-orange-500' },
-  { name: 'Unpaid', status: 'Occupied - Unpaid', color: 'bg-red-500' },
-  { name: 'Partial', status: 'Occupied - Partially Paid', color: 'bg-yellow-500' },
-  { name: 'Paid', status: 'Occupied - Fully Paid', color: 'bg-blue-500' },
+  { name: 'All', color: 'text-muted-foreground' },
+  { name: 'Vacant', color: 'text-green-700' },
+  { name: 'Occupied', color: 'text-orange-600' },
+  { name: 'Unpaid', status: 'Occupied - Unpaid', color: 'text-red-700' },
+  { name: 'Partial', status: 'Occupied - Partially Paid', color: 'text-yellow-700' },
+  { name: 'Paid', status: 'Occupied - Fully Paid', color: 'text-blue-700' },
 ];
 
 const TableCard = ({ table }: { table: Table }) => {
@@ -131,39 +130,11 @@ const TableCard = ({ table }: { table: Table }) => {
   );
 };
 
-const StatCard = ({ title, value, color, icon: Icon }: { title: string, value: number, color: string, icon: React.ElementType }) => (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center gap-2">
-            <div className={cn("h-8 w-8 flex items-center justify-center rounded-lg", color.replace('text','bg').replace('-700', '-100'))}>
-                <Icon className={cn("h-5 w-5", color)} />
-            </div>
-            <div>
-                <p className="text-2xl font-bold">{value}</p>
-                <p className="text-xs text-muted-foreground">{title}</p>
-            </div>
-        </div>
-      </CardContent>
-    </Card>
-);
-
-
 export default function TablesPage() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeFloor, setActiveFloor] = useState('All');
 
   const floors = useMemo(() => ['All', ...new Set(tables.map((t) => t.floor))], []);
-
-  const summaryStats = useMemo(() => {
-    return {
-      total: tables.length,
-      vacant: tables.filter(t => t.status === 'Vacant').length,
-      occupied: tables.filter(t => t.status.startsWith('Occupied')).length,
-      unpaid: tables.filter(t => t.status === 'Occupied - Unpaid').length,
-      partial: tables.filter(t => t.status === 'Occupied - Partially Paid').length,
-      paid: tables.filter(t => t.status === 'Occupied - Fully Paid').length,
-    };
-  }, []);
 
   const filteredTables = useMemo(() => {
     return tables.filter((table) => {
@@ -184,15 +155,6 @@ export default function TablesPage() {
         <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-800">Live Table View</h1>
             <p className="text-muted-foreground">Monitor the real-time status of all tables across your locations.</p>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-            <StatCard title="Total Tables" value={summaryStats.total} color="text-gray-700" icon={Users}/>
-            <StatCard title="Vacant" value={summaryStats.vacant} color="text-green-700" icon={Circle}/>
-            <StatCard title="Occupied" value={summaryStats.occupied} color="text-orange-700" icon={Users}/>
-            <StatCard title="Unpaid" value={summaryStats.unpaid} color="text-red-700" icon={Hourglass}/>
-            <StatCard title="Partial" value={summaryStats.partial} color="text-yellow-700" icon={CirclePercent}/>
-            <StatCard title="Paid" value={summaryStats.paid} color="text-blue-700" icon={CheckCircle}/>
         </div>
         
         <Card className="p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
