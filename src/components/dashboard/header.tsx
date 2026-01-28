@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { SidebarTrigger } from '../ui/sidebar';
+import { PosSyncStatus } from './pos-sync-status';
 
 const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
@@ -32,7 +33,7 @@ export function DashboardHeader() {
         <SidebarTrigger />
       </div>
 
-      <div className="flex-1 flex justify-end">
+      <div className="flex-1 flex items-center justify-start gap-4">
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -41,6 +42,7 @@ export function DashboardHeader() {
             className="w-full rounded-lg bg-secondary pl-10"
           />
         </div>
+        <PosSyncStatus />
       </div>
       <div className="flex items-center gap-4">
         <DropdownMenu>

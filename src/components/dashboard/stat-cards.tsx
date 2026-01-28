@@ -3,15 +3,11 @@ import {
   CardContent,
 } from '@/components/ui/card';
 import {
-  LayoutGrid,
-  Package,
-  FileText,
-  ShoppingCart,
   TrendingUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type StatCardProps = {
+export type StatCardData = {
   title: string;
   value: string;
   change?: string;
@@ -20,7 +16,7 @@ type StatCardProps = {
   color: string;
 };
 
-function StatCard({ title, value, change, changeDescription, icon: Icon, color }: StatCardProps) {
+function StatCard({ title, value, change, changeDescription, icon: Icon, color }: StatCardData) {
   return (
     <Card className={cn("relative overflow-hidden border-0 shadow-lg", `before:content-[''] before:absolute before:right-0 before:top-0 before:bottom-0 before:w-1 before:bg-${color}-400`)}>
       <CardContent className="p-4">
@@ -41,40 +37,12 @@ function StatCard({ title, value, change, changeDescription, icon: Icon, color }
   );
 }
 
-export function StatCards() {
+export function StatCards({ cards }: { cards: StatCardData[] }) {
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-      <StatCard
-        title="Total Categories"
-        value="26"
-        change="+4.5%"
-        changeDescription="vs last month"
-        icon={LayoutGrid}
-        color="orange"
-      />
-      <StatCard
-        title="Active Products"
-        value="120"
-        change="+12%"
-        changeDescription="New items added"
-        icon={Package}
-        color="pink"
-      />
-      <StatCard 
-        title="Published Pages" 
-        value="8" 
-        changeDescription="Updated 2 days ago" 
-        icon={FileText} 
-        color="green" 
-      />
-      <StatCard
-        title="Today's Orders"
-        value="45"
-        change="+8.2%"
-        changeDescription="vs yesterday"
-        icon={ShoppingCart}
-        color="teal"
-      />
+      {cards.map((card) => (
+        <StatCard key={card.title} {...card} />
+      ))}
     </div>
   );
 }

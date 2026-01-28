@@ -30,16 +30,6 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 
-const generateChartData = () => [
-  { date: 'Mon', orders: Math.floor(Math.random() * 25) + 30 },
-  { date: 'Tue', orders: Math.floor(Math.random() * 25) + 35 },
-  { date: 'Wed', orders: Math.floor(Math.random() * 25) + 32 },
-  { date: 'Thu', orders: Math.floor(Math.random() * 25) + 45 },
-  { date: 'Fri', orders: Math.floor(Math.random() * 25) + 40 },
-  { date: 'Sat', orders: Math.floor(Math.random() * 25) + 55 },
-  { date: 'Sun', orders: Math.floor(Math.random() * 25) + 50 },
-];
-
 const chartConfig = {
   orders: {
     label: 'Orders',
@@ -47,12 +37,10 @@ const chartConfig = {
   },
 };
 
-export function OrderAnalyticsChart() {
-  const [data, setData] = useState<any[]>([]);
+export function OrderAnalyticsChart({ data }: { data: any[] }) {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setData(generateChartData());
     setIsClient(true);
   }, []);
 
