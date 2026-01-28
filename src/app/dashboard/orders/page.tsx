@@ -532,6 +532,8 @@ export default function OrdersPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Set Order Status</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem
                               onClick={() =>
                                 handleStatusChange(order.orderId, 'Draft')
