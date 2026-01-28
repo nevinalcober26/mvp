@@ -25,6 +25,7 @@ import {
   Check,
   Users,
   Package,
+  User,
 } from 'lucide-react';
 import type { Order } from './types';
 import { getStatusBadgeVariant } from './utils';
@@ -69,6 +70,13 @@ export function OrderDetailsSheet({
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Table</span>
                   <Badge variant="secondary" className="text-base px-3 py-1">{order.table}</Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Staff Name
+                  </span>
+                  <span className="font-medium">{order.staffName}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Order Type</span>

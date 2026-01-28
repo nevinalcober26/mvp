@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Users, Circle, Hourglass, CirclePercent } from 'lucide-react';
+import { Users, Circle, Hourglass, CirclePercent, User } from 'lucide-react';
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
 import { generateMockOrders } from '@/app/dashboard/orders/mock';
 import type { Order } from '@/app/dashboard/orders/types';
@@ -101,6 +101,12 @@ const TableCard = ({ table, onClick }: { table: Table; onClick: () => void }) =>
           {config.label}
         </p>
         <p className="text-xs text-muted-foreground mt-1">{table.floor}</p>
+        {table.order?.staffName && (
+          <div className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
+            <User className="h-3 w-3" />
+            <span>{table.order.staffName}</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

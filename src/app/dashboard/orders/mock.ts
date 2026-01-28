@@ -16,6 +16,7 @@ export const generateMockOrders = (count: number): Order[] => {
     'Unpaid',
   ];
   const branches: Order['branch'][] = ['Ras Al Khaimah', 'Dubai Mall'];
+  const staffNames = ['Alex', 'Maria', 'John', 'Sarah', 'David'];
   const menuItems = [
     { id: '1', name: 'Classic Pancakes', price: 12.5 },
     { id: '2', name: 'Orange Juice', price: 5.0 },
@@ -31,6 +32,7 @@ export const generateMockOrders = (count: number): Order[] => {
   for (let i = 0; i < count; i++) {
     const orderStatus = statuses[i % statuses.length];
     const orderType = i % 2 === 0 ? 'Post-Paid' : 'Prepaid';
+    const staffName = staffNames[i % staffNames.length];
 
     let paymentState = paymentStates[i % paymentStates.length];
     if (orderStatus === 'Paid') paymentState = 'Fully Paid';
@@ -127,6 +129,7 @@ export const generateMockOrders = (count: number): Order[] => {
       paymentState,
       totalAmount,
       paidAmount,
+      staffName,
       orderDate: orderDate.toLocaleString('en-US', {
         year: 'numeric',
         month: 'short',

@@ -24,7 +24,8 @@ export type Order = {
   paidAmount: number;
   items: OrderItem[];
   orderDate: string;
+  staffName: string;
   orderTimestamp: number;
   payments: Payment[];
-  splitType?: 'byItem' | 'equally';
+  splitType?: 'equally' | 'byItem';
 };
