@@ -7,6 +7,7 @@ import {
   SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetClose,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -376,9 +377,11 @@ export function CategorySheet({
             </Tabs>
           </div>
           <SheetFooter className="p-6 border-t bg-background">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
+            <SheetClose asChild>
+              <Button variant="outline">
+                Cancel
+              </Button>
+            </SheetClose>
             <Button>Save Category</Button>
           </SheetFooter>
         </div>
