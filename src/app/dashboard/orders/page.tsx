@@ -46,6 +46,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { DashboardHeader } from '@/components/dashboard/header';
 
 type OrderItem = {
   id: string;
@@ -175,9 +176,7 @@ export default function OrdersPage() {
 
   return (
     <>
-      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8">
-        <h1 className="text-xl font-semibold">Order List</h1>
-      </header>
+      <DashboardHeader />
       <main className="p-4 sm:p-6 lg:p-8">
         <Card>
           <CardHeader>

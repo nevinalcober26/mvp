@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { DashboardHeader } from '@/components/dashboard/header';
 
 const tables = [
   { id: 'T1', status: 'Vacant' },
@@ -59,16 +60,17 @@ const getStatusTextColor = (status: string) => {
 export default function TablesPage() {
   return (
     <>
-      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8 justify-between">
-        <h1 className="text-xl font-semibold">Table States</h1>
-        <div className="flex items-center gap-4">
-            <span className="flex items-center gap-2 text-sm"><div className="h-3 w-3 rounded-full bg-green-500"></div>Vacant</span>
-            <span className="flex items-center gap-2 text-sm"><div className="h-3 w-3 rounded-full bg-red-500"></div>Unpaid</span>
-            <span className="flex items-center gap-2 text-sm"><div className="h-3 w-3 rounded-full bg-yellow-500"></div>Partial</span>
-            <span className="flex items-center gap-2 text-sm"><div className="h-3 w-3 rounded-full bg-blue-500"></div>Paid</span>
-        </div>
-      </header>
+      <DashboardHeader />
       <main className="p-4 sm:p-6 lg:p-8">
+        <div className="flex justify-between items-center mb-6">
+            <h1 className="text-xl font-semibold">Table States</h1>
+            <div className="flex items-center gap-4">
+                <span className="flex items-center gap-2 text-sm"><div className="h-3 w-3 rounded-full bg-green-500"></div>Vacant</span>
+                <span className="flex items-center gap-2 text-sm"><div className="h-3 w-3 rounded-full bg-red-500"></div>Unpaid</span>
+                <span className="flex items-center gap-2 text-sm"><div className="h-3 w-3 rounded-full bg-yellow-500"></div>Partial</span>
+                <span className="flex items-center gap-2 text-sm"><div className="h-3 w-3 rounded-full bg-blue-500"></div>Paid</span>
+            </div>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
           {tables.map((table) => (
             <Card
