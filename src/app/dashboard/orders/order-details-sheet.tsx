@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import type { Order } from './types';
 import { getStatusBadgeVariant } from './utils';
+import { cn } from '@/lib/utils';
 
 interface OrderDetailsSheetProps {
   order: Order | null;
@@ -195,43 +196,49 @@ export function OrderDetailsSheet({
                 { (order.payments.length > 0 || (order.totalAmount - order.paidAmount > 0.01)) ? (
                   <div className="flow-root">
                     <ul className="-mb-8">
-                      {order.payments.map((payment, index) => (
-                        <li key={`payment-${index}`}>
-                          <div className="relative pb-8">
-                            { (index < order.payments.length - 1 || (order.totalAmount - order.paidAmount > 0.01)) && (
-                              <span className="absolute left-2.5 top-4 -ml-px h-full w-0.5 bg-border" aria-hidden="true" />
-                            )}
-                            <div className="relative flex items-start space-x-3">
-                              <div>
-                                <span className="h-5 w-5 rounded-full bg-primary flex items-center justify-center ring-4 ring-background">
-                                  <Check className="h-3 w-3 text-primary-foreground" />
-                                </span>
-                              </div>
-                              <div className="min-w-0 flex-1 flex justify-between items-center">
+                      {order.payments.map((payment, index) => {
+                        const isLastPayment = index === order.payments.length - 1;
+                        const hasPendingAmount = (order.totalAmount - order.paidAmount) > 0.01;
+                        const showLineAndPadding = !isLastPayment || hasPendingAmount;
+
+                        return (
+                          <li key={`payment-${index}`}>
+                            <div className={cn("relative", showLineAndPadding && "pb-8")}>
+                              { showLineAndPadding && (
+                                <span className="absolute left-2.5 top-4 -ml-px h-full w-0.5 bg-border" aria-hidden="true" />
+                              )}
+                              <div className="relative flex items-start space-x-3">
                                 <div>
-                                  <p className="font-medium text-sm">
-                                    Paid ${payment.amount} via {payment.method === 'Credit Card' ? 'Credit Card (Network International)' : payment.method}
-                                  </p>
-                                  <p className="mt-0.5 text-sm text-muted-foreground">
-                                    {payment.guestName} - {payment.date}
-                                  </p>
+                                  <span className="h-5 w-5 rounded-full bg-primary flex items-center justify-center ring-4 ring-background">
+                                    <Check className="h-3 w-3 text-primary-foreground" />
+                                  </span>
                                 </div>
-                                <Badge variant="outline" className="bg-green-100 text-green-700 border-transparent">
-                                  Success
-                                </Badge>
+                                <div className="min-w-0 flex-1 flex justify-between items-center">
+                                  <div>
+                                    <p className="font-medium text-sm">
+                                      Paid ${payment.amount} via {payment.method === 'Credit Card' ? 'Credit Card (Network International)' : payment.method}
+                                    </p>
+                                    <p className="mt-0.5 text-sm text-muted-foreground">
+                                      {payment.guestName} - {payment.date}
+                                    </p>
+                                  </div>
+                                  <Badge variant="outline" className="bg-green-100 text-green-700 border-transparent">
+                                    Success
+                                  </Badge>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </li>
-                      ))}
+                          </li>
+                        )
+                      })}
 
                       { (order.totalAmount - order.paidAmount > 0.01) && (
                           <li key="pending">
                             <div className="relative">
                               <div className="relative flex items-start space-x-3">
                                 <div>
-                                  <span className="h-5 w-5 rounded-full bg-red-100 flex items-center justify-center ring-4 ring-background">
-                                    <Hourglass className="h-3 w-3 text-red-500" />
+                                  <span className="h-5 w-5 rounded-full bg-destructive flex items-center justify-center ring-4 ring-background">
+                                    <Hourglass className="h-3 w-3 text-destructive-foreground" />
                                   </span>
                                 </div>
                                 <div className="min-w-0 flex-1 flex justify-between items-center">
