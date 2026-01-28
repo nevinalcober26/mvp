@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import {
   Card,
@@ -53,7 +53,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
   SheetFooter,
 } from '@/components/ui/sheet';
 import { DashboardHeader } from '@/components/dashboard/header';
@@ -216,6 +215,12 @@ export default function OrdersPage() {
       )
     );
   };
+
+  const handleSheetOpenChange = useCallback((isOpen: boolean) => {
+    if (!isOpen) {
+      setSelectedOrder(null);
+    }
+  }, []);
 
   return (
     <>
@@ -398,7 +403,7 @@ export default function OrdersPage() {
 
       <Sheet
         open={!!selectedOrder}
-        onOpenChange={(isOpen) => !isOpen && setSelectedOrder(null)}
+        onOpenChange={handleSheetOpenChange}
       >
         <SheetContent className="sm:max-w-lg w-full p-0">
           {selectedOrder && (
