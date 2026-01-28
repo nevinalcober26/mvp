@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import {
   Card,
@@ -181,6 +181,29 @@ const initialOrders: Order[] = [
     items: [{ id: '9', name: 'Margherita Pizza', quantity: 1, price: 20.0 }],
     payments: [],
   },
+  {
+    orderId: '#3206',
+    branch: 'Dubai Mall',
+    table: 'T1',
+    orderType: 'Prepaid',
+    orderStatus: 'Refunded',
+    paymentState: 'Fully Paid',
+    totalAmount: 18.0,
+    paidAmount: 18.0,
+    customerName: 'Eve Adams',
+    customerEmail: 'eve@example.com',
+    customerAvatar: 'https://picsum.photos/seed/eve/100/100',
+    orderDate: '2024-07-21 05:20 PM',
+    items: [{ id: '10', name: 'Iced Coffee', quantity: 2, price: 9.0 }],
+    payments: [
+      {
+        method: 'Credit Card',
+        amount: '18.00',
+        date: '2024-07-21 05:21 PM',
+        transactionId: 'txn_11223',
+      },
+    ],
+  },
 ];
 
 const getStatusBadgeVariant = (status: string) => {
@@ -216,6 +239,11 @@ export default function OrdersPage() {
         order.orderId === orderId ? { ...order, orderStatus: newStatus } : order
       )
     );
+  };
+
+  const handleViewDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setIsSheetOpen(true);
   };
 
   return (
@@ -324,10 +352,7 @@ export default function OrdersPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedOrder(order);
-                              setIsSheetOpen(true);
-                            }}
+                            onClick={() => handleViewDetails(order)}
                           >
                             View Details
                           </DropdownMenuItem>
