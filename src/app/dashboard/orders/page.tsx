@@ -136,13 +136,18 @@ const generateMockOrders = (count: number): Order[] => {
 
   const orders: Order[] = [];
   for (let i = 0; i < count; i++) {
-    const customerName = names[i % names.length];
     const orderStatus = statuses[i % statuses.length];
-    
+
     let paymentState = paymentStates[i % paymentStates.length];
     if (orderStatus === 'Paid') paymentState = 'Fully Paid';
-    if (orderStatus === 'Cancelled' || orderStatus === 'Draft' || orderStatus === 'Refunded') paymentState = 'Unpaid';
-    if (orderStatus === 'Open' && paymentState === 'Fully Paid') paymentState = 'Partial';
+    if (
+      orderStatus === 'Cancelled' ||
+      orderStatus === 'Draft' ||
+      orderStatus === 'Refunded'
+    )
+      paymentState = 'Unpaid';
+    if (orderStatus === 'Open' && paymentState === 'Fully Paid')
+      paymentState = 'Partial';
 
     const orderItemsCount = Math.floor(Math.random() * 3) + 1;
     const currentItems = Array.from({ length: orderItemsCount }, (_, j) => {
@@ -164,13 +169,29 @@ const generateMockOrders = (count: number): Order[] => {
     } else if (paymentState === 'Partial') {
       paidAmount = totalAmount / 2;
     }
-    
+
     if (orderStatus === 'Refunded') {
-        paidAmount = totalAmount;
+      paidAmount = totalAmount;
     }
 
     const orderTimestamp = Date.now() - i * 3600000;
     const orderDate = new Date(orderTimestamp);
+
+    let customerName = 'Guest';
+    let customerEmail = '—';
+    let customerAvatar = '';
+
+    // About 25% of orders will have customer details
+    if (i % 4 === 0) {
+      const assignedName = names[Math.floor(i / 4) % names.length];
+      customerName = assignedName;
+      customerEmail = `${assignedName
+        .toLowerCase()
+        .replace(' ', '.')}@example.com`;
+      customerAvatar = `https://picsum.photos/seed/${assignedName
+        .split(' ')[0]
+        .toLowerCase()}/100/100`;
+    }
 
     orders.push({
       orderId: `#${3210 + i}`,
@@ -182,10 +203,8 @@ const generateMockOrders = (count: number): Order[] => {
       totalAmount,
       paidAmount,
       customerName,
-      customerEmail: `${customerName.toLowerCase().replace(' ', '.')}@example.com`,
-      customerAvatar: `https://picsum.photos/seed/${customerName
-        .split(' ')[0]
-        .toLowerCase()}/100/100`,
+      customerEmail,
+      customerAvatar,
       orderDate: orderDate.toLocaleString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -201,9 +220,7 @@ const generateMockOrders = (count: number): Order[] => {
               {
                 method: i % 2 === 0 ? 'Credit Card' : 'Cash',
                 amount: paidAmount.toFixed(2),
-                date: new Date(
-                  orderTimestamp + 120000
-                ).toLocaleString(),
+                date: new Date(orderTimestamp + 120000).toLocaleString(),
                 transactionId: `txn_${12345 + i}`,
               },
             ]
@@ -238,45 +255,54 @@ export default function OrdersPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  
+
   const [filters, setFilters] = useState({
     search: '',
     branch: 'all',
     status: 'all',
   });
-  
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Order; direction: 'ascending' | 'descending' } | null>({ key: 'orderTimestamp', direction: 'descending' });
 
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Order;
+    direction: 'ascending' | 'descending';
+  } | null>({ key: 'orderTimestamp', direction: 'descending' });
 
   useEffect(() => {
     setAllOrders(generateMockOrders(50));
   }, []);
-  
+
   const handleFilterChange = (type: keyof typeof filters, value: string) => {
-    setFilters(prev => ({ ...prev, [type]: value }));
+    setFilters((prev) => ({ ...prev, [type]: value }));
     setCurrentPage(1); // Reset to first page on filter change
   };
-  
+
   const requestSort = (key: keyof Order) => {
     let direction: 'ascending' | 'descending' = 'ascending';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+    if (
+      sortConfig &&
+      sortConfig.key === key &&
+      sortConfig.direction === 'ascending'
+    ) {
       direction = 'descending';
     }
     setSortConfig({ key, direction });
   };
-  
+
   const filteredAndSortedOrders = useMemo(() => {
-    let filtered = allOrders.filter(order => {
-        const searchLower = filters.search.toLowerCase();
-        const matchesSearch = filters.search === '' ||
-            order.orderId.toLowerCase().includes(searchLower) ||
-            order.table.toLowerCase().includes(searchLower) ||
-            order.customerName.toLowerCase().includes(searchLower);
+    let filtered = allOrders.filter((order) => {
+      const searchLower = filters.search.toLowerCase();
+      const matchesSearch =
+        filters.search === '' ||
+        order.orderId.toLowerCase().includes(searchLower) ||
+        order.table.toLowerCase().includes(searchLower) ||
+        order.customerName.toLowerCase().includes(searchLower);
 
-        const matchesBranch = filters.branch === 'all' || order.branch === filters.branch;
-        const matchesStatus = filters.status === 'all' || order.orderStatus === filters.status;
+      const matchesBranch =
+        filters.branch === 'all' || order.branch === filters.branch;
+      const matchesStatus =
+        filters.status === 'all' || order.orderStatus === filters.status;
 
-        return matchesSearch && matchesBranch && matchesStatus;
+      return matchesSearch && matchesBranch && matchesStatus;
     });
 
     if (sortConfig !== null) {
@@ -293,7 +319,6 @@ export default function OrdersPage() {
 
     return filtered;
   }, [allOrders, filters, sortConfig]);
-
 
   const totalPages = Math.ceil(filteredAndSortedOrders.length / itemsPerPage);
 
@@ -317,46 +342,47 @@ export default function OrdersPage() {
 
     const averageOrderValue =
       successfulOrders.length > 0 ? totalRevenue / successfulOrders.length : 0;
-    
+
     const cancelledCount = allOrders.filter(
-      (order) => order.orderStatus === 'Cancelled' || order.orderStatus === 'Refunded'
+      (order) =>
+        order.orderStatus === 'Cancelled' || order.orderStatus === 'Refunded'
     ).length;
 
     const successfulOrdersCount = successfulOrders.length;
-    
-    const cancelledPercentage = totalOrders > 0 ? (cancelledCount / totalOrders) * 100 : 0;
 
+    const cancelledPercentage =
+      totalOrders > 0 ? (cancelledCount / totalOrders) * 100 : 0;
 
     return [
-        {
-            title: 'Total Revenue',
-            value: `$${totalRevenue.toFixed(2)}`,
-            changeDescription: `from ${successfulOrdersCount} orders`,
-            icon: DollarSign,
-            color: 'teal',
-        },
-        {
-            title: 'Total Orders',
-            value: `+${totalOrders}`,
-            changeDescription: 'in the last 30 days',
-            icon: ShoppingCart,
-            color: 'orange',
-        },
-        {
-            title: 'Avg. Order Value',
-            value: `$${averageOrderValue.toFixed(2)}`,
-            change: '+5.2%',
-            changeDescription: 'vs last month',
-            icon: TrendingUp,
-            color: 'pink',
-        },
-        {
-            title: 'Cancelled & Refunded',
-            value: `${cancelledCount}`,
-            changeDescription: `${cancelledPercentage.toFixed(0)}% of total orders`,
-            icon: XCircle,
-            color: 'green',
-        },
+      {
+        title: 'Total Revenue',
+        value: `$${totalRevenue.toFixed(2)}`,
+        changeDescription: `from ${successfulOrdersCount} orders`,
+        icon: DollarSign,
+        color: 'teal',
+      },
+      {
+        title: 'Total Orders',
+        value: `+${totalOrders}`,
+        changeDescription: 'in the last 30 days',
+        icon: ShoppingCart,
+        color: 'orange',
+      },
+      {
+        title: 'Avg. Order Value',
+        value: `$${averageOrderValue.toFixed(2)}`,
+        change: '+5.2%',
+        changeDescription: 'vs last month',
+        icon: TrendingUp,
+        color: 'pink',
+      },
+      {
+        title: 'Cancelled & Refunded',
+        value: `${cancelledCount}`,
+        changeDescription: `${cancelledPercentage.toFixed(0)}% of total orders`,
+        icon: XCircle,
+        color: 'green',
+      },
     ];
   }, [allOrders]);
 
@@ -375,11 +401,22 @@ export default function OrdersPage() {
     setSelectedOrder(order);
     setIsSheetOpen(true);
   };
-  
-  const SortableHeader = ({ tKey, label }: { tKey: keyof Order; label: string; }) => (
+
+  const SortableHeader = ({
+    tKey,
+    label,
+  }: {
+    tKey: keyof Order;
+    label: string;
+  }) => (
     <Button variant="ghost" onClick={() => requestSort(tKey)} className="px-2">
       {label}
-      <ArrowUpDown className={cn("ml-2 h-4 w-4", sortConfig?.key !== tKey && "text-muted-foreground/50")} />
+      <ArrowUpDown
+        className={cn(
+          'ml-2 h-4 w-4',
+          sortConfig?.key !== tKey && 'text-muted-foreground/50'
+        )}
+      />
     </Button>
   );
 
@@ -403,7 +440,10 @@ export default function OrdersPage() {
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
               />
-              <Select value={filters.branch} onValueChange={(value) => handleFilterChange('branch', value)}>
+              <Select
+                value={filters.branch}
+                onValueChange={(value) => handleFilterChange('branch', value)}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by Branch" />
                 </SelectTrigger>
@@ -413,7 +453,10 @@ export default function OrdersPage() {
                   <SelectItem value="Dubai Mall">Dubai Mall</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
+              <Select
+                value={filters.status}
+                onValueChange={(value) => handleFilterChange('status', value)}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by Status" />
                 </SelectTrigger>
@@ -432,13 +475,19 @@ export default function OrdersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead><SortableHeader tKey="orderId" label="Order" /></TableHead>
+                  <TableHead>
+                    <SortableHeader tKey="orderId" label="Order" />
+                  </TableHead>
                   <TableHead>Customer</TableHead>
-                  <TableHead><SortableHeader tKey="orderTimestamp" label="Date" /></TableHead>
+                  <TableHead>
+                    <SortableHeader tKey="orderTimestamp" label="Date" />
+                  </TableHead>
                   <TableHead>Branch</TableHead>
                   <TableHead>Order Status</TableHead>
                   <TableHead>Payment State</TableHead>
-                  <TableHead className="text-right"><SortableHeader tKey="totalAmount" label="Total" /></TableHead>
+                  <TableHead className="text-right">
+                    <SortableHeader tKey="totalAmount" label="Total" />
+                  </TableHead>
                   <TableHead>
                     <span className="sr-only">Actions</span>
                   </TableHead>
@@ -446,19 +495,38 @@ export default function OrdersPage() {
               </TableHeader>
               <TableBody>
                 {paginatedOrders.map((order) => (
-                  <TableRow key={order.orderId} onClick={() => handleViewDetails(order)} className="cursor-pointer">
-                    <TableCell className="font-medium">{order.orderId}</TableCell>
+                  <TableRow
+                    key={order.orderId}
+                    onClick={() => handleViewDetails(order)}
+                    className="cursor-pointer"
+                  >
+                    <TableCell className="font-medium">
+                      {order.orderId}
+                    </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-3">
+                      {order.customerName !== 'Guest' ? (
+                        <div className="flex items-center gap-3">
                           <Avatar className="h-9 w-9">
-                              <AvatarImage src={order.customerAvatar} alt={order.customerName} />
-                              <AvatarFallback>{order.customerName.charAt(0)}</AvatarFallback>
+                            <AvatarImage
+                              src={order.customerAvatar}
+                              alt={order.customerName}
+                            />
+                            <AvatarFallback>
+                              {order.customerName.charAt(0)}
+                            </AvatarFallback>
                           </Avatar>
                           <div className="grid gap-0.5">
-                              <span className="font-medium truncate">{order.customerName}</span>
-                              <span className="text-xs text-muted-foreground truncate">{order.customerEmail}</span>
+                            <span className="font-medium truncate">
+                              {order.customerName}
+                            </span>
+                            <span className="text-xs text-muted-foreground truncate">
+                              {order.customerEmail}
+                            </span>
                           </div>
-                      </div>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">Guest</span>
+                      )}
                     </TableCell>
                     <TableCell>{order.orderDate}</TableCell>
                     <TableCell>{order.branch}</TableCell>
@@ -522,14 +590,20 @@ export default function OrdersPage() {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() =>
-                                    handleStatusChange(order.orderId, 'Cancelled')
+                                    handleStatusChange(
+                                      order.orderId,
+                                      'Cancelled'
+                                    )
                                   }
                                 >
                                   Cancelled
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() =>
-                                    handleStatusChange(order.orderId, 'Refunded')
+                                    handleStatusChange(
+                                      order.orderId,
+                                      'Refunded'
+                                    )
                                   }
                                 >
                                   Refunded
@@ -549,11 +623,17 @@ export default function OrdersPage() {
             <div className="text-sm text-muted-foreground">
               Showing{' '}
               <strong>
-                {Math.min((currentPage - 1) * itemsPerPage + 1, filteredAndSortedOrders.length)}
+                {Math.min(
+                  (currentPage - 1) * itemsPerPage + 1,
+                  filteredAndSortedOrders.length
+                )}
               </strong>{' '}
               to{' '}
               <strong>
-                {Math.min(currentPage * itemsPerPage, filteredAndSortedOrders.length)}
+                {Math.min(
+                  currentPage * itemsPerPage,
+                  filteredAndSortedOrders.length
+                )}
               </strong>{' '}
               of <strong>{filteredAndSortedOrders.length}</strong> orders
             </div>
@@ -569,7 +649,9 @@ export default function OrdersPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
                 disabled={currentPage === totalPages}
               >
                 Next
@@ -579,10 +661,7 @@ export default function OrdersPage() {
         </Card>
       </main>
 
-      <Sheet
-        open={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
-      >
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="sm:max-w-lg w-full p-0">
           {selectedOrder && (
             <div className="flex flex-col h-full">
@@ -596,34 +675,50 @@ export default function OrdersPage() {
                 </div>
               </SheetHeader>
               <div className="flex-grow overflow-y-auto p-6 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <User className="h-5 w-5" />
-                      Customer Details
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex items-center gap-4">
-                    <Avatar className="h-14 w-14">
-                      <AvatarImage
-                        src={selectedOrder.customerAvatar}
-                        alt={selectedOrder.customerName}
-                        data-ai-hint="person face"
-                      />
-                      <AvatarFallback>
-                        {selectedOrder.customerName.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-semibold">
-                        {selectedOrder.customerName}
+                {selectedOrder.customerName !== 'Guest' ? (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <User className="h-5 w-5" />
+                        Customer Details
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex items-center gap-4">
+                      <Avatar className="h-14 w-14">
+                        <AvatarImage
+                          src={selectedOrder.customerAvatar}
+                          alt={selectedOrder.customerName}
+                          data-ai-hint="person face"
+                        />
+                        <AvatarFallback>
+                          {selectedOrder.customerName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-semibold">
+                          {selectedOrder.customerName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedOrder.customerEmail}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <User className="h-5 w-5" />
+                        Customer Details
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground pt-4">
+                        No customer details provided for this order.
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        {selectedOrder.customerEmail}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                )}
 
                 <Card>
                   <CardHeader>
@@ -654,9 +749,13 @@ export default function OrdersPage() {
                       </Badge>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Order Status</span>
+                      <span className="text-muted-foreground">
+                        Order Status
+                      </span>
                       <Badge
-                        variant={getStatusBadgeVariant(selectedOrder.orderStatus)}
+                        variant={getStatusBadgeVariant(
+                          selectedOrder.orderStatus
+                        )}
                       >
                         {selectedOrder.orderStatus}
                       </Badge>
@@ -666,7 +765,9 @@ export default function OrdersPage() {
                         Payment State
                       </span>
                       <Badge
-                        variant={getStatusBadgeVariant(selectedOrder.paymentState)}
+                        variant={getStatusBadgeVariant(
+                          selectedOrder.paymentState
+                        )}
                       >
                         {selectedOrder.paymentState}
                       </Badge>
@@ -683,7 +784,10 @@ export default function OrdersPage() {
                   <CardContent>
                     <div className="space-y-4">
                       {selectedOrder.items.map((item) => (
-                        <div key={item.id} className="flex justify-between items-start">
+                        <div
+                          key={item.id}
+                          className="flex justify-between items-start"
+                        >
                           <div>
                             <p className="font-medium">{item.name}</p>
                             <p className="text-sm text-muted-foreground">
@@ -725,13 +829,18 @@ export default function OrdersPage() {
                         <span>Total</span>
                         <span>${selectedOrder.totalAmount.toFixed(2)}</span>
                       </div>
-                       <div className="flex justify-between font-semibold text-green-600">
+                      <div className="flex justify-between font-semibold text-green-600">
                         <span>Paid</span>
                         <span>${selectedOrder.paidAmount.toFixed(2)}</span>
                       </div>
-                       <div className="flex justify-between font-semibold text-red-600">
+                      <div className="flex justify-between font-semibold text-red-600">
                         <span>Pending</span>
-                        <span>${(selectedOrder.totalAmount - selectedOrder.paidAmount).toFixed(2)}</span>
+                        <span>
+                          $
+                          {(
+                            selectedOrder.totalAmount - selectedOrder.paidAmount
+                          ).toFixed(2)}
+                        </span>
                       </div>
                     </div>
                     <Separator className="my-4" />
