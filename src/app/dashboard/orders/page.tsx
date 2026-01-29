@@ -722,8 +722,8 @@ export default function OrdersPage() {
           </CardHeader>
           <CardContent>
             {view === 'list' ? (
-              <div className="relative overflow-auto" style={{ maxHeight: '60vh' }}>
-                <Table className="min-w-[1800px]">
+              <div className="relative w-full overflow-auto" style={{ maxHeight: '60vh' }}>
+                <Table>
                   <TableHeader className="sticky top-0 z-10 bg-card">
                     <TableRow>
                       <TableHead><SortableHeader tKey="orderId" label="Order ID" /></TableHead>
