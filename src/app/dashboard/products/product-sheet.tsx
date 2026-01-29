@@ -136,7 +136,7 @@ export function ProductSheet({
       price: product?.price || 0,
       smallDescription: product?.smallDescription || '',
       description: product?.description || '',
-      discountedPrice: product?.discountedPrice,
+      discountedPrice: product?.discountedPrice ?? '',
       recommend: product?.recommend || false,
       displayFullwidth: product?.displayFullwidth || false,
       hiddenTitle: product?.hiddenTitle || false,
