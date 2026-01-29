@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -161,6 +161,14 @@ export function ProductSheet({
   });
 
   const { isDirty, isValid, errors } = form.formState;
+
+  useEffect(() => {
+    // When the `product` prop changes, the `defaultValues` are re-calculated.
+    // This effect ensures the form is reset with the new `defaultValues`,
+    // keeping the form state in sync with the currently selected product.
+    // This fixes the issue where the form would hold stale data when re-opening the sheet.
+    form.reset(defaultValues);
+  }, [defaultValues, form]);
 
   const handleAttemptClose = () => {
     if (isDirty) {
