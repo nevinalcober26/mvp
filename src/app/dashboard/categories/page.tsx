@@ -16,7 +16,6 @@ import {
 import {
   SortableContext,
   arrayMove,
-  verticalListSortingStrategy,
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { produce } from 'immer';
@@ -350,52 +349,56 @@ export default function CategoriesPage() {
   return (
     <>
       <DashboardHeader />
-      <main className="p-4 sm:p-6 lg:p-8 flex-grow">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-semibold flex items-center gap-2">
-            Categories
-            <Badge variant="destructive">BLOOMSBURY'S (RAS AL KHAIMAH)</Badge>
-          </h1>
-          <div className="flex items-center gap-4">
-            <Button onClick={() => setIsAddCategoryDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Add Category
-            </Button>
-            <Button variant="secondary">PUBLISH</Button>
+      <div className="flex flex-col h-[calc(100vh-4rem)]">
+        <div className="p-4 sm:p-6 lg:p-8 border-b bg-background z-10">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-semibold flex items-center gap-2">
+              Categories
+              <Badge variant="destructive">BLOOMSBURY'S (RAS AL KHAIMAH)</Badge>
+            </h1>
+            <div className="flex items-center gap-4">
+              <Button onClick={() => setIsAddCategoryDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" /> Add Category
+              </Button>
+              <Button variant="secondary">PUBLISH</Button>
+            </div>
           </div>
         </div>
 
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="flex items-stretch gap-6 overflow-x-auto pb-4">
-            {board.map((column) => (
-              <Container
-                key={column.id}
-                id={column.id}
-                label={column.name}
-                items={column.items}
-                onItemClick={setSelectedCategory}
-              />
-            ))}
-            <div className="w-80 flex-shrink-0">
-              <button
-                onClick={() => setIsAddCategoryDialogOpen(true)}
-                className="w-full h-full rounded-lg border-2 border-dashed border-muted-foreground/50 bg-card p-6 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors"
-              >
-                <Plus className="h-8 w-8" />
-                <span className="font-semibold">Add Category</span>
-              </button>
+        <div className="flex-grow p-4 sm:p-6 lg:p-8 overflow-auto">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="flex items-start gap-6 pb-4">
+              {board.map((column) => (
+                <Container
+                  key={column.id}
+                  id={column.id}
+                  label={column.name}
+                  items={column.items}
+                  onItemClick={setSelectedCategory}
+                />
+              ))}
+              <div className="w-80 flex-shrink-0">
+                <button
+                  onClick={() => setIsAddCategoryDialogOpen(true)}
+                  className="w-full h-full rounded-lg border-2 border-dashed border-muted-foreground/50 bg-card p-6 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors"
+                >
+                  <Plus className="h-8 w-8" />
+                  <span className="font-semibold">Add Category</span>
+                </button>
+              </div>
             </div>
-          </div>
-          <DragOverlay>
-            {activeItem ? <Item id={activeItem.id} name={activeItem.name} /> : null}
-          </DragOverlay>
-        </DndContext>
-      </main>
+            <DragOverlay>
+              {activeItem ? <Item id={activeItem.id} name={activeItem.name} /> : null}
+            </DragOverlay>
+          </DndContext>
+        </div>
+      </div>
       <CategorySheet
         open={!!selectedCategory}
         onOpenChange={(isOpen) => {
