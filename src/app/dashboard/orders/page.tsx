@@ -722,9 +722,9 @@ export default function OrdersPage() {
           </CardHeader>
           <CardContent>
             {view === 'list' ? (
-              <div className="relative w-full overflow-auto">
+              <div className="w-full overflow-x-auto">
                 <Table>
-                  <TableHeader className="sticky top-0 z-10 bg-card">
+                  <TableHeader>
                     <TableRow>
                       <TableHead><SortableHeader tKey="orderId" label="Order ID" /></TableHead>
                       <TableHead><SortableHeader tKey="branch" label="Branch" /></TableHead>
@@ -745,7 +745,7 @@ export default function OrdersPage() {
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
-                   <TableBody style={{ maxHeight: '60vh' }}>
+                   <TableBody>
                     {paginatedOrders.map((order) => (
                       <TableRow
                         key={order.orderId}
