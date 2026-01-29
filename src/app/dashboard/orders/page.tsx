@@ -517,29 +517,27 @@ export default function OrdersPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Orders</h1>
         </div>
-        <div className="flex items-start justify-between gap-4">
-            <div className="flex-grow">
-                <AiSummary data={filteredAndSortedOrders} context="daily restaurant orders" />
-            </div>
-            <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={() => setIsExportDialogOpen(true)}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                </Button>
-                {permission !== 'granted' && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleNotificationClick}
-                    disabled={permission === 'denied'}
-                  >
-                    <BellRing className="mr-2 h-4 w-4" />
-                    {permission === 'denied'
-                      ? 'Notifications Blocked'
-                      : 'Enable Notifications'}
-                  </Button>
-                )}
-            </div>
+        <div>
+          <div className="flex justify-end gap-2 mb-4">
+            <Button variant="outline" onClick={() => setIsExportDialogOpen(true)}>
+                <Download className="mr-2 h-4 w-4" />
+                Export
+            </Button>
+            {permission !== 'granted' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNotificationClick}
+                disabled={permission === 'denied'}
+              >
+                <BellRing className="mr-2 h-4 w-4" />
+                {permission === 'denied'
+                  ? 'Notifications Blocked'
+                  : 'Enable Notifications'}
+              </Button>
+            )}
+          </div>
+          <AiSummary data={filteredAndSortedOrders} context="daily restaurant orders" />
         </div>
         <StatCards cards={kpiCards} />
         <Card className="w-full">
@@ -721,9 +719,9 @@ export default function OrdersPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="w-full overflow-x-auto" style={{ width: '1280px' }}>
+            <div className="relative w-full overflow-auto">
               {view === 'list' ? (
-                  <Table style={{ width: '1280px' }}>
+                  <Table>
                     <TableHeader className="sticky top-0 bg-background z-10">
                       <TableRow>
                         <TableHead><SortableHeader tKey="orderId" label="Order ID" /></TableHead>
