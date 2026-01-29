@@ -423,6 +423,10 @@ export function OrdersPageSkeleton({
     <>
       <DashboardHeader />
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-10 w-28" />
+        </div>
         <div className="flex items-center gap-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-100 p-4 text-sm border border-blue-200/50 shadow-sm">
           <Skeleton className="h-5 w-5 flex-shrink-0 rounded-full bg-blue-200" />
           <Skeleton className="h-4 flex-grow bg-blue-200" />

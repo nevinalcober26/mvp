@@ -40,6 +40,10 @@ import {
   ChevronDown,
   LayoutGrid,
   List,
+  Download,
+  File as FileIcon, // Aliased to avoid conflict
+  FileText,
+  Sheet as SheetIcon, // Aliased to avoid conflict
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -65,6 +69,15 @@ import { getStatusBadgeVariant } from './utils';
 import { OrderDetailsSheet } from './order-details-sheet';
 import { OrdersPageSkeleton } from '@/components/dashboard/skeletons';
 import { AiSummary } from '@/components/dashboard/ai-summary';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const OrderCard = ({
   order,
@@ -133,6 +146,60 @@ const OrderGalleryView = ({
   );
 };
 
+const ExportDialog = ({
+  open,
+  onOpenChange,
+  onExport,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onExport: (format: 'CSV' | 'Excel' | 'PDF') => void;
+}) => {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Export Orders</DialogTitle>
+          <DialogDescription>
+            Select a file format to download the current view of orders.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-3 gap-4 py-4">
+          <Button
+            variant="outline"
+            className="h-24 flex-col gap-2"
+            onClick={() => onExport('CSV')}
+          >
+            <FileIcon className="h-6 w-6" />
+            <span>CSV</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="h-24 flex-col gap-2"
+            onClick={() => onExport('Excel')}
+          >
+            <SheetIcon className="h-6 w-6" />
+            <span>Excel</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="h-24 flex-col gap-2"
+            onClick={() => onExport('PDF')}
+          >
+            <FileText className="h-6 w-6" />
+            <span>PDF</span>
+          </Button>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export default function OrdersPage() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -142,6 +209,8 @@ export default function OrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const [filters, setFilters] = useState({
     search: '',
@@ -298,6 +367,16 @@ export default function OrdersPage() {
     setSelectedOrder(order);
     setIsSheetOpen(true);
   };
+  
+  const handleExport = (format: 'CSV' | 'Excel' | 'PDF') => {
+    setIsExportDialogOpen(false);
+    toast({
+      title: 'Export Initiated',
+      description: `Your orders are being prepared for a ${format} download.`,
+    });
+    // In a real app, you would implement the actual export logic here
+    console.log(`Exporting ${filteredAndSortedOrders.length} orders as ${format}...`);
+  };
 
   const SortableHeader = ({
     tKey,
@@ -330,13 +409,20 @@ export default function OrdersPage() {
     <>
       <DashboardHeader />
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Orders</h1>
+          <Button variant="outline" onClick={() => setIsExportDialogOpen(true)}>
+            <Download className="mr-2 h-4 w-4" />
+            Export
+          </Button>
+        </div>
         <AiSummary data={filteredAndSortedOrders} context="daily restaurant orders" />
         <StatCards cards={kpiCards} />
         <Card>
           <CardHeader>
-            <CardTitle>Orders</CardTitle>
+            <CardTitle>All Orders</CardTitle>
             <CardDescription>
-              View and manage all recent orders.
+              View and manage all recent orders from this branch.
             </CardDescription>
             <div className="mt-4 flex flex-wrap items-center gap-4">
               <Input
@@ -445,6 +531,7 @@ export default function OrdersPage() {
                   variant={view === 'gallery' ? 'secondary' : 'ghost'}
                   size="icon"
                   onClick={() => setView('gallery')}
+                  aria-label="Gallery View"
                 >
                   <LayoutGrid className="h-4 w-4" />
                   <span className="sr-only">Gallery</span>
@@ -453,6 +540,7 @@ export default function OrdersPage() {
                   variant={view === 'list' ? 'secondary' : 'ghost'}
                   size="icon"
                   onClick={() => setView('list')}
+                  aria-label="List View"
                 >
                   <List className="h-4 w-4" />
                   <span className="sr-only">List</span>
@@ -628,6 +716,11 @@ export default function OrdersPage() {
         order={selectedOrder}
         open={isSheetOpen}
         onOpenChange={setIsSheetOpen}
+      />
+      <ExportDialog
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+        onExport={handleExport}
       />
     </>
   );
