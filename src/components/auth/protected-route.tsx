@@ -3,6 +3,7 @@
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { DashboardPageSkeleton } from '@/components/dashboard/skeletons';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -15,7 +16,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }, [user, isUserLoading, router]);
 
   if (isUserLoading) {
-    return <div>Loading...</div>;
+    return <DashboardPageSkeleton />;
   }
 
   if (!user) {

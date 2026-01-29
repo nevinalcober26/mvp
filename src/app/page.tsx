@@ -18,6 +18,7 @@ import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { AuthCardSkeleton } from '@/components/dashboard/skeletons';
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -45,7 +46,7 @@ export default function LoginPage() {
   }, [auth, router]);
 
   if (isUserLoading) {
-    return <div>Loading...</div>;
+    return <AuthCardSkeleton />;
   }
 
   if (user) {

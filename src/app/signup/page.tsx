@@ -18,6 +18,7 @@ import { initiateEmailSignUp } from '@/firebase/non-blocking-login';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { SignupCardSkeleton } from '@/components/dashboard/skeletons';
 
 export default function SignupPage() {
   const auth = useAuth();
@@ -42,7 +43,7 @@ export default function SignupPage() {
   }, [auth, router]);
 
   if (isUserLoading) {
-    return <div>Loading...</div>;
+    return <SignupCardSkeleton />;
   }
 
   if (user) {

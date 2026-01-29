@@ -61,9 +61,11 @@ import type { Order } from './types';
 import { generateMockOrders } from './mock';
 import { getStatusBadgeVariant } from './utils';
 import { OrderDetailsSheet } from './order-details-sheet';
+import { OrdersPageSkeleton } from '@/components/dashboard/skeletons';
 
 export default function OrdersPage() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -83,7 +85,11 @@ export default function OrdersPage() {
   } | null>({ key: 'orderTimestamp', direction: 'descending' });
 
   useEffect(() => {
-    setAllOrders(generateMockOrders(50));
+    const timer = setTimeout(() => {
+      setAllOrders(generateMockOrders(50));
+      setIsLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleFilterChange = (type: keyof typeof filters, value: string) => {
@@ -244,6 +250,10 @@ export default function OrdersPage() {
     const uniqueTables = [...new Set(allOrders.map(order => order.table))];
     return uniqueTables.sort((a,b) => parseInt(a.substring(1)) - parseInt(b.substring(1)));
   }, [allOrders]);
+
+  if (isLoading) {
+    return <OrdersPageSkeleton />;
+  }
 
   return (
     <>

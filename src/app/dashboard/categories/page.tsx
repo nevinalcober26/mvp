@@ -50,6 +50,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardHeader } from '@/components/dashboard/header';
+import { CategoriesPageSkeleton } from '@/components/dashboard/skeletons';
 
 
 export type Item = {
@@ -570,7 +571,8 @@ const AddCategoryDialog = ({
 
 
 export default function CategoriesPage() {
-  const [board, setBoard] = useState<Column[]>(initialBoardData);
+  const [board, setBoard] = useState<Column[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [activeItem, setActiveItem] = useState<Item | null>(null);
   const [editingColumnId, setEditingColumnId] = useState<UniqueIdentifier | null>(null);
@@ -590,6 +592,14 @@ export default function CategoriesPage() {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setBoard(initialBoardData);
+      setIsLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const findItemAndParent = (itemId: UniqueIdentifier, items: Item[]): {item: Item | null, parent: Item[] | null, index: number} => {
       for (let i = 0; i < items.length; i++) {
@@ -841,6 +851,10 @@ export default function CategoriesPage() {
       }));
     }
   };
+  
+  if (isLoading) {
+    return <CategoriesPageSkeleton view={view} />;
+  }
   
   return (
     <>

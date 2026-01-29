@@ -16,6 +16,7 @@ import { Users, Circle, Hourglass, CirclePercent, User } from 'lucide-react';
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
 import { generateMockOrders } from '@/app/dashboard/orders/mock';
 import type { Order } from '@/app/dashboard/orders/types';
+import { TablesPageSkeleton } from '@/components/dashboard/skeletons';
 
 type Status =
   | 'Vacant'
@@ -116,64 +117,70 @@ export default function TablesPage() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeFloor, setActiveFloor] = useState('All');
   const [tables, setTables] = useState<Table[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useEffect(() => {
-    const allOrders = generateMockOrders(50);
-    const uniqueTableIds = [
-      ...new Set(allOrders.map((order) => order.table)),
-    ].sort((a, b) => parseInt(a.substring(1)) - parseInt(b.substring(1)));
+    const timer = setTimeout(() => {
+      const allOrders = generateMockOrders(50);
+      const uniqueTableIds = [
+        ...new Set(allOrders.map((order) => order.table)),
+      ].sort((a, b) => parseInt(a.substring(1)) - parseInt(b.substring(1)));
 
-    const tableData: Table[] = uniqueTableIds.map((tableId) => {
-      const ordersForTable = allOrders
-        .filter((o) => o.table === tableId)
-        .sort((a, b) => b.orderTimestamp - a.orderTimestamp);
+      const tableData: Table[] = uniqueTableIds.map((tableId) => {
+        const ordersForTable = allOrders
+          .filter((o) => o.table === tableId)
+          .sort((a, b) => b.orderTimestamp - a.orderTimestamp);
 
-      const latestActiveOrder = ordersForTable.find(
-        (o) => o.orderStatus === 'Open' || o.orderStatus === 'Paid'
-      );
+        const latestActiveOrder = ordersForTable.find(
+          (o) => o.orderStatus === 'Open' || o.orderStatus === 'Paid'
+        );
 
-      let status: Status = 'Vacant';
-      let floor =
-        parseInt(tableId.substring(1)) > 12 ? 'First Floor' : 'Ground Floor';
-      if (latestActiveOrder) {
-        if (latestActiveOrder.paymentState === 'Fully Paid') {
-          status = 'Occupied - Fully Paid';
-        } else if (latestActiveOrder.paymentState === 'Partial') {
-          status = 'Occupied - Partially Paid';
-        } else {
-          status = 'Occupied - Unpaid';
+        let status: Status = 'Vacant';
+        let floor =
+          parseInt(tableId.substring(1)) > 12 ? 'First Floor' : 'Ground Floor';
+        if (latestActiveOrder) {
+          if (latestActiveOrder.paymentState === 'Fully Paid') {
+            status = 'Occupied - Fully Paid';
+          } else if (latestActiveOrder.paymentState === 'Partial') {
+            status = 'Occupied - Partially Paid';
+          } else {
+            status = 'Occupied - Unpaid';
+          }
+        }
+
+        return {
+          id: tableId,
+          status: status,
+          floor: floor,
+          order: latestActiveOrder,
+        };
+      });
+
+      const allPossibleTableIds = [...Array(24)].map((_, i) => `T${i + 1}`);
+      for (const tableId of allPossibleTableIds) {
+        if (!tableData.find((t) => t.id === tableId)) {
+          tableData.push({
+            id: tableId,
+            status: 'Vacant',
+            floor:
+              parseInt(tableId.substring(1)) > 12
+                ? 'First Floor'
+                : 'Ground Floor',
+          });
         }
       }
 
-      return {
-        id: tableId,
-        status: status,
-        floor: floor,
-        order: latestActiveOrder,
-      };
-    });
+      tableData.sort(
+        (a, b) => parseInt(a.id.substring(1)) - parseInt(b.id.substring(1))
+      );
 
-    const allPossibleTableIds = [...Array(24)].map((_, i) => `T${i + 1}`);
-    for (const tableId of allPossibleTableIds) {
-      if (!tableData.find((t) => t.id === tableId)) {
-        tableData.push({
-          id: tableId,
-          status: 'Vacant',
-          floor:
-            parseInt(tableId.substring(1)) > 12
-              ? 'First Floor'
-              : 'Ground Floor',
-        });
-      }
-    }
+      setTables(tableData);
+      setIsLoading(false);
+    }, 1500);
 
-    tableData.sort(
-      (a, b) => parseInt(a.id.substring(1)) - parseInt(b.id.substring(1))
-    );
-
-    setTables(tableData);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleTableClick = (table: Table) => {
@@ -183,7 +190,7 @@ export default function TablesPage() {
     }
   };
 
-  const floors = useMemo(() => ['All', ...new Set(tables.map((t) => t.floor))], []);
+  const floors = useMemo(() => ['All', ...new Set(tables.map((t) => t.floor))], [tables]);
 
   const filteredTables = useMemo(() => {
     return tables.filter((table) => {
@@ -198,6 +205,10 @@ export default function TablesPage() {
         : table.status === activeFilter;
     });
   }, [activeFilter, activeFloor, tables]);
+
+  if (isLoading) {
+    return <TablesPageSkeleton />;
+  }
 
   return (
     <>

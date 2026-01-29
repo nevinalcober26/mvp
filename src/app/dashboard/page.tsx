@@ -17,6 +17,7 @@ import { WelcomeBanner } from '@/components/dashboard/welcome-banner';
 import { InventoryAlerts } from '@/components/dashboard/inventory-alerts';
 import { PerformanceSummary } from '@/components/dashboard/performance-summary';
 import { PopularItems } from '@/components/dashboard/popular-items';
+import { DashboardPageSkeleton } from '@/components/dashboard/skeletons';
 
 
 const initialStatCards: StatCardData[] = [
@@ -66,8 +67,11 @@ const generateChartData = () => [
 export default function DashboardPage() {
   const [statCardsData, setStatCardsData] = useState(initialStatCards);
   const [chartData, setChartData] = useState(generateChartData);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const loadTimer = setTimeout(() => setIsLoading(false), 1500);
+
     const interval = setInterval(() => {
       // Simulate real-time updates for Stat Cards
       setStatCardsData(prevData => prevData.map(card => {
@@ -93,8 +97,15 @@ export default function DashboardPage() {
 
     }, 3000); // Update every 3 seconds
 
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(loadTimer);
+      clearInterval(interval);
+    };
   }, []);
+
+  if (isLoading) {
+    return <DashboardPageSkeleton />;
+  }
 
   return (
     <>
