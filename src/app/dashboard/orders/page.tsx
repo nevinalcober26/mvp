@@ -719,7 +719,7 @@ export default function OrdersPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="relative w-full overflow-auto">
+            <div className="relative w-full overflow-auto" style={{ width: '1280px', overflow: 'scroll' }}>
               {view === 'list' ? (
                   <Table>
                     <TableHeader className="sticky top-0 bg-background z-10">
