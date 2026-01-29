@@ -16,6 +16,7 @@ import {
 import {
   SortableContext,
   sortableKeyboardCoordinates,
+  arrayMove,
 } from '@dnd-kit/sortable';
 import { produce } from 'immer';
 import Image from 'next/image';
@@ -46,7 +47,7 @@ import {
 } from '@/components/ui/select';
 import { Container } from '@/components/dashboard/dnd/Container';
 import { Item as ItemComponent } from '@/components/dashboard/dnd/Item';
-import { arrayMove } from '@dnd-kit/sortable';
+
 
 export type Item = {
   id: UniqueIdentifier;
@@ -93,46 +94,55 @@ const initialBoardData: Column[] = [
 ];
 
 // Helper functions for tree operations
-function findContainer(board: Column[], id: UniqueIdentifier) {
-  if (board.some(c => c.id === id)) {
-    return id;
-  }
-  const findRecursive = (items: Item[]): UniqueIdentifier | undefined => {
-    for (const item of items) {
-      if (item.id === id) {
-        return findContainer(board, item.id);
-      }
-      if (item.children.length) {
-        const childContainer = findRecursive(item.children);
-        if (childContainer) {
-          return childContainer;
+function findItemDeep(
+  columns: Column[],
+  itemId: UniqueIdentifier
+): { container: Item[] | Column['items']; item: Item } | null {
+  for (const column of columns) {
+    const search = (
+      items: Item[]
+    ): { container: Item[]; item: Item } | null => {
+      for (const item of items) {
+        if (item.id === itemId) return { container: items, item };
+        if (item.children) {
+          const found = search(item.children);
+          if (found) return found;
         }
       }
-    }
-  };
-  for (const column of board) {
-    const container = findRecursive(column.items);
-    if(container) return container
-  }
-}
-
-function findItem(columns: Column[], itemId: UniqueIdentifier): Item | null {
-  for (const column of columns) {
-      const search = (items: Item[]): Item | null => {
-          for (const item of items) {
-              if (item.id === itemId) return item;
-              if (item.children) {
-                  const found = search(item.children);
-                  if (found) return found;
-              }
-          }
-          return null;
-      };
-      const found = search(column.items);
-      if (found) return found;
+      return null;
+    };
+    const found = search(column.items);
+    if (found) return found;
   }
   return null;
 }
+
+function findAndRemoveItem(board: Column[], id: UniqueIdentifier): Item | null {
+    let removedItem: Item | null = null;
+
+    function findAndRemove(items: Item[], itemId: UniqueIdentifier): boolean {
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].id === itemId) {
+                removedItem = items.splice(i, 1)[0];
+                return true;
+            }
+            if (items[i].children) {
+                if (findAndRemove(items[i].children, itemId)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    for (const column of board) {
+        if (findAndRemove(column.items, id)) {
+            break;
+        }
+    }
+    return removedItem;
+}
+
 
 const AddCategoryDialog = ({
   open,
@@ -244,11 +254,11 @@ export default function CategoriesPage() {
     })
   );
 
-  const activeItem = useMemo(() => activeId ? findItem(board, activeId) : null, [activeId, board]);
+  const activeItem = useMemo(() => activeId ? findItemDeep(board, activeId)?.item : null, [activeId, board]);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
-    setOverId(null);
+    setOverId(event.over?.id ?? null);
   };
   
   const handleDragOver = (event: DragOverEvent) => {
@@ -256,107 +266,57 @@ export default function CategoriesPage() {
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    setActiveId(null);
-    setOverId(null);
-  
     const { active, over } = event;
+    
     if (!over || active.id === over.id) {
-      return;
+        setActiveId(null);
+        setOverId(null);
+        return;
     }
-  
-    setBoard((board) => produce(board, (draft) => {
-        let activeItem: Item | null = null;
-  
-        // Helper to find and remove an item from anywhere in the tree
-        const findAndRemove = (id: UniqueIdentifier, items: Item[]): Item | null => {
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].id === id) {
-                    return items.splice(i, 1)[0];
-                }
-                if (items[i].children) {
-                    const found = findAndRemove(id, items[i].children);
-                    if (found) return found;
-                }
-            }
-            return null;
-        };
-  
-        for (const column of draft) {
-            activeItem = findAndRemove(active.id, column.items);
-            if (activeItem) break;
-        }
-  
+
+    setBoard(board => produce(board, draft => {
+        // First, pull the active item out of the tree
+        const activeItem = findAndRemoveItem(draft, active.id);
         if (!activeItem) return;
-  
-        // Helper to insert an item at a specific location
-        const findAndInsert = (
-            id: UniqueIdentifier,
-            items: Item[],
-            itemToInsert: Item
-        ): boolean => {
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].id === id) {
-                    // Dropping ON an item to nest it
-                    if (!items[i].children) items[i].children = [];
-                    items[i].children.unshift(itemToInsert); // Add to the beginning of children
-                    return true;
-                }
-                if (items[i].children) {
-                    if (findAndInsert(id, items[i].children, itemToInsert)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        };
-        
-        // Find where the 'over' item is to determine drop position
-        const findOverLocation = (id: UniqueIdentifier): { list: Item[], index: number } | null => {
-            for (const column of draft) {
-                const search = (items: Item[]): { list: Item[], index: number } | null => {
-                    const index = items.findIndex(item => item.id === id);
-                    if (index !== -1) return { list: items, index };
-                    for (const item of items) {
-                        if (item.children) {
-                            const found = search(item.children);
-                            if (found) return found;
-                        }
-                    }
-                    return null;
-                }
-                const found = search(column.items);
-                if (found) return found;
-            }
-            return null;
-        };
 
+        const overId = over.id;
+        const overIsContainer = over.data.current?.type === 'container-drop-zone';
+        const overIsItem = over.data.current?.type === 'item-drop-zone';
 
-        // Is the drop target a container column?
-        const overColumn = draft.find((col) => col.id === over.id);
-        if (overColumn) {
-            overColumn.items.push(activeItem);
+        // Case 1: Dropping into a container (column)
+        if (overIsContainer) {
+            const overColumn = draft.find(c => c.id === overId);
+            overColumn?.items.push(activeItem);
             return;
         }
-        
-        // Is the drop target another item?
-        const overLocation = findOverLocation(over.id);
-        if (overLocation) {
-            // Dropping between items (reordering)
-            overLocation.list.splice(overLocation.index, 0, activeItem);
-        } else {
-            // Attempt to drop ON an item (nesting)
-            let dropped = false;
-            for(const col of draft) {
-                if(findAndInsert(over.id, col.items, activeItem)) {
-                    dropped = true;
-                    break;
+
+        // Case 2: Dropping ON another item (nesting)
+        if (overIsItem) {
+            const parentItemData = findItemDeep(draft, overId);
+            if (parentItemData) {
+                if (!parentItemData.item.children) {
+                    parentItemData.item.children = [];
                 }
+                parentItemData.item.children.unshift(activeItem);
             }
-            // If nesting fails, it might be a drop on the empty part of a column
-            // This case is already handled by `overColumn` logic. If we are here, something is off.
-            // As a fallback, we could add it back, but this might not be desired.
+            return;
+        }
+
+        // Case 3: Reordering (dropping next to another item)
+        const overItemData = findItemDeep(draft, overId);
+        if (overItemData) {
+            const { container: overContainer, item: overItem } = overItemData;
+            const overIndex = overContainer.findIndex(item => item.id === overId);
+            
+            if (overIndex !== -1) {
+                overContainer.splice(overIndex, 0, activeItem);
+            }
+            return;
         }
     }));
+
+    setActiveId(null);
+    setOverId(null);
   };
   
   const handleDragCancel = () => {
@@ -389,7 +349,7 @@ export default function CategoriesPage() {
 
     setBoard(
       produce((draft) => {
-        if (parentId === 'none') {
+        if (parentId === 'none' || parentId === 'new-column') {
           draft.push({
             id: `col-${Date.now()}`,
             name: name,
@@ -437,7 +397,7 @@ export default function CategoriesPage() {
               <Badge variant="destructive">BLOOMSBURY'S (RAS AL KHAIMAH)</Badge>
             </h1>
             <div className="flex items-center gap-4">
-              <Button onClick={() => handleOpenAddDialog('none')}>
+              <Button onClick={() => handleOpenAddDialog('new-column')}>
                 <Plus className="mr-2 h-4 w-4" /> Add Category Column
               </Button>
               <Button variant="secondary">PUBLISH</Button>
@@ -462,14 +422,14 @@ export default function CategoriesPage() {
                   label={column.name}
                   items={column.items}
                   onItemClick={setSelectedCategory}
-                  onAddItem={() => handleOpenAddDialog(column.id)}
+                  onAddItem={handleOpenAddDialog}
                   activeId={activeId}
                   overId={overId}
                 />
               ))}
               <div className="w-80 flex-shrink-0">
                 <button
-                  onClick={() => handleOpenAddDialog('none')}
+                  onClick={() => handleOpenAddDialog('new-column')}
                   className="w-full h-full rounded-lg border-2 border-dashed border-muted-foreground/50 bg-card p-6 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors"
                 >
                   <Plus className="h-8 w-8" />
