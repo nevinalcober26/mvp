@@ -61,32 +61,21 @@ import { ProductSheet } from './product-sheet';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-
-const getStatusBadgeVariant = (status: Product['status']) => {
-  switch (status) {
-    case 'Active':
-      return 'default';
-    case 'Archived':
-      return 'secondary';
-    case 'Out of Stock':
-      return 'destructive';
-    case 'Draft':
-      return 'outline';
-    default:
-      return 'outline';
-  }
-};
+import { getStatusBadgeVariant } from './utils';
+import { ProductInfoSheet } from './product-info-sheet';
 
 const SortableProductRow = ({
   product,
   onEdit,
   isSelected,
   onRowSelect,
+  onRowClick,
 }: {
   product: Product;
   onEdit: (product: Product) => void;
   isSelected: boolean;
   onRowSelect: (id: string) => void;
+  onRowClick: (product: Product) => void;
 }) => {
   const {
     attributes,
@@ -106,8 +95,17 @@ const SortableProductRow = ({
   };
 
   return (
-    <TableRow ref={setNodeRef} style={style} data-state={isSelected ? "selected" : undefined}>
-      <TableCell className="w-12 px-2">
+    <TableRow
+      ref={setNodeRef}
+      style={style}
+      data-state={isSelected ? 'selected' : undefined}
+      onClick={() => onRowClick(product)}
+      className="cursor-pointer"
+    >
+      <TableCell
+        className="w-12 px-2"
+        onClick={(e) => e.stopPropagation()}
+      >
         <Button
           variant="ghost"
           size="icon"
@@ -150,7 +148,7 @@ const SortableProductRow = ({
           {product.status}
         </Badge>
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -179,6 +177,10 @@ export default function ProductsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
+  const [selectedInfoProduct, setSelectedInfoProduct] = useState<Product | null>(
+    null
+  );
   const [search, setSearch] = useState('');
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const { toast } = useToast();
@@ -251,7 +253,7 @@ export default function ProductsPage() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedRows(filteredProducts.map((p) => p.id));
+      setSelectedRows(paginatedProducts.map((p) => p.id));
     } else {
       setSelectedRows([]);
     }
@@ -287,6 +289,18 @@ export default function ProductsPage() {
     setSelectedRows([]);
   };
 
+  const handleViewDetails = (product: Product) => {
+    setSelectedInfoProduct(product);
+    setIsInfoSheetOpen(true);
+  };
+
+  const handleEditFromInfoSheet = (product: Product) => {
+    setIsInfoSheetOpen(false);
+    // A slight delay to allow the sheet to close before opening the new one, preventing UI jank
+    setTimeout(() => {
+      handleEditProduct(product);
+    }, 150);
+  };
 
   return (
     <>
@@ -301,50 +315,56 @@ export default function ProductsPage() {
                   Manage your menu items and their variations.
                 </CardDescription>
               </div>
-               {selectedRows.length > 0 ? (
+              {selectedRows.length > 0 ? (
                 <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
-                        {selectedRows.length} selected
-                    </span>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline">
-                                Actions
-                                <ChevronDown className="ml-2 h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleBulkSetStatus('Draft')}>
-                                Set to Draft
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleBulkSetStatus('Active')}>
-                                Set to Active
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleBulkSetStatus('Archived')}>
-                                Deactivate (Archive)
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={handleBulkDelete}
-                            >
-                                Delete products
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                  <span className="text-sm text-muted-foreground">
+                    {selectedRows.length} selected
+                  </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline">
+                        Actions
+                        <ChevronDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => handleBulkSetStatus('Draft')}
+                      >
+                        Set to Draft
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleBulkSetStatus('Active')}
+                      >
+                        Set to Active
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleBulkSetStatus('Archived')}
+                      >
+                        Deactivate (Archive)
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={handleBulkDelete}
+                      >
+                        Delete products
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-                ) : (
+              ) : (
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm">
                     <FileDown className="mr-2 h-4 w-4" />
                     Export
-                    </Button>
-                    <Button onClick={handleAddProduct} size="sm">
+                  </Button>
+                  <Button onClick={handleAddProduct} size="sm">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add Product
-                    </Button>
+                  </Button>
                 </div>
-                )}
+              )}
             </div>
             <div className="pt-4 flex items-center justify-between">
               <Input
@@ -377,9 +397,12 @@ export default function ProductsPage() {
                       </TableHead>
                       <TableHead className="w-12 px-4">
                         <Checkbox
-                            checked={filteredProducts.length > 0 && selectedRows.length === filteredProducts.length}
-                            onCheckedChange={(value) => handleSelectAll(!!value)}
-                            aria-label="Select all"
+                          checked={
+                            paginatedProducts.length > 0 &&
+                            selectedRows.length === paginatedProducts.length
+                          }
+                          onCheckedChange={(value) => handleSelectAll(!!value)}
+                          aria-label="Select all"
                         />
                       </TableHead>
                       <TableHead className="w-16 p-2">
@@ -418,6 +441,7 @@ export default function ProductsPage() {
                             onEdit={handleEditProduct}
                             isSelected={selectedRows.includes(product.id)}
                             onRowSelect={handleRowSelect}
+                            onRowClick={handleViewDetails}
                           />
                         ))
                       ) : (
@@ -440,7 +464,9 @@ export default function ProductsPage() {
             <div className="text-xs text-muted-foreground">
               Showing{' '}
               <strong>
-                {filteredProducts.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
+                {filteredProducts.length === 0
+                  ? 0
+                  : (currentPage - 1) * itemsPerPage + 1}
               </strong>{' '}
               to{' '}
               <strong>
@@ -451,7 +477,7 @@ export default function ProductsPage() {
               </strong>{' '}
               of <strong>{filteredProducts.length}</strong> products
             </div>
-             <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -480,6 +506,12 @@ export default function ProductsPage() {
         onOpenChange={setIsSheetOpen}
         product={selectedProduct}
         onSave={handleSaveProduct}
+      />
+      <ProductInfoSheet
+        open={isInfoSheetOpen}
+        onOpenChange={setIsInfoSheetOpen}
+        product={selectedInfoProduct}
+        onEdit={handleEditFromInfoSheet}
       />
     </>
   );
