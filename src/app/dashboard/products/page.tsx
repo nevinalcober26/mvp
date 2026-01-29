@@ -1,5 +1,6 @@
 'use client';
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import {
   DndContext,
   closestCenter,
@@ -41,6 +42,7 @@ import {
   PlusCircle,
   ListFilter,
   FileDown,
+  Image as ImageIcon,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -109,6 +111,21 @@ const SortableProductRow = ({
           <GripVertical className="h-5 w-5 text-muted-foreground" />
           <span className="sr-only">Drag to reorder</span>
         </Button>
+      </TableCell>
+      <TableCell className="w-16 p-2">
+        {product.mainImage ? (
+          <Image
+            src={product.mainImage}
+            alt={product.name}
+            width={48}
+            height={48}
+            className="rounded-md object-cover h-12 w-12"
+          />
+        ) : (
+          <div className="flex items-center justify-center h-12 w-12 rounded-md bg-muted text-muted-foreground">
+            <ImageIcon className="h-6 w-6" />
+          </div>
+        )}
       </TableCell>
       <TableCell className="font-medium">{product.name}</TableCell>
       <TableCell>{product.category}</TableCell>
@@ -258,6 +275,9 @@ export default function ProductsPage() {
                       <TableHead className="w-12 px-2">
                         <span className="sr-only">Drag Handle</span>
                       </TableHead>
+                      <TableHead className="w-16 p-2">
+                        <span className="sr-only">Image</span>
+                      </TableHead>
                       <TableHead>Product</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Price</TableHead>
@@ -276,7 +296,7 @@ export default function ProductsPage() {
                       {isLoading ? (
                         [...Array(5)].map((_, i) => (
                           <TableRow key={i}>
-                            {[...Array(7)].map((_, j) => (
+                            {[...Array(8)].map((_, j) => (
                               <TableCell key={j}>
                                 <div className="h-4 bg-muted rounded animate-pulse"></div>
                               </TableCell>
@@ -294,7 +314,7 @@ export default function ProductsPage() {
                       ) : (
                         <TableRow>
                           <TableCell
-                            colSpan={7}
+                            colSpan={8}
                             className="h-24 text-center text-muted-foreground"
                           >
                             No products found.

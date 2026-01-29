@@ -29,6 +29,7 @@ export const generateMockProducts = (count: number): Product[] => {
       price,
       stock: status === 'Out of Stock' ? 0 : Math.floor(Math.random() * 100),
       status,
+      mainImage: i % 3 !== 0 ? `https://picsum.photos/seed/prod${i}/100/100` : undefined,
       description:
         'A detailed description of the product goes here, including ingredients and preparation methods.',
       smallDescription: 'A short and catchy description for the product.',
