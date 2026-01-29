@@ -16,6 +16,8 @@ export function AiSummary({ data, context }: AiSummaryProps) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const generateSummary = useCallback(() => {
+    if (status === 'loading') return; // Prevent multiple requests
+
     if (data.length > 0) {
       setStatus('loading');
       setError('');
@@ -29,14 +31,18 @@ export function AiSummary({ data, context }: AiSummaryProps) {
         })
         .catch((err) => {
           console.error('AI Summary Error:', err);
-          setError(`Could not generate summary. The AI may be temporarily unavailable.`);
+          if (err.message && (err.message.includes('429') || err.message.includes('Too Many Requests'))) {
+            setError('You have exceeded the request limit. Please wait a moment before trying again.');
+          } else {
+            setError(`Could not generate summary. The AI may be temporarily unavailable.`);
+          }
           setStatus('error');
         });
     } else {
         setError(`Not enough data to generate a summary for ${context}.`);
         setStatus('error');
     }
-  }, [data, context]);
+  }, [data, context, status]);
 
   const renderSummaryWithBold = (text: string) => {
     if (!text) return null;
@@ -80,7 +86,7 @@ export function AiSummary({ data, context }: AiSummaryProps) {
               <strong className="font-semibold text-blue-900">AI Summary:</strong>{' '}
               {renderSummaryWithBold(summary)}
             </p>
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-blue-600 hover:text-blue-800 shrink-0" onClick={generateSummary}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-blue-600 hover:text-blue-800 shrink-0" onClick={generateSummary} disabled={status === 'loading'}>
               <RefreshCw className="h-4 w-4" />
               <span className="sr-only">Regenerate summary</span>
             </Button>
@@ -94,7 +100,7 @@ export function AiSummary({ data, context }: AiSummaryProps) {
                     <strong className="font-semibold">AI Error:</strong>{' '}
                     {error}
                 </p>
-                <Button variant="ghost" size="sm" className="shrink-0" onClick={generateSummary}>
+                <Button variant="ghost" size="sm" className="shrink-0" onClick={generateSummary} disabled={status === 'loading'}>
                     Try Again
                 </Button>
             </>
@@ -107,7 +113,7 @@ export function AiSummary({ data, context }: AiSummaryProps) {
             <p className="flex-grow font-medium text-blue-900/90">
               Get an AI-powered summary of the data below.
             </p>
-            <Button size="sm" onClick={generateSummary} className="bg-blue-600 text-white hover:bg-blue-700">
+            <Button size="sm" onClick={generateSummary} disabled={status === 'loading'} className="bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400">
               <Wand className="mr-2 h-4 w-4" />
               Generate Summary
             </Button>
