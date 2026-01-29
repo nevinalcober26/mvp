@@ -41,6 +41,24 @@ export function AiSummary({ data, context }: AiSummaryProps) {
     }
   }, [data, context]);
 
+  const renderSummaryWithBold = (text: string) => {
+    if (!text) return null;
+    // Split by the bold delimiter, keeping the delimiters
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+      // If the part is wrapped in **, render it as a strong tag
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return (
+          <strong key={index} className="font-semibold text-blue-900">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      // Otherwise, render it as plain text
+      return part;
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-start gap-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-100 p-4 text-sm border border-blue-200/50 shadow-sm">
@@ -61,7 +79,8 @@ export function AiSummary({ data, context }: AiSummaryProps) {
     <div className="flex items-start gap-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-100 p-4 text-sm text-blue-900/90 border border-blue-200/50 shadow-sm">
       <Lightbulb className="h-5 w-5 flex-shrink-0 text-blue-500 mt-0.5" />
       <p>
-        <strong className="font-semibold text-blue-900">AI Summary:</strong> {summary}
+        <strong className="font-semibold text-blue-900">AI Summary:</strong>{' '}
+        {renderSummaryWithBold(summary)}
       </p>
     </div>
   );

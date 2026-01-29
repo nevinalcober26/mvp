@@ -31,7 +31,9 @@ const prompt = ai.definePrompt({
   output: {schema: SummarizeDataOutputSchema},
   prompt: `You are an expert restaurant operations analyst. Your task is to provide a brief, insightful summary based on the following data regarding {{context}}.
 
-Analyze the key metrics, identify trends or anomalies, and present a concise summary of 1-2 sentences. Focus on actionable insights. For example, mention high revenue, frequent cancellations, or popular tables.
+Analyze the key metrics, identify trends or anomalies, and present a concise summary of 1-2 sentences. Focus on actionable insights.
+
+When presenting the summary, wrap the most critical keywords, metrics, or trends in double asterisks to denote importance (e.g., "There is **high revenue** from **table T5**" or "**Cancellations** are frequent.").
 
 Do not just list the data. Provide a narrative summary.
 
