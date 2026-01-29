@@ -723,9 +723,9 @@ export default function OrdersPage() {
           <CardContent>
             {view === 'list' ? (
               <div className="relative w-full overflow-auto max-h-[60vh]">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="sticky top-0 z-10 border-b bg-card hover:bg-card">
+                <Table className="min-w-[1800px]">
+                  <TableHeader className="sticky top-0 z-10 bg-card">
+                    <TableRow>
                       <TableHead><SortableHeader tKey="orderId" label="Order ID" /></TableHead>
                       <TableHead><SortableHeader tKey="branch" label="Branch" /></TableHead>
                       <TableHead><SortableHeader tKey="table" label="Table" /></TableHead>
