@@ -65,6 +65,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import type { Order } from './types';
 import { generateMockOrders } from './mock';
 import { getStatusBadgeVariant } from './utils';
@@ -541,7 +542,7 @@ export default function OrdersPage() {
             </div>
         </div>
         <StatCards cards={kpiCards} />
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden w-full">
           <CardHeader className="space-y-4">
             <div className="flex items-start justify-between">
               <div>
@@ -721,7 +722,7 @@ export default function OrdersPage() {
           </CardHeader>
           <CardContent>
             {view === 'list' ? (
-              <div className="relative overflow-auto" style={{ maxHeight: '60vh' }}>
+              <div className="relative w-full overflow-auto">
                 <Table>
                   <TableHeader className="sticky top-0 z-10 bg-card">
                     <TableRow>
@@ -744,7 +745,7 @@ export default function OrdersPage() {
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
+                   <TableBody style={{ maxHeight: '60vh' }}>
                     {paginatedOrders.map((order) => (
                       <TableRow
                         key={order.orderId}
