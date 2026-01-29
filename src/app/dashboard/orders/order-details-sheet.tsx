@@ -50,7 +50,17 @@ export function OrderDetailsSheet({
       <SheetContent className="sm:max-w-lg w-full p-0">
         <div className="flex flex-col h-full">
           <SheetHeader className="p-6 border-b bg-muted/50">
-            <SheetTitle className="text-2xl">Order {order.orderId}</SheetTitle>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <SheetTitle className="text-2xl">Order {order.orderId}</SheetTitle>
+              <div className="flex items-center gap-2">
+                <Badge variant={getStatusBadgeVariant(order.orderStatus)}>
+                  {order.orderStatus}
+                </Badge>
+                <Badge variant={getStatusBadgeVariant(order.paymentState)}>
+                  {order.paymentState}
+                </Badge>
+              </div>
+            </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <CalendarIcon className="h-4 w-4" />
               <span>{order.orderDate}</span>
@@ -64,43 +74,22 @@ export function OrderDetailsSheet({
                   Order Summary
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Branch</span>
-                  <span>{order.branch}</span>
+              <CardContent className="grid grid-cols-2 gap-x-4 gap-y-6 pt-6 text-sm">
+                 <div className="space-y-1">
+                  <p className="text-muted-foreground">Branch</p>
+                  <p className="font-medium">{order.branch}</p>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Table</span>
-                  <Badge variant="secondary" className="text-base px-3 py-1">{order.table}</Badge>
+                <div className="space-y-1">
+                  <p className="text-muted-foreground">Table</p>
+                  <p className="font-medium">{order.table}</p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Staff Name
-                  </span>
-                  <span className="font-medium">{order.staffName}</span>
+                <div className="space-y-1">
+                  <p className="text-muted-foreground">Staff</p>
+                  <p className="font-medium">{order.staffName}</p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Order Type</span>
-                  <Badge
-                    variant={
-                      order.orderType === 'Prepaid' ? 'secondary' : 'outline'
-                    }
-                  >
-                    {order.orderType}
-                  </Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Order Status</span>
-                  <Badge variant={getStatusBadgeVariant(order.orderStatus)}>
-                    {order.orderStatus}
-                  </Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Payment State</span>
-                  <Badge variant={getStatusBadgeVariant(order.paymentState)}>
-                    {order.paymentState}
-                  </Badge>
+                <div className="space-y-1">
+                  <p className="text-muted-foreground">Order Type</p>
+                  <p className="font-medium">{order.orderType}</p>
                 </div>
               </CardContent>
             </Card>

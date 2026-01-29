@@ -99,10 +99,12 @@ const OrderCard = ({
             {order.orderStatus}
           </Badge>
         </CardTitle>
-        <CardDescription className="flex items-center gap-2 pt-1">
+        <CardDescription className="flex items-center gap-2 pt-1 flex-wrap">
           <span>{order.table}</span>
           <span className="text-muted-foreground">&bull;</span>
           <span>{order.staffName}</span>
+          <span className="text-muted-foreground">&bull;</span>
+          <span>{order.items.length} items</span>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2 pb-4">
@@ -469,155 +471,160 @@ export default function OrdersPage() {
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Orders</h1>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setIsExportDialogOpen(true)}>
-              <Download className="mr-2 h-4 w-4" />
-              Export
-            </Button>
-            {permission !== 'granted' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNotificationClick}
-                disabled={permission === 'denied'}
-              >
-                <BellRing className="mr-2 h-4 w-4" />
-                {permission === 'denied'
-                  ? 'Notifications Blocked'
-                  : 'Enable Notifications'}
-              </Button>
-            )}
-          </div>
         </div>
         <AiSummary data={filteredAndSortedOrders} context="daily restaurant orders" />
         <StatCards cards={kpiCards} />
         <Card>
-          <CardHeader>
-            <CardTitle>All Orders</CardTitle>
-            <CardDescription>
-              View and manage all recent orders from this branch.
-            </CardDescription>
-            <div className="mt-4 flex flex-wrap items-center gap-4">
-              <Input
+          <CardHeader className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <CardTitle>All Orders</CardTitle>
+                <CardDescription>
+                  View and manage all recent orders from this branch.
+                </CardDescription>
+              </div>
+               <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={() => setIsExportDialogOpen(true)}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
+                </Button>
+                {permission !== 'granted' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNotificationClick}
+                    disabled={permission === 'denied'}
+                  >
+                    <BellRing className="mr-2 h-4 w-4" />
+                    {permission === 'denied'
+                      ? 'Notifications Blocked'
+                      : 'Enable Notifications'}
+                  </Button>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+               <Input
                 placeholder="Search by ID, table..."
                 className="max-w-xs"
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
               />
-              <Select
-                value={filters.branch}
-                onValueChange={(value) => handleFilterChange('branch', value)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by Branch" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Branches</SelectItem>
-                  <SelectItem value="Ras Al Khaimah">Ras Al Khaimah</SelectItem>
-                  <SelectItem value="Dubai Mall">Dubai Mall</SelectItem>
-                </SelectContent>
-              </Select>
-               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-[180px] justify-between">
-                    <span>
-                      Table
-                      {selectedTables.length > 0 && ` (${selectedTables.length})`}
-                    </span>
-                    <ChevronDown className="h-4 w-4 opacity-50" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[180px]" align="start">
-                  <DropdownMenuLabel>Filter by table</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {tableNumbers.map((table) => (
-                    <DropdownMenuCheckboxItem
-                      key={table}
-                      checked={selectedTables.includes(table)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedTables((prev) => [...prev, table]);
-                        } else {
-                          setSelectedTables((prev) =>
-                            prev.filter((t) => t !== table)
-                          );
-                        }
-                      }}
-                    >
-                      {table}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-                  {selectedTables.length > 0 && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onSelect={() => setSelectedTables([])}
-                        className="justify-center text-center"
+              <div className="flex flex-wrap items-center gap-2">
+                <Select
+                  value={filters.branch}
+                  onValueChange={(value) => handleFilterChange('branch', value)}
+                >
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Filter by Branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Branches</SelectItem>
+                    <SelectItem value="Ras Al Khaimah">Ras Al Khaimah</SelectItem>
+                    <SelectItem value="Dubai Mall">Dubai Mall</SelectItem>
+                  </SelectContent>
+                </Select>
+                 <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full sm:w-[180px] justify-between">
+                      <span>
+                        Table
+                        {selectedTables.length > 0 && ` (${selectedTables.length})`}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[180px]" align="start">
+                    <DropdownMenuLabel>Filter by table</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {tableNumbers.map((table) => (
+                      <DropdownMenuCheckboxItem
+                        key={table}
+                        checked={selectedTables.includes(table)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedTables((prev) => [...prev, table]);
+                          } else {
+                            setSelectedTables((prev) =>
+                              prev.filter((t) => t !== table)
+                            );
+                          }
+                        }}
                       >
-                        Clear filters
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Select
-                value={filters.status}
-                onValueChange={(value) => handleFilterChange('status', value)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="Draft">Draft</SelectItem>
-                  <SelectItem value="Open">Open</SelectItem>
-                  <SelectItem value="Paid">Paid</SelectItem>
-                  <SelectItem value="Cancelled">Cancelled</SelectItem>
-                  <SelectItem value="Refunded">Refunded</SelectItem>
-                </SelectContent>
-              </Select>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={'outline'}
-                    className={cn(
-                      'w-[280px] justify-start text-left font-normal',
-                      !date && 'text-muted-foreground'
+                        {table}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                    {selectedTables.length > 0 && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onSelect={() => setSelectedTables([])}
+                          className="justify-center text-center"
+                        >
+                          Clear filters
+                        </DropdownMenuItem>
+                      </>
                     )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Select
+                  value={filters.status}
+                  onValueChange={(value) => handleFilterChange('status', value)}
+                >
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Filter by Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="Draft">Draft</SelectItem>
+                    <SelectItem value="Open">Open</SelectItem>
+                    <SelectItem value="Paid">Paid</SelectItem>
+                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                    <SelectItem value="Refunded">Refunded</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={'outline'}
+                      className={cn(
+                        'w-full sm:w-[280px] justify-start text-left font-normal',
+                        !date && 'text-muted-foreground'
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? (isSameDay(date, new Date()) ? 'Today' : format(date, 'PPP')) : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                  <Button
+                    variant={view === 'gallery' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    onClick={() => setView('gallery')}
+                    aria-label="Gallery View"
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? (isSameDay(date, new Date()) ? 'Today' : format(date, 'PPP')) : <span>Pick a date</span>}
+                    <LayoutGrid className="h-4 w-4" />
+                    <span className="sr-only">Gallery</span>
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <div className="flex-grow" />
-              <div className="flex items-center gap-1 rounded-md bg-muted p-1">
-                <Button
-                  variant={view === 'gallery' ? 'secondary' : 'ghost'}
-                  size="icon"
-                  onClick={() => setView('gallery')}
-                  aria-label="Gallery View"
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                  <span className="sr-only">Gallery</span>
-                </Button>
-                <Button
-                  variant={view === 'list' ? 'secondary' : 'ghost'}
-                  size="icon"
-                  onClick={() => setView('list')}
-                  aria-label="List View"
-                >
-                  <List className="h-4 w-4" />
-                  <span className="sr-only">List</span>
-                </Button>
+                  <Button
+                    variant={view === 'list' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    onClick={() => setView('list')}
+                    aria-label="List View"
+                  >
+                    <List className="h-4 w-4" />
+                    <span className="sr-only">List</span>
+                  </Button>
+                </div>
               </div>
             </div>
           </CardHeader>
@@ -666,13 +673,6 @@ export default function OrdersPage() {
                       <TableCell className="text-right font-mono text-red-600">${(order.totalAmount - order.paidAmount).toFixed(2)}</TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewDetails(order)}
-                          >
-                            View
-                          </Button>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
