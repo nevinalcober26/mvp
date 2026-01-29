@@ -206,9 +206,7 @@ const ExportDialog = ({
 };
 
 const allColumns = [
-    { id: 'customerName', label: 'Customer Name', defaultVisible: false, category: 'Customer' },
-    { id: 'email', label: 'Email', defaultVisible: false, category: 'Customer' },
-    { id: 'phoneNumber', label: 'Phone Number', defaultVisible: false, category: 'Customer' },
+    { id: 'customer', label: 'Customer', defaultVisible: true, category: 'Customer' },
     { id: 'orderType', label: 'Order Type', defaultVisible: true, category: 'Order' },
     { id: 'items', label: 'Items', defaultVisible: false, category: 'Order' },
     { id: 'categories', label: 'Categories', defaultVisible: false, category: 'Order' },
@@ -725,11 +723,9 @@ export default function OrdersPage() {
                     <TableHeader className="sticky top-0 bg-background z-10">
                       <TableRow>
                         <TableHead><SortableHeader tKey="orderId" label="Order ID" /></TableHead>
+                        {visibleColumns.customer && <TableHead>Customer</TableHead>}
                         <TableHead><SortableHeader tKey="branch" label="Branch" /></TableHead>
                         <TableHead><SortableHeader tKey="table" label="Table" /></TableHead>
-                        {visibleColumns.customerName && <TableHead>Customer Name</TableHead>}
-                        {visibleColumns.email && <TableHead>Email</TableHead>}
-                        {visibleColumns.phoneNumber && <TableHead>Phone Number</TableHead>}
                         {visibleColumns.items && <TableHead>Items</TableHead>}
                         {visibleColumns.categories && <TableHead>Categories</TableHead>}
                         {visibleColumns.orderComments && <TableHead>Comments</TableHead>}
@@ -740,7 +736,7 @@ export default function OrdersPage() {
                         {visibleColumns.total && <TableHead className="text-right"><SortableHeader tKey="totalAmount" label="Total" /></TableHead>}
                         <TableHead className="text-right">Paid</TableHead>
                         <TableHead className="text-right">Pending</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead className="text-right sticky right-0 bg-background" style={{ boxShadow: '-5px 0 5px -5px #0003' }}>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -751,11 +747,15 @@ export default function OrdersPage() {
                           className="cursor-pointer"
                         >
                           <TableCell className="font-medium">{order.orderId}</TableCell>
+                          {visibleColumns.customer && (
+                            <TableCell>
+                              <div className="font-medium">{order.customer.name}</div>
+                              <div className="text-xs text-muted-foreground">{order.customer.email}</div>
+                              <div className="text-xs text-muted-foreground">{order.customer.phone}</div>
+                            </TableCell>
+                          )}
                           <TableCell>{order.branch}</TableCell>
                           <TableCell>{order.table}</TableCell>
-                          {visibleColumns.customerName && <TableCell>{order.customer.name}</TableCell>}
-                          {visibleColumns.email && <TableCell>{order.customer.email}</TableCell>}
-                          {visibleColumns.phoneNumber && <TableCell>{order.customer.phone}</TableCell>}
                           {visibleColumns.items && <TableCell className="max-w-[200px] truncate">{order.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}</TableCell>}
                           {visibleColumns.categories && <TableCell>{[...new Set(order.items.map(item => item.category))].join(', ')}</TableCell>}
                           {visibleColumns.orderComments && <TableCell className="max-w-[150px] truncate">{order.orderComments}</TableCell>}
@@ -778,7 +778,7 @@ export default function OrdersPage() {
                           {visibleColumns.total && <TableCell className="text-right font-mono">${order.totalAmount.toFixed(2)}</TableCell>}
                           <TableCell className="text-right font-mono text-green-600">${order.paidAmount.toFixed(2)}</TableCell>
                           <TableCell className="text-right font-mono text-red-600">${(order.totalAmount - order.paidAmount).toFixed(2)}</TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
+                          <TableCell onClick={(e) => e.stopPropagation()} className="sticky right-0 bg-background" style={{ boxShadow: '-5px 0 5px -5px #0003' }}>
                             <div className="flex items-center justify-end gap-2">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
