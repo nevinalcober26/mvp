@@ -230,62 +230,64 @@ const ListView = ({
         </div>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>
-                <Button variant="ghost" onClick={() => requestSort('name')}>
-                  Category Name
-                  <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-              </TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedList.map(({ id, name, type, depth, originalItem }) => (
-              <TableRow key={id}>
-                <TableCell>
-                  <div
-                    className="flex items-center"
-                    style={{ paddingLeft: `${depth * 1.5}rem` }}
-                  >
-                    {depth > 0 && (
-                      <CornerDownRight className="h-4 w-4 mr-2 text-muted-foreground" />
-                    )}
-                    <span className="font-medium">{name}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={type === 'main' ? 'default' : 'outline'}>
-                    {type === 'main' ? 'Main Category' : 'Sub Category'}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onSelect(originalItem)}>
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => onDeleteItem(id)}
-                        className="text-red-500"
-                      >
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+        <div className="relative w-full overflow-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => requestSort('name')}>
+                    Category Name
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {paginatedList.map(({ id, name, type, depth, originalItem }) => (
+                <TableRow key={id}>
+                  <TableCell>
+                    <div
+                      className="flex items-center"
+                      style={{ paddingLeft: `${depth * 1.5}rem` }}
+                    >
+                      {depth > 0 && (
+                        <CornerDownRight className="h-4 w-4 mr-2 text-muted-foreground" />
+                      )}
+                      <span className="font-medium">{name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={type === 'main' ? 'default' : 'outline'}>
+                      {type === 'main' ? 'Main Category' : 'Sub Category'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onSelect(originalItem)}>
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => onDeleteItem(id)}
+                          className="text-red-500"
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
       <CardFooter className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">

@@ -86,64 +86,66 @@ export function MenuItemsTable() {
         </Button>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Product</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="text-right">Price</TableHead>
-              <TableHead className="text-right">Stock</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {menuItems.map((item) => (
-              <TableRow key={item.name}>
-                <TableCell className="font-medium">{item.name}</TableCell>
-                <TableCell>{item.category}</TableCell>
-                <TableCell className="text-right">
-                  ${item.price.toFixed(2)}
-                </TableCell>
-                <TableCell className="text-right">{item.stock}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant={
-                      item.status === 'Active'
-                        ? 'default'
-                        : item.status === 'Out of Stock'
-                        ? 'destructive'
-                        : 'secondary'
-                    }
-                    className={
-                      item.status === 'Active'
-                        ? 'bg-green-100 text-green-800'
-                        : ''
-                    }
-                  >
-                    {item.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuItem>Archive</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+        <div className="relative w-full overflow-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead className="text-right">Price</TableHead>
+                <TableHead className="text-right">Stock</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {menuItems.map((item) => (
+                <TableRow key={item.name}>
+                  <TableCell className="font-medium">{item.name}</TableCell>
+                  <TableCell>{item.category}</TableCell>
+                  <TableCell className="text-right">
+                    ${item.price.toFixed(2)}
+                  </TableCell>
+                  <TableCell className="text-right">{item.stock}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        item.status === 'Active'
+                          ? 'default'
+                          : item.status === 'Out of Stock'
+                          ? 'destructive'
+                          : 'secondary'
+                      }
+                      className={
+                        item.status === 'Active'
+                          ? 'bg-green-100 text-green-800'
+                          : ''
+                      }
+                    >
+                      {item.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                        <DropdownMenuItem>Archive</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );
