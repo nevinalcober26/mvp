@@ -16,6 +16,8 @@ import {
   ChevronDown,
   ClipboardList,
   LayoutDashboard,
+  Users,
+  Bot,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -29,12 +31,21 @@ import {
   SidebarGroupLabel,
   SidebarSeparator,
   SidebarTrigger,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '../ui/button';
 import { usePathname } from 'next/navigation';
 import NextLink from 'next/link';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
@@ -61,7 +72,6 @@ export const EMenuIcon = () => (
       d="M542.4 167c0 10.7.2 15.1.3 9.7.2-5.3.2-14.1 0-19.5-.1-5.3-.3-.9-.3 9.8m0 89.5c0 10.4.2 14.6.3 9.2.2-5.4.2-13.9 0-19-.1-5.1-.3-.7-.3 9.8m153 0c0 10.4.2 14.6.3 9.2.2-5.4.2-13.9 0-19-.1-5.1-.3-.7-.3 9.8m-153 90c0 10.4.2 14.6.3 9.2.2-5.4.2-13.9 0-19-.1-5.1-.3-.7-.3 9.8"
     />
     <path
-      fill="teal"
       fillOpacity=".5"
       d="M853.4 167c0 10.7.2 15.1.3 9.7.2-5.3.2-14.1 0-19.5-.1-5.3-.3-.9-.3 9.8m-369.1 70.7c5.9.2 15.5.2 21.5 0 5.9-.1 1-.3-10.8-.3s-16.7.2-10.7.3m96.5 0c21 .2 55.4.2 76.5 0 21-.1 3.8-.2-38.3-.2s-59.3.1-38.2.2m-96.5 128c5.9.2 15.5.2 21.5 0 5.9-.1 1-.3-10.8-.3s-16.7.2-10.7.3m77.5 0c10.5.2 27.9.2 38.5 0 10.5-.1 1.9-.2-19.3-.2s-29.8.1-19.2.2"
     />
@@ -116,6 +126,10 @@ export const EMenuIcon = () => (
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const [isReportsOpen, setIsReportsOpen] = useState(
+    pathname.startsWith('/dashboard/reports')
+  );
+
   return (
     <Sidebar variant="sidebar" collapsible="icon" className="border-r">
       <SidebarHeader className="relative flex h-16 items-center justify-center p-4">
@@ -140,7 +154,8 @@ export function AppSidebar() {
                   !pathname.startsWith('/dashboard/categories') &&
                   !pathname.startsWith('/dashboard/orders') &&
                   !pathname.startsWith('/dashboard/tables') &&
-                  !pathname.startsWith('/dashboard/products')
+                  !pathname.startsWith('/dashboard/products') &&
+                  !pathname.startsWith('/dashboard/reports')
                 }
                 tooltip="Dashboard"
               >
@@ -151,10 +166,66 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Reports">
-                <BarChart />
-                <span>Reports</span>
-              </SidebarMenuButton>
+              <Collapsible open={isReportsOpen} onOpenChange={setIsReportsOpen}>
+                <CollapsibleTrigger asChild className="w-full">
+                  <SidebarMenuButton
+                    isActive={pathname.startsWith('/dashboard/reports')}
+                    tooltip="Reports"
+                    className="w-full justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <BarChart />
+                      <span>Reports</span>
+                    </div>
+                    <ChevronDown
+                      className={cn(
+                        'h-4 w-4 transition-transform duration-200',
+                        isReportsOpen && 'rotate-180'
+                      )}
+                    />
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        asChild
+                        isActive={pathname.startsWith(
+                          '/dashboard/reports/payments'
+                        )}
+                      >
+                        <NextLink href="/dashboard/reports/payments">
+                          Payments
+                        </NextLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        asChild
+                        isActive={pathname.startsWith(
+                          '/dashboard/reports/staff-performance'
+                        )}
+                      >
+                        <NextLink href="/dashboard/reports/staff-performance">
+                          Staff Performance
+                        </NextLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        asChild
+                        isActive={pathname.startsWith(
+                          '/dashboard/reports/ai-insights'
+                        )}
+                      >
+                        <NextLink href="/dashboard/reports/ai-insights">
+                          AI Insights
+                        </NextLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </Collapsible>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
