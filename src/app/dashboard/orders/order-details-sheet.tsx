@@ -28,6 +28,7 @@ import {
   Package,
   User,
   Hourglass,
+  MessageSquare,
 } from 'lucide-react';
 import type { Order } from './types';
 import { getStatusBadgeVariant } from './utils';
@@ -201,20 +202,18 @@ export function OrderDetailsSheet({
                                       <div className="min-w-0 flex-1 flex justify-between items-start">
                                         <div>
                                           <p className="font-medium text-sm">
-                                            Paid ${payment.amount} via{' '}
-                                            {payment.method ===
-                                            'Credit Card'
-                                              ? 'Credit Card (Network International)'
-                                              : payment.method}
+                                            Payment of ${payment.amount} via {payment.method}
                                           </p>
                                           <p className="mt-0.5 text-sm text-muted-foreground">
-                                            {payment.guestName} -{' '}
-                                            {payment.date}
+                                            by {payment.guestName} on {payment.date}
+                                          </p>
+                                          <p className="mt-1 text-xs text-muted-foreground">
+                                            Transaction ID: {payment.transactionId}
                                           </p>
                                         </div>
                                         <Badge
                                           variant="outline"
-                                          className="bg-green-100 text-green-700 border-transparent"
+                                          className="bg-green-100 text-green-700 border-transparent shrink-0"
                                         >
                                           Success
                                         </Badge>
@@ -322,6 +321,22 @@ export function OrderDetailsSheet({
                     </div>
                   </CardContent>
                 </Card>
+
+                {order.orderComments && (
+                    <Card>
+                        <CardHeader className="p-8">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <MessageSquare className="h-5 w-5" />
+                                Order Comments
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-8 pt-0">
+                            <p className="text-sm text-muted-foreground italic">
+                                "{order.orderComments}"
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
               </div>
             </div>
           </div>
