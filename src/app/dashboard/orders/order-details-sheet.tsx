@@ -188,7 +188,7 @@ export function OrderDetailsSheet({
 
                 <Separator className="my-4" />
                 
-                <div className="max-h-56 overflow-y-auto pr-4">
+                <div className="overflow-y-auto pr-4">
 
                   <h4 className="font-semibold mb-3">Payment History</h4>
                   
