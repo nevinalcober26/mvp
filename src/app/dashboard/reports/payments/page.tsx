@@ -69,7 +69,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 
 type Transaction = {
   id: string;
@@ -81,6 +81,8 @@ type Transaction = {
   paymentStatus: 'Paid' | 'Partial' | 'Unpaid' | 'Refunded';
   paymentMethod: string;
   payers: number;
+  branch: 'Ras Al Khaimah' | 'Dubai Mall';
+  table: string;
 };
 
 const generateMockTransactions = (count: number): Transaction[] => {
@@ -92,6 +94,10 @@ const generateMockTransactions = (count: number): Transaction[] => {
     'Refunded',
   ];
   const methods = ['Credit Card', 'Cash', 'Online'];
+  const branches: ('Ras Al Khaimah' | 'Dubai Mall')[] = [
+    'Ras Al Khaimah',
+    'Dubai Mall',
+  ];
 
   for (let i = 0; i < count; i++) {
     const totalAmount = parseFloat((Math.random() * 200 + 10).toFixed(2));
@@ -117,6 +123,8 @@ const generateMockTransactions = (count: number): Transaction[] => {
       paymentStatus: status,
       paymentMethod: methods[i % methods.length],
       payers: Math.floor(Math.random() * 4) + 1,
+      branch: branches[i % branches.length],
+      table: `T${(i % 24) + 1}`,
     });
   }
   return transactions;
@@ -160,7 +168,13 @@ export default function PaymentsReportPage() {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [view, setView] = useState<'table' | 'chart'>('chart');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const itemsPerPage = 10;
+  const [filters, setFilters] = useState({
+    paymentStatus: 'all',
+    paymentMethod: 'all',
+    table: 'all',
+    branch: 'all',
+  });
 
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Transaction;
@@ -175,10 +189,37 @@ export default function PaymentsReportPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const sortedTransactions = useMemo(() => {
-    let sortableItems = [...transactions];
+  const handleFilterChange = (filterName: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [filterName]: value }));
+    setCurrentPage(1);
+  };
+
+  const filteredAndSortedTransactions = useMemo(() => {
+    let filtered = transactions.filter((transaction) => {
+      const transactionDate = new Date(transaction.timestamp);
+      const matchesDate = date ? isSameDay(transactionDate, date) : true;
+      const matchesStatus =
+        filters.paymentStatus === 'all' ||
+        transaction.paymentStatus === filters.paymentStatus;
+      const matchesMethod =
+        filters.paymentMethod === 'all' ||
+        transaction.paymentMethod === filters.paymentMethod;
+      const matchesTable =
+        filters.table === 'all' || transaction.table === filters.table;
+      const matchesBranch =
+        filters.branch === 'all' || transaction.branch === filters.branch;
+
+      return (
+        matchesDate &&
+        matchesStatus &&
+        matchesMethod &&
+        matchesTable &&
+        matchesBranch
+      );
+    });
+
     if (sortConfig !== null) {
-      sortableItems.sort((a, b) => {
+      filtered.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
         }
@@ -188,14 +229,19 @@ export default function PaymentsReportPage() {
         return 0;
       });
     }
-    return sortableItems;
-  }, [transactions, sortConfig]);
+    return filtered;
+  }, [transactions, sortConfig, date, filters]);
 
-  const totalPages = Math.ceil(sortedTransactions.length / itemsPerPage);
+  const totalPages = Math.ceil(
+    filteredAndSortedTransactions.length / itemsPerPage
+  );
   const paginatedTransactions = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    return sortedTransactions.slice(startIndex, startIndex + itemsPerPage);
-  }, [sortedTransactions, currentPage]);
+    return filteredAndSortedTransactions.slice(
+      startIndex,
+      startIndex + itemsPerPage
+    );
+  }, [filteredAndSortedTransactions, currentPage]);
 
   const chartData = useMemo(() => {
     const salesByDay: { [key: string]: number } = {};
@@ -241,6 +287,17 @@ export default function PaymentsReportPage() {
         : [...prev, rowId]
     );
   };
+
+  const tableNumbers = useMemo(() => {
+    const uniqueTables = [...new Set(transactions.map((t) => t.table))];
+    return uniqueTables.sort(
+      (a, b) => parseInt(a.substring(1)) - parseInt(b.substring(1))
+    );
+  }, [transactions]);
+
+  const branches = useMemo(() => {
+    return [...new Set(transactions.map((t) => t.branch))];
+  }, [transactions]);
 
   const SortableHeader = ({
     tKey,
@@ -295,9 +352,9 @@ export default function PaymentsReportPage() {
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {date ? (
-                  new Date(date).toLocaleDateString()
+                  isSameDay(date, new Date()) ? 'Today' : format(date, 'PPP')
                 ) : (
-                  <span>Pick a date range</span>
+                  <span>Pick a date</span>
                 )}
               </Button>
             </PopoverTrigger>
@@ -310,36 +367,65 @@ export default function PaymentsReportPage() {
               />
             </PopoverContent>
           </Popover>
-          <Select>
+          <Select
+            value={filters.paymentStatus}
+            onValueChange={(value) => handleFilterChange('paymentStatus', value)}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Payment Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="Paid">Paid</SelectItem>
+              <SelectItem value="Partial">Partial</SelectItem>
+              <SelectItem value="Unpaid">Unpaid</SelectItem>
+              <SelectItem value="Refunded">Refunded</SelectItem>
             </SelectContent>
           </Select>
-          <Select>
+          <Select
+            value={filters.paymentMethod}
+            onValueChange={(value) => handleFilterChange('paymentMethod', value)}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Payment Method" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Methods</SelectItem>
+              <SelectItem value="Credit Card">Credit Card</SelectItem>
+              <SelectItem value="Cash">Cash</SelectItem>
+              <SelectItem value="Online">Online</SelectItem>
             </SelectContent>
           </Select>
-          <Select>
+          <Select
+            value={filters.table}
+            onValueChange={(value) => handleFilterChange('table', value)}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Table Number" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Tables</SelectItem>
+              {tableNumbers.map((table) => (
+                <SelectItem key={table} value={table}>
+                  {table}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <Select>
+          <Select
+            value={filters.branch}
+            onValueChange={(value) => handleFilterChange('branch', value)}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Branch/Venue" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Branches</SelectItem>
+              {branches.map((branch) => (
+                <SelectItem key={branch} value={branch}>
+                  {branch}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -421,7 +507,10 @@ export default function PaymentsReportPage() {
                           <SortableHeader tKey="id" label="Transaction ID" />
                         </TableHead>
                         <TableHead>
-                          <SortableHeader tKey="orderId" label="Table/Order ID" />
+                          <SortableHeader
+                            tKey="orderId"
+                            label="Table/Order ID"
+                          />
                         </TableHead>
                         <TableHead>
                           <SortableHeader tKey="timestamp" label="Timestamp" />
@@ -493,12 +582,16 @@ export default function PaymentsReportPage() {
                             ${t.outstandingAmount.toFixed(2)}
                           </TableCell>
                           <TableCell>
-                            <Badge variant={getStatusBadgeVariant(t.paymentStatus)}>
+                            <Badge
+                              variant={getStatusBadgeVariant(t.paymentStatus)}
+                            >
                               {t.paymentStatus}
                             </Badge>
                           </TableCell>
                           <TableCell>{t.paymentMethod}</TableCell>
-                          <TableCell className="text-right">{t.payers}</TableCell>
+                          <TableCell className="text-right">
+                            {t.payers}
+                          </TableCell>
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -508,7 +601,9 @@ export default function PaymentsReportPage() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
                                 <DropdownMenuItem>View Order</DropdownMenuItem>
-                                <DropdownMenuItem>View Receipt</DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  View Receipt
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -522,16 +617,19 @@ export default function PaymentsReportPage() {
                 <div className="text-xs text-muted-foreground">
                   Showing{' '}
                   <strong>
-                    {(currentPage - 1) * itemsPerPage + 1}
+                    {filteredAndSortedTransactions.length > 0
+                      ? (currentPage - 1) * itemsPerPage + 1
+                      : 0}
                   </strong>{' '}
                   to{' '}
                   <strong>
                     {Math.min(
                       currentPage * itemsPerPage,
-                      transactions.length
+                      filteredAndSortedTransactions.length
                     )}
                   </strong>{' '}
-                  of <strong>{transactions.length}</strong> transactions
+                  of <strong>{filteredAndSortedTransactions.length}</strong>{' '}
+                  transactions
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button
@@ -548,7 +646,7 @@ export default function PaymentsReportPage() {
                     onClick={() =>
                       setCurrentPage((p) => Math.min(p + 1, totalPages))
                     }
-                    disabled={currentPage === totalPages}
+                    disabled={currentPage >= totalPages}
                   >
                     Next
                   </Button>
@@ -565,7 +663,10 @@ export default function PaymentsReportPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ChartContainer config={chartConfig} className="h-[400px] w-full">
+                <ChartContainer
+                  config={chartConfig}
+                  className="h-[400px] w-full"
+                >
                   <AreaChart
                     data={chartData}
                     margin={{
@@ -576,7 +677,13 @@ export default function PaymentsReportPage() {
                     }}
                   >
                     <defs>
-                      <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient
+                        id="colorSales"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
                         <stop
                           offset="5%"
                           stopColor="var(--color-sales)"
