@@ -32,6 +32,7 @@ import {
   ArrowUpDown,
   Download,
   TrendingUp,
+  Users,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -83,6 +84,7 @@ type Transaction = {
   payers: number;
   branch: 'Ras Al Khaimah' | 'Dubai Mall';
   table: string;
+  splitMethod?: 'Equal' | 'Item-based' | 'Custom';
 };
 
 const generateMockTransactions = (count: number): Transaction[] => {
@@ -113,6 +115,14 @@ const generateMockTransactions = (count: number): Transaction[] => {
       paidAmount = totalAmount;
     }
 
+    const payers = Math.floor(Math.random() * 4) + 1;
+    let splitMethod: Transaction['splitMethod'] | undefined = undefined;
+    if (payers > 1 || status === 'Partial') {
+        const splitMethods: Transaction['splitMethod'][] = ['Equal', 'Item-based', 'Custom'];
+        splitMethod = splitMethods[i % splitMethods.length];
+    }
+
+
     transactions.push({
       id: `txn_${12345 + i}`,
       orderId: `#${3210 + i}`,
@@ -122,9 +132,10 @@ const generateMockTransactions = (count: number): Transaction[] => {
       outstandingAmount: totalAmount - paidAmount,
       paymentStatus: status,
       paymentMethod: methods[i % methods.length],
-      payers: Math.floor(Math.random() * 4) + 1,
+      payers,
       branch: branches[i % branches.length],
       table: `T${(i % 24) + 1}`,
+      splitMethod,
     });
   }
   return transactions;
@@ -166,7 +177,7 @@ export default function PaymentsReportPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [date, setDate] = useState<Date | undefined>();
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const [view, setView] = useState<'table' | 'chart'>('chart');
+  const [view, setView] = useState<'chart' | 'table'>('chart');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [filters, setFilters] = useState({
@@ -259,6 +270,11 @@ export default function PaymentsReportPage() {
       }))
       .reverse(); // To show chronologically
   }, [transactions]);
+  
+  const splitTransactions = useMemo(() => filteredAndSortedTransactions.filter(t => t.payers > 1 || t.splitMethod), [filteredAndSortedTransactions]);
+  const splitAdoptionRate = transactions.length > 0 ? (transactions.filter(t => t.payers > 1).length / transactions.length) * 100 : 0;
+  const avgPayers = splitTransactions.length > 0 ? splitTransactions.reduce((acc, t) => acc + t.payers, 0) / splitTransactions.length : 1;
+
 
   const requestSort = (key: keyof Transaction) => {
     let direction: 'ascending' | 'descending' = 'ascending';
@@ -731,32 +747,100 @@ export default function PaymentsReportPage() {
         </Tabs>
 
         {/* Placeholder Sections */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Split Bill Analytics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Content coming soon...</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Outstanding / Partial Payments</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Content coming soon...</p>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 gap-8">
+            <Card className="lg:col-span-2">
+                <CardHeader>
+                    <CardTitle>Split Bill Analytics</CardTitle>
+                    <CardDescription>
+                    Analysis of orders with split payments.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <Card>
+                        <CardHeader className="p-4">
+                        <CardDescription>Split Adoption Rate</CardDescription>
+                        <CardTitle className="text-3xl">{splitAdoptionRate.toFixed(1)}%</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="p-4">
+                        <CardDescription>Avg. Payers per Split</CardDescription>
+                        <CardTitle className="text-3xl">{avgPayers.toFixed(1)}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="p-4">
+                        <CardDescription>Abandoned Splits</CardDescription>
+                        <CardTitle className="text-3xl text-red-500">
+                            {splitTransactions.filter(t => t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial').length}
+                        </CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="p-4">
+                        <CardDescription>Total Outstanding</CardDescription>
+                        <CardTitle className="text-3xl">
+                            ${splitTransactions.reduce((acc, t) => acc + t.outstandingAmount, 0).toFixed(2)}
+                        </CardTitle>
+                        </CardHeader>
+                    </Card>
+                    </div>
+                    
+                    <div className="relative w-full overflow-auto">
+                    <Table>
+                        <TableHeader>
+                        <TableRow>
+                            <TableHead>Order ID</TableHead>
+                            <TableHead>Total Bill</TableHead>
+                            <TableHead className="text-center"># of Payers</TableHead>
+                            <TableHead>Split Method</TableHead>
+                            <TableHead>Time to Settle</TableHead>
+                            <TableHead>Status</TableHead>
+                        </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                        {splitTransactions.slice(0, 5).map((t) => (
+                            <TableRow key={t.id}>
+                            <TableCell className="font-medium">{t.orderId}</TableCell>
+                            <TableCell className="font-mono">${t.totalAmount.toFixed(2)}</TableCell>
+                            <TableCell className="text-center">{t.payers}</TableCell>
+                            <TableCell>{t.splitMethod || 'N/A'}</TableCell>
+                            <TableCell>8m 15s</TableCell> {/* Placeholder */}
+                            <TableCell>
+                                <Badge variant={getStatusBadgeVariant(t.paymentStatus)}>
+                                {t.paymentStatus}
+                                </Badge>
+                            </TableCell>
+                            </TableRow>
+                        ))}
+                        </TableBody>
+                    </Table>
+                    {splitTransactions.length === 0 && (
+                        <p className="text-center text-muted-foreground py-8">No split bill transactions match the current filters.</p>
+                    )}
+                    </div>
+                </CardContent>
+            </Card>
         </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Tips & Service Charges</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Content coming soon...</p>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card>
+                <CardHeader>
+                <CardTitle>Outstanding / Partial Payments</CardTitle>
+                </CardHeader>
+                <CardContent>
+                <p className="text-muted-foreground">Content coming soon...</p>
+                </CardContent>
+            </Card>
+            <Card>
+            <CardHeader>
+                <CardTitle>Tips & Service Charges</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-muted-foreground">Content coming soon...</p>
+            </CardContent>
+            </Card>
+        </div>
       </main>
     </>
   );
