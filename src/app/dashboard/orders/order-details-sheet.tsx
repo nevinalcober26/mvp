@@ -170,7 +170,7 @@ export function OrderDetailsSheet({
                       {order.payments.length > 0 ||
                       order.totalAmount - order.paidAmount > 0.01 ? (
                         <div className="flow-root">
-                          <ul className="-mb-8">
+                          <ul>
                             {order.payments.map((payment, index) => {
                               const isLastPayment =
                                 index === order.payments.length - 1;
