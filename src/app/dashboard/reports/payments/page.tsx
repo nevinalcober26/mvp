@@ -29,11 +29,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   MoreHorizontal,
-  Calendar as CalendarIcon,
   ArrowUpDown,
   Download,
   TrendingUp,
-  Users,
   AlertTriangle,
   LayoutGrid,
   List,
@@ -51,12 +49,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { cn } from '@/lib/utils';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { OrdersPageSkeleton } from '@/components/dashboard/skeletons';
 import {
@@ -79,7 +71,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { format, isSameDay, differenceInDays } from 'date-fns';
+import { format, isWithinInterval, differenceInDays, subDays, endOfDay } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -89,6 +81,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { type DateRange } from 'react-day-picker';
+import { DateRangePicker } from '@/components/dashboard/reports/date-range-picker';
 
 type Transaction = {
   id: string;
@@ -211,7 +205,10 @@ const chartConfig = {
 };
 
 const initialFilterState = {
-  date: undefined as Date | undefined,
+  dateRange: {
+    from: subDays(new Date(), 29),
+    to: new Date(),
+  } as DateRange | undefined,
   branch: 'all',
   paymentStatus: 'all',
   paymentMethod: 'all',
@@ -392,7 +389,7 @@ export default function PaymentsReportPage() {
 
   const handleFilterChange = (
     filterName: string,
-    value: string | Date | undefined
+    value: string | DateRange | undefined
   ) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
     setCurrentPage(1);
@@ -422,8 +419,8 @@ export default function PaymentsReportPage() {
   const filteredAndSortedTransactions = useMemo(() => {
     let filtered = transactions.filter((transaction) => {
       const transactionDate = new Date(transaction.timestamp);
-      const matchesDate = filters.date
-        ? isSameDay(transactionDate, filters.date)
+       const matchesDate = filters.dateRange?.from && filters.dateRange?.to
+        ? isWithinInterval(transactionDate, { start: filters.dateRange.from, end: endOfDay(filters.dateRange.to) })
         : true;
       const matchesBranch =
         filters.branch === 'all' || transaction.branch === filters.branch;
@@ -625,36 +622,10 @@ export default function PaymentsReportPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap items-center gap-4">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={'outline'}
-                  className={cn(
-                    'w-[240px] justify-start text-left font-normal',
-                    !filters.date && 'text-muted-foreground'
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {filters.date ? (
-                    isSameDay(filters.date, new Date()) ? (
-                      'Today'
-                    ) : (
-                      format(filters.date, 'PPP')
-                    )
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={filters.date}
-                  onSelect={(date) => handleFilterChange('date', date)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <DateRangePicker
+              dateRange={filters.dateRange}
+              onDateRangeChange={(range) => handleFilterChange('dateRange', range)}
+            />
             <Select
               value={filters.branch}
               onValueChange={(value) => handleFilterChange('branch', value)}
