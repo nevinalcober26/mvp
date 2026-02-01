@@ -782,13 +782,13 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="flex flex-col gap-2 p-2">
+      <SidebarFooter className="flex flex-col gap-2 p-2 bg-gray-900">
         <div className="group-data-[collapsible=icon]:hidden">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex h-auto w-full items-center justify-between gap-2 rounded-md bg-gray-800 p-2 text-left text-white hover:bg-gray-700"
+                className="flex h-auto w-full items-center justify-between gap-2 rounded-md bg-gray-800 p-2 text-left text-white hover:bg-gray-700 border-2 border-primary"
               >
                 <div className="flex items-center gap-3">
                   {restaurantLogo && (
@@ -802,7 +802,7 @@ export function AppSidebar() {
                     />
                   )}
                   <div className="flex flex-col overflow-hidden">
-                    <span className="truncate text-sm font-medium">
+                    <span className="truncate text-sm font-medium text-white">
                       Bloomsbury's
                     </span>
                     <span className="truncate text-xs text-gray-400">
@@ -810,12 +810,12 @@ export function AppSidebar() {
                     </span>
                   </div>
                 </div>
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className="h-4 w-4 text-gray-400" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="start"
-              className="mb-2 w-[240px] border-gray-700 bg-gray-800 text-white"
+              className="mb-2 w-[240px] border-gray-700 bg-gray-900 text-white"
             >
               <DropdownMenuLabel>Select a Branch</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-gray-700" />
@@ -867,7 +867,7 @@ export function AppSidebar() {
                 asChild
                 tooltip="Quickstart"
                 size="sm"
-                className="h-8 justify-start"
+                className="h-8 justify-start text-white hover:bg-gray-800"
               >
                 <NextLink href="#">
                   <Rocket />
@@ -882,7 +882,7 @@ export function AppSidebar() {
                 asChild
                 tooltip="Help"
                 size="sm"
-                className="h-8 justify-start"
+                className="h-8 justify-start text-white hover:bg-gray-800"
               >
                 <NextLink href="#">
                   <HelpCircle />
