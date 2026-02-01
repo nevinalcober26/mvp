@@ -1,6 +1,6 @@
 'use client';
 import Image from 'next/image';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Bell,
   Search,
@@ -29,24 +29,67 @@ import { AppSwitcher } from './app-switcher';
 
 const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
-
 export function DashboardHeader() {
   const [isClient, setIsClient] = useState(false);
+  const [placeholder, setPlaceholder] = useState('Search menus, orders...');
+  const placeholderTexts = useMemo(
+    () => ['Search menus...', 'Search orders...', 'Search customers...'],
+    []
+  );
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  useEffect(() => {
+    if (!isClient) return;
+
+    let textIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let timeoutId: NodeJS.Timeout;
+
+    const type = () => {
+      const currentText = placeholderTexts[textIndex];
+      if (isDeleting) {
+        setPlaceholder(currentText.substring(0, charIndex - 1));
+        charIndex--;
+      } else {
+        setPlaceholder(currentText.substring(0, charIndex + 1));
+        charIndex++;
+      }
+
+      if (!isDeleting && charIndex === currentText.length) {
+        isDeleting = true;
+        timeoutId = setTimeout(type, 2000); // Pause at end
+      } else if (isDeleting && charIndex === 0) {
+        isDeleting = false;
+        textIndex = (textIndex + 1) % placeholderTexts.length;
+        timeoutId = setTimeout(type, 500); // Pause before typing new text
+      } else {
+        const typingSpeed = isDeleting ? 75 : 120;
+        timeoutId = setTimeout(type, typingSpeed);
+      }
+    };
+
+    const startTimeout = setTimeout(type, 1000);
+
+    return () => {
+      clearTimeout(startTimeout);
+      clearTimeout(timeoutId);
+    };
+  }, [isClient, placeholderTexts]);
+
   if (!isClient) {
     return (
-      <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8">
-        <div className="hidden md:block">
-          <Skeleton className="h-7 w-7" />
-        </div>
+      <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8">
         <div className="md:hidden">
           <Skeleton className="h-7 w-7" />
         </div>
         <div className="flex-1 flex items-center justify-start gap-4">
+          <div className="hidden md:block">
+            <Skeleton className="h-7 w-7" />
+          </div>
           <Skeleton className="h-9 w-full max-w-md rounded-lg" />
           <Skeleton className="h-9 w-36 rounded-lg" />
         </div>
@@ -61,20 +104,20 @@ export function DashboardHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8">
-      <div className="hidden md:block">
-          <SidebarTrigger />
-      </div>
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8">
       <div className="md:hidden">
         <SidebarTrigger />
       </div>
 
       <div className="flex-1 flex items-center justify-start gap-4">
+        <div className="hidden md:block">
+          <SidebarTrigger />
+        </div>
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search menus, orders..."
+            placeholder={placeholder}
             className="w-full rounded-lg bg-secondary pl-10"
           />
         </div>
@@ -102,7 +145,10 @@ export function DashboardHeader() {
               <span className="sr-only">Toggle apps</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="p-0 border-0 bg-transparent shadow-lg">
+          <DropdownMenuContent
+            align="end"
+            className="p-0 border-0 bg-transparent shadow-lg"
+          >
             <AppSwitcher />
           </DropdownMenuContent>
         </DropdownMenu>
