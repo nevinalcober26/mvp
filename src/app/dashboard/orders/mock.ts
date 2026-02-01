@@ -1,8 +1,13 @@
 'use client';
 
 import type { Order, OrderItem } from './types';
+import { type DateRange } from 'react-day-picker';
+import { addDays, differenceInDays, endOfDay, setHours, setMinutes, setSeconds, subDays } from 'date-fns';
 
-export const generateMockOrders = (count: number): Order[] => {
+export const generateMockOrders = (count: number, dateRange?: DateRange): Order[] => {
+  const { from = subDays(new Date(), 29), to = new Date() } = dateRange || {};
+  const dateDiff = Math.abs(differenceInDays(to, from));
+
   const statuses: Order['orderStatus'][] = [
     'Paid',
     'Open',
@@ -39,6 +44,20 @@ export const generateMockOrders = (count: number): Order[] => {
 
   const orders: Order[] = [];
   for (let i = 0; i < count; i++) {
+    const randomDayOffset = Math.floor(Math.random() * (dateDiff + 1));
+    let randomDate = subDays(endOfDay(to), randomDayOffset);
+    randomDate = setHours(randomDate, Math.floor(Math.random() * 24));
+    randomDate = setMinutes(randomDate, Math.floor(Math.random() * 60));
+    randomDate = setSeconds(randomDate, Math.floor(Math.random() * 60));
+
+    if (
+      randomDate.getTime() < from.getTime() ||
+      randomDate.getTime() > endOfDay(to).getTime()
+    ) {
+      continue;
+    }
+    const orderTimestamp = randomDate.getTime();
+
     const orderStatus = statuses[i % statuses.length];
     const orderType = i % 2 === 0 ? 'Post-Paid' : 'Prepaid';
     const staffName = staffNames[i % staffNames.length];
@@ -80,7 +99,7 @@ export const generateMockOrders = (count: number): Order[] => {
        payments.push({
         method: orderType === 'Post-Paid' ? 'Credit Card' : (i % 3 === 0 ? 'Cash' : 'Credit Card'),
         amount: paidAmount.toFixed(2),
-        date: new Date(Date.now() - i * 3600000 + 120000).toLocaleString(),
+        date: new Date(orderTimestamp + 120000).toLocaleString(),
         transactionId: `txn_${12345 + i}`,
         guestName: 'Guest 1',
       });
@@ -114,7 +133,7 @@ export const generateMockOrders = (count: number): Order[] => {
           payments.push({
             method: methodForSplit,
             amount: splitAmount.toFixed(2),
-            date: new Date(Date.now() - i * 3600000 + 120000 + j * 10000).toLocaleString(),
+            date: new Date(orderTimestamp + 120000 + j * 10000).toLocaleString(),
             transactionId: `txn_${12345 + i}_${j}`,
             guestName: `Guest ${j + 1}`,
           });
@@ -128,7 +147,6 @@ export const generateMockOrders = (count: number): Order[] => {
       paidAmount = totalAmount;
     }
 
-    const orderTimestamp = Date.now() - i * 3600000;
     const orderDate = new Date(orderTimestamp);
     const customerName = customerNames[i % customerNames.length];
     const hasCustomer = i % 4 !== 0; // ~25% of orders will be from guests
@@ -142,7 +160,7 @@ export const generateMockOrders = (count: number): Order[] => {
       paymentState,
       totalAmount,
       paidAmount,
-      staffName,
+      items: currentItems,
       orderDate: orderDate.toLocaleString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -151,7 +169,6 @@ export const generateMockOrders = (count: number): Order[] => {
         minute: '2-digit',
       }),
       orderTimestamp,
-      items: currentItems,
       payments,
       splitType,
       customer: hasCustomer

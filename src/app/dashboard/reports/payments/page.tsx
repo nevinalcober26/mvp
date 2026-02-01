@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardFooter,
 } from '@/components/ui/card';
 import {
   Table,
@@ -28,13 +27,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  MoreHorizontal,
   ArrowUpDown,
   Download,
   TrendingUp,
   AlertTriangle,
-  LayoutGrid,
-  List,
   Filter,
   RotateCcw,
   File as FileIcon,
@@ -50,28 +46,12 @@ import {
   FileWarning,
   CalendarDays,
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { cn } from '@/lib/utils';
-import { Checkbox } from '@/components/ui/checkbox';
 import { OrdersPageSkeleton } from '@/components/dashboard/skeletons';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Bar,
   BarChart,
@@ -108,6 +88,9 @@ import {
 } from '@/components/ui/dialog';
 import { type DateRange } from 'react-day-picker';
 import { DateRangePicker } from '@/components/dashboard/reports/date-range-picker';
+import type { Order } from '@/app/dashboard/orders/types';
+import { generateMockOrders } from '@/app/dashboard/orders/mock';
+import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
 
 type Transaction = {
   id: string;
@@ -329,6 +312,7 @@ const ExportDialog = ({
 
 export default function PaymentsReportPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -337,6 +321,8 @@ export default function PaymentsReportPage() {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('summary');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Transaction;
@@ -345,14 +331,29 @@ export default function PaymentsReportPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    // Simulate a network request to fetch data
     const timer = setTimeout(() => {
-      // Regenerate mock data based on the current date range filter
-      setTransactions(generateMockTransactions(100, filters.dateRange));
+      const mockTransactions = generateMockTransactions(100, filters.dateRange);
+      const mockOrders = generateMockOrders(100, filters.dateRange);
+      setTransactions(mockTransactions);
+      setAllOrders(mockOrders);
       setIsLoading(false);
-    }, 500); // A small delay for better UX
+    }, 500);
     return () => clearTimeout(timer);
   }, [filters.dateRange]);
+  
+  const handleViewDetails = (transaction: Transaction) => {
+    const order = allOrders.find(o => o.orderId === transaction.orderId);
+    if (order) {
+        setSelectedOrder(order);
+        setIsSheetOpen(true);
+    } else {
+        toast({
+            variant: 'destructive',
+            title: 'Order not found',
+            description: `Details for order ${transaction.orderId} are not available.`,
+        });
+    }
+  };
 
   const handleExport = (format: 'CSV' | 'Excel' | 'PDF') => {
     setIsExportDialogOpen(false);
@@ -360,7 +361,6 @@ export default function PaymentsReportPage() {
       title: 'Export Initiated',
       description: `Your transactions are being prepared for a ${format} download.`,
     });
-    // In a real app, you would implement the actual export logic here
     console.log(
       `Exporting ${filteredAndSortedTransactions.length} transactions as ${format}...`
     );
@@ -533,7 +533,6 @@ export default function PaymentsReportPage() {
       filters.dateRange.from
     );
 
-    // Initialize all days in the range to 0
     for (let i = 0; i <= dateDiff; i++) {
       const day = format(addDays(filters.dateRange.from, i), 'MMM d');
       salesByDay[day] = 0;
@@ -710,7 +709,6 @@ export default function PaymentsReportPage() {
           maximumFractionDigits: 2,
         })}`,
         icon: HandCoins,
-        isAlert: true
       },
       {
         title: 'Tip Adoption Rate',
@@ -750,22 +748,6 @@ export default function PaymentsReportPage() {
       direction = 'descending';
     }
     setSortConfig({ key, direction });
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedRows(paginatedTransactions.map((t) => t.id));
-    } else {
-      setSelectedRows([]);
-    }
-  };
-
-  const handleRowSelect = (rowId: string) => {
-    setSelectedRows((prev) =>
-      prev.includes(rowId)
-        ? prev.filter((id) => id !== rowId)
-        : [...prev, rowId]
-    );
   };
 
   const tableNumbers = useMemo(() => {
@@ -983,7 +965,7 @@ export default function PaymentsReportPage() {
     <>
       <DashboardHeader />
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold">Payments Reports</h1>
             <p className="text-muted-foreground">
@@ -997,66 +979,6 @@ export default function PaymentsReportPage() {
           </Button>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3">
-          <div className="flex flex-wrap items-center gap-4">
-             <span className="text-sm font-medium">Filters:</span>
-            <DateRangePicker
-              dateRange={filters.dateRange}
-              onDateRangeChange={(range) => handleFilterChange('dateRange', range)}
-            />
-            <Select
-              value={filters.branch}
-              onValueChange={(value) => handleFilterChange('branch', value)}
-            >
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Branch/Venue" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Branches</SelectItem>
-                <SelectItem value="Ras Al Khaimah">Ras Al Khaimah</SelectItem>
-                <SelectItem value="Dubai Mall">Dubai Mall</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto">
-                  <Filter className="mr-2 h-4 w-4" />
-                  More Filters
-                  {activeSecondaryFilterCount > 0 && (
-                    <Badge variant="secondary" className="ml-2 rounded-full px-1.5 py-0.5 text-xs">
-                      {activeSecondaryFilterCount}
-                    </Badge>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-screen max-w-sm" align="start">
-                <div className="space-y-4 p-4">
-                  <h4 className="font-medium leading-none">Additional Filters</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Filter the data for the '{activeTab}' tab.
-                  </p>
-                  {renderSecondaryFilters()}
-                   <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => resetFiltersForTab(activeTab)}
-                      className="w-full mt-2"
-                    >
-                      <RotateCcw className="mr-2 h-4 w-4" /> Reset Tab Filters
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
-
-
-          </div>
-          <Button variant="ghost" size="sm" onClick={resetAllFilters}>
-            <RotateCcw className="mr-2 h-4 w-4" />
-            Reset All Filters
-          </Button>
-        </div>
-
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="summary">Summary</TabsTrigger>
@@ -1064,6 +986,66 @@ export default function PaymentsReportPage() {
             <TabsTrigger value="outstanding">Outstanding</TabsTrigger>
             <TabsTrigger value="tips">Tips & Charges</TabsTrigger>
           </TabsList>
+            
+          <div className="my-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3">
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="text-sm font-medium">Filters:</span>
+              <DateRangePicker
+                dateRange={filters.dateRange}
+                onDateRangeChange={(range) => handleFilterChange('dateRange', range)}
+              />
+              <Select
+                value={filters.branch}
+                onValueChange={(value) => handleFilterChange('branch', value)}
+              >
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Branch/Venue" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Branches</SelectItem>
+                  <SelectItem value="Ras Al Khaimah">Ras Al Khaimah</SelectItem>
+                  <SelectItem value="Dubai Mall">Dubai Mall</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    <Filter className="mr-2 h-4 w-4" />
+                    More Filters
+                    {activeSecondaryFilterCount > 0 && (
+                      <Badge variant="secondary" className="ml-2 rounded-full px-1.5 py-0.5 text-xs">
+                        {activeSecondaryFilterCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-screen max-w-sm" align="start">
+                  <div className="space-y-4 p-4">
+                    <h4 className="font-medium leading-none">Additional Filters</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Filter the data for the '{activeTab}' tab.
+                    </p>
+                    {renderSecondaryFilters()}
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => resetFiltersForTab(activeTab)}
+                        className="w-full mt-2"
+                      >
+                        <RotateCcw className="mr-2 h-4 w-4" /> Reset Tab Filters
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+
+            </div>
+            <Button variant="ghost" size="sm" onClick={resetAllFilters}>
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Reset All Filters
+            </Button>
+          </div>
 
           <TabsContent value="summary" className="space-y-4 mt-4">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -1133,18 +1115,8 @@ export default function PaymentsReportPage() {
               <CardContent>
                 <div className="relative w-full overflow-auto">
                   <Table>
-                    <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableHeader>
                       <TableRow>
-                        <TableHead className="w-12 px-4">
-                          <Checkbox
-                            checked={
-                              paginatedTransactions.length > 0 &&
-                              selectedRows.length ===
-                                paginatedTransactions.length
-                            }
-                            onCheckedChange={handleSelectAll}
-                          />
-                        </TableHead>
                         <TableHead>
                           <SortableHeader tKey="id" label="Transaction ID" />
                         </TableHead>
@@ -1190,25 +1162,11 @@ export default function PaymentsReportPage() {
                         <TableHead className="text-right">
                           <SortableHeader tKey="payers" label="# of Payers" />
                         </TableHead>
-                        <TableHead>
-                          <span className="sr-only">Actions</span>
-                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {paginatedTransactions.map((t) => (
-                        <TableRow
-                          key={t.id}
-                          data-state={
-                            selectedRows.includes(t.id) ? 'selected' : undefined
-                          }
-                        >
-                          <TableCell className="px-4">
-                            <Checkbox
-                              checked={selectedRows.includes(t.id)}
-                              onCheckedChange={() => handleRowSelect(t.id)}
-                            />
-                          </TableCell>
+                        <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
                           <TableCell className="font-medium">{t.id}</TableCell>
                           <TableCell>{t.orderId}</TableCell>
                           <TableCell>
@@ -1233,21 +1191,6 @@ export default function PaymentsReportPage() {
                           <TableCell>{t.paymentMethod}</TableCell>
                           <TableCell className="text-right">
                             {t.payers}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button size="icon" variant="ghost">
-                                  <MoreHorizontal />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent>
-                                <DropdownMenuItem>View Order</DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  View Receipt
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1367,7 +1310,7 @@ export default function PaymentsReportPage() {
                     </TableHeader>
                     <TableBody>
                       {splitTransactions.slice(0, 5).map((t) => (
-                        <TableRow key={t.id}>
+                        <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
                           <TableCell className="font-medium">
                             {t.orderId}
                           </TableCell>
@@ -1461,9 +1404,11 @@ export default function PaymentsReportPage() {
                         <TableRow
                           key={t.id}
                           className={cn(
+                            "cursor-pointer",
                             isHighRisk &&
                               'bg-red-50/50 border-l-4 border-red-500'
                           )}
+                          onClick={() => handleViewDetails(t)}
                         >
                           <TableCell className="font-medium">
                             {t.orderId}
@@ -1576,7 +1521,7 @@ export default function PaymentsReportPage() {
                       </TableHeader>
                       <TableBody>
                         {tipTransactions.slice(0, 5).map((t) => (
-                          <TableRow key={t.id}>
+                          <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
                             <TableCell className="font-medium">
                               {t.orderId}
                             </TableCell>
@@ -1651,6 +1596,11 @@ export default function PaymentsReportPage() {
         open={isExportDialogOpen}
         onOpenChange={setIsExportDialogOpen}
         onExport={handleExport}
+      />
+      <OrderDetailsSheet 
+        order={selectedOrder}
+        open={isSheetOpen}
+        onOpenChange={setIsSheetOpen}
       />
     </>
   );
