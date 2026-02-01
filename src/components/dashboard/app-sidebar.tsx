@@ -191,9 +191,9 @@ export function AppSidebar() {
     { label: 'Status Monitor', path: '#' },
   ];
   const customerSubMenu = [
-    { label: 'Customer List', path: '#' },
-    { label: 'Visit History', path: '#' },
-    { label: 'Payment History', path: '#' },
+    { label: 'Customer List', path: '/dashboard/customer/list' },
+    { label: 'Visit History', path: '/dashboard/customer/visit-history' },
+    { label: 'Payment History', path: '/dashboard/customer/payment-history' },
   ];
   const settingsSubMenu = [
     { label: 'Order Types', path: '#' },
