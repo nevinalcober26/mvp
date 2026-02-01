@@ -34,9 +34,8 @@ import {
 } from '@/components/ui/collapsible';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Button } from '../ui/button';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import NextLink from 'next/link';
 import { cn } from '@/lib/utils';
 import type { TooltipContent } from '@/components/ui/tooltip';
@@ -92,7 +91,7 @@ export const EMenuIcon = () => (
 const createTooltipContent = (
   title: string,
   items: { label: string; path: string }[]
-): Omit<TooltipContent, 'key'> => ({
+): Omit<React.ComponentProps<typeof TooltipContent>, 'key'> => ({
   className: 'bg-gray-900 text-gray-200 border-gray-700 p-0',
   children: (
     <div className="flex flex-col items-start p-1">
@@ -118,7 +117,7 @@ const createTooltipContent = (
 export function AppSidebar() {
   const pathname = usePathname();
 
-  const getInitialOpenMenu = () => {
+  const getActiveMenu = useCallback(() => {
     if (pathname.startsWith('/dashboard/reports')) {
       return 'reports';
     }
@@ -144,11 +143,13 @@ export function AppSidebar() {
       return 'system';
     }
     return null;
-  };
+  }, [pathname]);
 
-  const [activeMenu, setActiveMenu] = useState<string | null>(
-    getInitialOpenMenu()
-  );
+  const [activeMenu, setActiveMenu] = useState<string | null>(getActiveMenu());
+
+  useEffect(() => {
+    setActiveMenu(getActiveMenu());
+  }, [pathname, getActiveMenu]);
 
   const handleMenuToggle = (menu: string) => {
     setActiveMenu((prev) => (prev === menu ? null : menu));
@@ -580,11 +581,32 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-2">
-        <Button
-          variant="ghost"
-          className="flex h-auto w-full items-center justify-between gap-2 bg-gray-800 p-2 text-left text-white hover:bg-gray-700 hover:text-white group-data-[collapsible=icon]:w-auto group-data-[collapsible=icon]:justify-center"
-        >
-          <div className="flex items-center gap-2">
+        <div className="group-data-[collapsible=icon]:hidden">
+          <NextLink
+            href="#"
+            className="flex h-auto w-full items-center justify-between gap-2 rounded-md bg-sidebar-accent p-2 text-left text-sidebar-accent-foreground"
+          >
+            <div className="flex items-center gap-2">
+              {userAvatar && (
+                <Image
+                  src={userAvatar.imageUrl}
+                  width={32}
+                  height={32}
+                  alt="User avatar"
+                  className="rounded-full"
+                  data-ai-hint={userAvatar.imageHint}
+                />
+              )}
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">Resto Name 1</span>
+                <span className="text-xs text-muted-foreground">john@domain.com</span>
+              </div>
+            </div>
+            <Plus className="h-4 w-4" />
+          </NextLink>
+        </div>
+        <div className="hidden group-data-[collapsible=icon]:block">
+          <NextLink href="#">
             {userAvatar && (
               <Image
                 src={userAvatar.imageUrl}
@@ -595,13 +617,8 @@ export function AppSidebar() {
                 data-ai-hint={userAvatar.imageHint}
               />
             )}
-            <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-              <span className="text-sm font-medium">Resto Name 1</span>
-              <span className="text-xs text-gray-400">john@domain.com</span>
-            </div>
-          </div>
-          <Plus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
-        </Button>
+          </NextLink>
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
