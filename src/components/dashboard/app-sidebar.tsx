@@ -13,6 +13,9 @@ import {
   Minus,
   User,
   Search,
+  Rocket,
+  HelpCircle,
+  ChevronDown,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -43,7 +46,7 @@ import { cn } from '@/lib/utils';
 import { TooltipContent } from '@/components/ui/tooltip';
 import { Input } from '../ui/input';
 
-const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+const restaurantLogo = PlaceHolderImages.find((img) => img.id === 'restaurant-logo');
 
 export const EMenuIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" version="1.0" viewBox="0 0 1896 592" width="240" height="76">
@@ -762,46 +765,83 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-2">
+      <SidebarFooter className="flex flex-col gap-2 p-2">
         <div className="group-data-[collapsible=icon]:hidden">
-          <NextLink
-            href="#"
+          <Button
+            variant="ghost"
             className="flex h-auto w-full items-center justify-between gap-2 rounded-md bg-sidebar-accent p-2 text-left text-sidebar-accent-foreground"
           >
-            <div className="flex items-center gap-2">
-              {userAvatar && (
+            <div className="flex items-center gap-3">
+              {restaurantLogo && (
                 <Image
-                  src={userAvatar.imageUrl}
+                  src={restaurantLogo.imageUrl}
                   width={32}
                   height={32}
-                  alt="User avatar"
-                  className="rounded-full"
-                  data-ai-hint={userAvatar.imageHint}
+                  alt="Restaurant logo"
+                  className="rounded-full bg-white p-0.5"
+                  data-ai-hint={restaurantLogo.imageHint}
                 />
               )}
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">Resto Name 1</span>
-                <span className="text-xs text-muted-foreground">
-                  john@domain.com
+              <div className="flex flex-col overflow-hidden">
+                <span className="truncate text-sm font-medium">
+                  Restaurant Na...
+                </span>
+                <span className="truncate text-xs text-muted-foreground">
+                  Restaurant Type
                 </span>
               </div>
             </div>
-            <Plus className="h-4 w-4" />
-          </NextLink>
+            <ChevronDown className="h-4 w-4" />
+          </Button>
         </div>
         <div className="hidden group-data-[collapsible=icon]:block">
           <NextLink href="#">
-            {userAvatar && (
+            {restaurantLogo && (
               <Image
-                src={userAvatar.imageUrl}
+                src={restaurantLogo.imageUrl}
                 width={32}
                 height={32}
-                alt="User avatar"
-                className="rounded-full"
-                data-ai-hint={userAvatar.imageHint}
+                alt="Restaurant logo"
+                className="rounded-full bg-white p-0.5"
+                data-ai-hint={restaurantLogo.imageHint}
               />
             )}
           </NextLink>
+        </div>
+
+        <div className="group-data-[collapsible=icon]:hidden">
+          <SidebarMenu className="px-0">
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                tooltip="Quickstart"
+                size="sm"
+                className="h-8 justify-start"
+              >
+                <NextLink href="#">
+                  <Rocket />
+                  <span className="group-data-[collapsible=icon]:hidden">
+                    Quickstart
+                  </span>
+                </NextLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                tooltip="Help"
+                size="sm"
+                className="h-8 justify-start"
+              >
+                <NextLink href="#">
+                  <HelpCircle />
+                  <span className="group-data-[collapsible=icon]:hidden">
+                    Help
+                  </span>
+                </NextLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </div>
       </SidebarFooter>
     </Sidebar>
