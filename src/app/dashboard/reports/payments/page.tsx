@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Table,
@@ -372,22 +373,6 @@ export default function PaymentsReportPage() {
   ) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
     setCurrentPage(1);
-  };
-
-  const resetFiltersForTab = (tab: string) => {
-    const newFilters = { ...filters };
-    if (tab === 'summary') {
-      newFilters.paymentStatus = 'all';
-      newFilters.paymentMethod = 'all';
-      newFilters.table = 'all';
-    } else if (tab === 'split-bills') {
-      newFilters.splitMethod = 'all';
-    } else if (tab === 'outstanding') {
-      newFilters.closeType = 'all';
-    } else if (tab === 'tips') {
-      newFilters.staffName = 'all';
-    }
-    setFilters(newFilters);
   };
 
   const resetAllFilters = () => {
@@ -1027,14 +1012,6 @@ export default function PaymentsReportPage() {
                       Filter the data for the '{activeTab}' tab.
                     </p>
                     {renderSecondaryFilters()}
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => resetFiltersForTab(activeTab)}
-                        className="w-full mt-2"
-                      >
-                        <RotateCcw className="mr-2 h-4 w-4" /> Reset Tab Filters
-                    </Button>
                   </div>
                 </PopoverContent>
               </Popover>
