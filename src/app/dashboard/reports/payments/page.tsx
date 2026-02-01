@@ -38,6 +38,7 @@ import {
   LayoutGrid,
   List,
   Filter,
+  RotateCcw,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -311,6 +312,40 @@ export default function PaymentsReportPage() {
     setCurrentPage(1);
   };
 
+  const resetSummaryFilters = () => {
+    setFilters(prev => ({
+        ...prev,
+        paymentStatus: 'all',
+        paymentMethod: 'all',
+        table: 'all',
+    }));
+    setCurrentPage(1);
+  };
+
+  const resetSplitBillFilters = () => {
+    setFilters(prev => ({
+        ...prev,
+        splitMethod: 'all',
+    }));
+    setCurrentPage(1);
+  };
+  
+  const resetOutstandingFilters = () => {
+      setFilters(prev => ({
+          ...prev,
+          closeType: 'all',
+      }));
+      setCurrentPage(1);
+  };
+
+  const resetTipsFilters = () => {
+      setFilters(prev => ({
+          ...prev,
+          staffName: 'all',
+      }));
+      setCurrentPage(1);
+  };
+
   const filteredAndSortedTransactions = useMemo(() => {
     let filtered = transactions.filter((transaction) => {
       const transactionDate = new Date(transaction.timestamp);
@@ -551,7 +586,7 @@ export default function PaymentsReportPage() {
         </Card>
 
 
-        <Tabs defaultValue="summary" className="space-y-4">
+        <Tabs defaultValue="summary" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="summary">Summary</TabsTrigger>
             <TabsTrigger value="split-bills">Split Bills</TabsTrigger>
@@ -559,7 +594,7 @@ export default function PaymentsReportPage() {
             <TabsTrigger value="tips">Tips & Charges</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="summary" className="space-y-4">
+          <TabsContent value="summary" className="space-y-4 mt-4">
             {/* KPI Cards */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {kpiCards.map((card) => (
@@ -651,6 +686,10 @@ export default function PaymentsReportPage() {
                                 ))}
                             </SelectContent>
                         </Select>
+                        <Button variant="ghost" size="sm" onClick={resetSummaryFilters}>
+                          <RotateCcw className="mr-2 h-4 w-4" />
+                          Reset
+                        </Button>
                         <div className="flex items-center gap-1 rounded-md bg-muted p-1">
                             <Button
                                 variant={view === 'chart' ? 'secondary' : 'ghost'}
@@ -912,7 +951,7 @@ export default function PaymentsReportPage() {
             </Card>
 
           </TabsContent>
-          <TabsContent value="split-bills">
+          <TabsContent value="split-bills" className="mt-4">
             <Card>
               <CardHeader>
                 <div className='flex justify-between items-center'>
@@ -937,6 +976,10 @@ export default function PaymentsReportPage() {
                                 <SelectItem value="Custom">Custom</SelectItem>
                             </SelectContent>
                         </Select>
+                        <Button variant="ghost" size="sm" onClick={resetSplitBillFilters}>
+                          <RotateCcw className="mr-2 h-4 w-4" />
+                          Reset
+                        </Button>
                     </div>
                 </div>
               </CardHeader>
@@ -1031,7 +1074,7 @@ export default function PaymentsReportPage() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="outstanding">
+          <TabsContent value="outstanding" className="mt-4">
             <Card>
               <CardHeader>
                  <div className='flex justify-between items-center'>
@@ -1056,6 +1099,10 @@ export default function PaymentsReportPage() {
                                 <SelectItem value="Manual">Manual</SelectItem>
                             </SelectContent>
                         </Select>
+                        <Button variant="ghost" size="sm" onClick={resetOutstandingFilters}>
+                          <RotateCcw className="mr-2 h-4 w-4" />
+                          Reset
+                        </Button>
                     </div>
                  </div>
               </CardHeader>
@@ -1125,7 +1172,7 @@ export default function PaymentsReportPage() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="tips">
+          <TabsContent value="tips" className="mt-4">
             <Card>
               <CardHeader>
                 <div className='flex justify-between items-center'>
@@ -1149,6 +1196,10 @@ export default function PaymentsReportPage() {
                                 ))}
                             </SelectContent>
                         </Select>
+                        <Button variant="ghost" size="sm" onClick={resetTipsFilters}>
+                          <RotateCcw className="mr-2 h-4 w-4" />
+                          Reset
+                        </Button>
                     </div>
                 </div>
               </CardHeader>
