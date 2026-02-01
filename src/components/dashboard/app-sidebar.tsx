@@ -5,11 +5,12 @@ import {
   Settings,
   ClipboardList,
   LayoutDashboard,
-  ChevronDown,
   BookOpen,
   Briefcase,
   Plug,
   SlidersHorizontal,
+  Plus,
+  Minus,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -202,12 +203,7 @@ export function AppSidebar() {
                       <BookOpen />
                       <span>Catalog</span>
                     </div>
-                    <ChevronDown
-                      className={cn(
-                        'h-4 w-4 transition-transform duration-200',
-                        isCatalogOpen && 'rotate-180'
-                      )}
-                    />
+                    {isCatalogOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -265,12 +261,7 @@ export function AppSidebar() {
                       <Briefcase />
                       <span>Operations</span>
                     </div>
-                    <ChevronDown
-                      className={cn(
-                        'h-4 w-4 transition-transform duration-200',
-                        isOperationsOpen && 'rotate-180'
-                      )}
-                    />
+                    {isOperationsOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -329,12 +320,7 @@ export function AppSidebar() {
                       <ClipboardList />
                       <span>Orders</span>
                     </div>
-                    <ChevronDown
-                      className={cn(
-                        'h-4 w-4 transition-transform duration-200',
-                        isOrdersOpen && 'rotate-180'
-                      )}
-                    />
+                    {isOrdersOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -395,12 +381,7 @@ export function AppSidebar() {
                       <Settings />
                       <span>Settings</span>
                     </div>
-                    <ChevronDown
-                      className={cn(
-                        'h-4 w-4 transition-transform duration-200',
-                        isSettingsOpen && 'rotate-180'
-                      )}
-                    />
+                    {isSettingsOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -465,12 +446,7 @@ export function AppSidebar() {
                       <Plug />
                       <span>Integrations</span>
                     </div>
-                    <ChevronDown
-                      className={cn(
-                        'h-4 w-4 transition-transform duration-200',
-                        isIntegrationsOpen && 'rotate-180'
-                      )}
-                    />
+                    {isIntegrationsOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -507,12 +483,7 @@ export function AppSidebar() {
                       <SlidersHorizontal />
                       <span>System</span>
                     </div>
-                    <ChevronDown
-                      className={cn(
-                        'h-4 w-4 transition-transform duration-200',
-                        isSystemOpen && 'rotate-180'
-                      )}
-                    />
+                    {isSystemOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -566,7 +537,7 @@ export function AppSidebar() {
               <span className="text-xs text-gray-400">john@domain.com</span>
             </div>
           </div>
-          <ChevronDown className="h-4 w-4 shrink-0 group-data-[collapsible=icon]:hidden" />
+          {isSystemOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
         </Button>
       </SidebarFooter>
     </Sidebar>
