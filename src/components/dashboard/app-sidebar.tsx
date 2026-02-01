@@ -23,7 +23,6 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarSeparator,
-  SidebarTrigger,
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
@@ -40,6 +39,7 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import NextLink from 'next/link';
 import { cn } from '@/lib/utils';
+import type { TooltipContent } from '@/components/ui/tooltip';
 
 const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
@@ -92,7 +92,7 @@ export const EMenuIcon = () => (
 const createTooltipContent = (
   title: string,
   items: { label: string; path: string }[]
-) => ({
+): Omit<TooltipContent, 'key'> => ({
   className: 'bg-gray-900 text-gray-200 border-gray-700 p-0',
   children: (
     <div className="flex flex-col items-start p-1">
@@ -213,7 +213,6 @@ export function AppSidebar() {
         <div className="hidden group-data-[collapsible=icon]:block">
           <LayoutDashboard className="h-6 w-6" />
         </div>
-        <SidebarTrigger className="absolute right-4 top-1/2 -translate-y-1/2" />
       </SidebarHeader>
 
       <SidebarContent className="p-0">

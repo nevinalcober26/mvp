@@ -38,10 +38,7 @@ export function DashboardHeader() {
   if (!isClient) {
     return (
       <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8">
-        <div className="md:hidden">
-          <Skeleton className="h-7 w-7" />
-        </div>
-
+        <Skeleton className="h-7 w-7" />
         <div className="flex-1 flex items-center justify-start gap-4">
           <Skeleton className="h-9 w-full max-w-md rounded-lg" />
           <Skeleton className="h-9 w-36 rounded-lg" />
@@ -63,6 +60,9 @@ export function DashboardHeader() {
       </div>
 
       <div className="flex-1 flex items-center justify-start gap-4">
+        <div className="hidden md:block">
+            <SidebarTrigger />
+        </div>
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
