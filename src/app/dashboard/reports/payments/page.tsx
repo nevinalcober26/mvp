@@ -484,114 +484,115 @@ export default function PaymentsReportPage() {
             outstanding balances.
           </p>
         </div>
+        
+        <div className="flex flex-wrap items-center gap-2">
+            <Popover>
+            <PopoverTrigger asChild>
+                <Button
+                variant={'outline'}
+                className={cn(
+                    'w-[280px] justify-start text-left font-normal',
+                    !date && 'text-muted-foreground'
+                )}
+                >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? (
+                    isSameDay(date, new Date()) ? (
+                    'Today'
+                    ) : (
+                    format(date, 'PPP')
+                    )
+                ) : (
+                    <span>Pick a date</span>
+                )}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+                <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                initialFocus
+                />
+            </PopoverContent>
+            </Popover>
+            <Select
+            value={filters.paymentStatus}
+            onValueChange={(value) =>
+                handleFilterChange('paymentStatus', value)
+            }
+            >
+            <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Payment Status" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="Paid">Paid</SelectItem>
+                <SelectItem value="Partial">Partial</SelectItem>
+                <SelectItem value="Unpaid">Unpaid</SelectItem>
+                <SelectItem value="Refunded">Refunded</SelectItem>
+            </SelectContent>
+            </Select>
+            <Select
+            value={filters.paymentMethod}
+            onValueChange={(value) =>
+                handleFilterChange('paymentMethod', value)
+            }
+            >
+            <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Payment Method" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="all">All Methods</SelectItem>
+                <SelectItem value="Credit Card">Credit Card</SelectItem>
+                <SelectItem value="Cash">Cash</SelectItem>
+                <SelectItem value="Online">Online</SelectItem>
+            </SelectContent>
+            </Select>
+            <Select
+            value={filters.table}
+            onValueChange={(value) => handleFilterChange('table', value)}
+            >
+            <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Table Number" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="all">All Tables</SelectItem>
+                {tableNumbers.map((table) => (
+                <SelectItem key={table} value={table}>
+                    {table}
+                </SelectItem>
+                ))}
+            </SelectContent>
+            </Select>
+            <Select
+            value={filters.branch}
+            onValueChange={(value) => handleFilterChange('branch', value)}
+            >
+            <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Branch/Venue" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="all">All Branches</SelectItem>
+                {branches.map((branch) => (
+                <SelectItem key={branch} value={branch}>
+                    {branch}
+                </SelectItem>
+                ))}
+            </SelectContent>
+            </Select>
+        </div>
+
 
         <Tabs defaultValue="summary" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="summary">Summary</TabsTrigger>
             <TabsTrigger value="split-bills">Split Bills</TabsTrigger>
             <TabsTrigger value="outstanding">Outstanding</TabsTrigger>
             <TabsTrigger value="tips">Tips & Charges</TabsTrigger>
           </TabsList>
-          <TabsContent value="summary" className="space-y-4">
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={'outline'}
-                    className={cn(
-                      'w-[280px] justify-start text-left font-normal',
-                      !date && 'text-muted-foreground'
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? (
-                      isSameDay(date, new Date()) ? (
-                        'Today'
-                      ) : (
-                        format(date, 'PPP')
-                      )
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <Select
-                value={filters.paymentStatus}
-                onValueChange={(value) =>
-                  handleFilterChange('paymentStatus', value)
-                }
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Payment Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="Paid">Paid</SelectItem>
-                  <SelectItem value="Partial">Partial</SelectItem>
-                  <SelectItem value="Unpaid">Unpaid</SelectItem>
-                  <SelectItem value="Refunded">Refunded</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={filters.paymentMethod}
-                onValueChange={(value) =>
-                  handleFilterChange('paymentMethod', value)
-                }
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Payment Method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Methods</SelectItem>
-                  <SelectItem value="Credit Card">Credit Card</SelectItem>
-                  <SelectItem value="Cash">Cash</SelectItem>
-                  <SelectItem value="Online">Online</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={filters.table}
-                onValueChange={(value) => handleFilterChange('table', value)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Table Number" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Tables</SelectItem>
-                  {tableNumbers.map((table) => (
-                    <SelectItem key={table} value={table}>
-                      {table}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={filters.branch}
-                onValueChange={(value) => handleFilterChange('branch', value)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Branch/Venue" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Branches</SelectItem>
-                  {branches.map((branch) => (
-                    <SelectItem key={branch} value={branch}>
-                      {branch}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
+          <TabsContent value="summary" className="space-y-4">
             {/* KPI Cards */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {kpiCards.map((card) => (
@@ -897,8 +898,8 @@ export default function PaymentsReportPage() {
                 </CardFooter>
               )}
             </Card>
-          </TabsContent>
 
+          </TabsContent>
           <TabsContent value="split-bills">
             <Card>
               <CardHeader>
