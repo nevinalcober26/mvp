@@ -128,6 +128,22 @@ export function AppSidebar() {
   const handleMenuToggle = (menu: string) => {
     setActiveMenu((prev) => (prev === menu ? null : menu));
   };
+  
+  const reportsSubMenu = [
+    'Payments',
+    'Split Bills',
+    'Outstanding',
+    'Tips & Charges',
+    'Staff Performance',
+    'AI Insights',
+  ];
+  const catalogSubMenu = ['Products', 'Categories', 'Modifiers', 'Promotions', 'Coupons'];
+  const operationsSubMenu = ['Opening Hours', 'QR Codes', 'Table States', 'Feedback Forms'];
+  const ordersSubMenu = ['Order List', 'Status Monitor'];
+  const settingsSubMenu = ['Order Types', 'Payment Models', 'POS Mode', 'Tips & Charges', 'Pricing', 'Taxes', 'Discounts', 'Rounding'];
+  const integrationsSubMenu = ['POS', 'Gateway', 'Webhooks'];
+  const systemSubMenu = ['Appearance', 'Localization', 'Roles', 'Business Info'];
+
 
   return (
     <Sidebar variant="sidebar" collapsible="icon" className="border-r">
@@ -161,7 +177,7 @@ export function AppSidebar() {
               >
                 <NextLink href="/dashboard">
                   <PieChart />
-                  <span>Dashboard</span>
+                  <span className="group-data-[collapsible=icon]:hidden">Dashboard</span>
                 </NextLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -173,18 +189,18 @@ export function AppSidebar() {
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
                     isActive={activeMenu === 'reports'}
-                    tooltip="Reports"
+                    tooltip={`Reports: ${reportsSubMenu.join(', ')}`}
                     className="w-full"
                   >
                     <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
                         <BarChart />
-                        <span>Reports</span>
+                        <span className="group-data-[collapsible=icon]:hidden">Reports</span>
                       </div>
                       {activeMenu === 'reports' ? (
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
                       ) : (
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
                       )}
                     </div>
                   </SidebarMenuButton>
@@ -276,18 +292,18 @@ export function AppSidebar() {
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
                     isActive={activeMenu === 'catalog'}
-                    tooltip="Catalog"
+                    tooltip={`Catalog: ${catalogSubMenu.join(', ')}`}
                     className="w-full"
                   >
                     <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
                         <BookOpen />
-                        <span>Catalog</span>
+                        <span className="group-data-[collapsible=icon]:hidden">Catalog</span>
                       </div>
                       {activeMenu === 'catalog' ? (
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
                       ) : (
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
                       )}
                     </div>
                   </SidebarMenuButton>
@@ -334,18 +350,18 @@ export function AppSidebar() {
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
                     isActive={activeMenu === 'operations'}
-                    tooltip="Operations"
+                    tooltip={`Operations: ${operationsSubMenu.join(', ')}`}
                     className="w-full"
                   >
                     <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Briefcase />
-                        <span>Operations</span>
+                        <span className="group-data-[collapsible=icon]:hidden">Operations</span>
                       </div>
                       {activeMenu === 'operations' ? (
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
                       ) : (
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
                       )}
                     </div>
                   </SidebarMenuButton>
@@ -384,18 +400,18 @@ export function AppSidebar() {
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
                     isActive={activeMenu === 'orders'}
-                    tooltip="Orders"
+                    tooltip={`Orders: ${ordersSubMenu.join(', ')}`}
                     className="w-full"
                   >
                     <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
                         <ClipboardList />
-                        <span>Orders</span>
+                        <span className="group-data-[collapsible=icon]:hidden">Orders</span>
                       </div>
                       {activeMenu === 'orders' ? (
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
                       ) : (
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
                       )}
                     </div>
                   </SidebarMenuButton>
@@ -432,18 +448,18 @@ export function AppSidebar() {
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
                     isActive={activeMenu === 'settings'}
-                    tooltip="Settings"
+                    tooltip={`Settings: ${settingsSubMenu.join(', ')}`}
                     className="w-full"
                   >
                     <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Settings />
-                        <span>Settings</span>
+                        <span className="group-data-[collapsible=icon]:hidden">Settings</span>
                       </div>
                       {activeMenu === 'settings' ? (
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
                       ) : (
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
                       )}
                     </div>
                   </SidebarMenuButton>
@@ -487,18 +503,18 @@ export function AppSidebar() {
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
                     isActive={activeMenu === 'integrations'}
-                    tooltip="Integrations"
+                    tooltip={`Integrations: ${integrationsSubMenu.join(', ')}`}
                     className="w-full"
                   >
                     <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Plug />
-                        <span>Integrations</span>
+                        <span className="group-data-[collapsible=icon]:hidden">Integrations</span>
                       </div>
                       {activeMenu === 'integrations' ? (
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
                       ) : (
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
                       )}
                     </div>
                   </SidebarMenuButton>
@@ -527,18 +543,18 @@ export function AppSidebar() {
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
                     isActive={activeMenu === 'system'}
-                    tooltip="System"
+                    tooltip={`System: ${systemSubMenu.join(', ')}`}
                     className="w-full"
                   >
                     <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
                         <SlidersHorizontal />
-                        <span>System</span>
+                        <span className="group-data-[collapsible=icon]:hidden">System</span>
                       </div>
                       {activeMenu === 'system' ? (
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
                       ) : (
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
                       )}
                     </div>
                   </SidebarMenuButton>
