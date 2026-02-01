@@ -243,7 +243,7 @@ const chartConfig = {
     label: 'Sales',
     color: 'hsl(var(--chart-1))',
   },
-   count: {
+  count: {
     label: 'Count',
     color: 'hsl(var(--chart-2))',
   },
@@ -445,7 +445,7 @@ export default function PaymentsReportPage() {
     return filtered;
   }, [transactions, sortConfig, filters]);
 
-  const kpiCards = useMemo(() => {
+  const summaryKpiCards = useMemo(() => {
     const totalSales = filteredAndSortedTransactions.reduce(
       (acc, t) => acc + t.totalAmount,
       0
@@ -463,10 +463,7 @@ export default function PaymentsReportPage() {
     );
     const avgBillValue =
       paidTransactions.length > 0 ? totalSales / paidTransactions.length : 0;
-    const totalTips = filteredAndSortedTransactions.reduce(
-      (acc, t) => acc + (t.tipAmount || 0),
-      0
-    );
+    
     return [
       {
         title: 'Total Sales',
@@ -506,15 +503,6 @@ export default function PaymentsReportPage() {
         value: '8m 15s',
         change: '-2.0%',
         icon: Clock,
-      },
-      {
-        title: 'Total Tips Collected',
-        value: `$${totalTips.toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}`,
-        change: '+4.2%',
-        icon: HandCoins,
       },
     ];
   }, [filteredAndSortedTransactions]);
@@ -567,17 +555,52 @@ export default function PaymentsReportPage() {
       ),
     [filteredAndSortedTransactions]
   );
-  const splitAdoptionRate =
-    filteredAndSortedTransactions.length > 0
-      ? (filteredAndSortedTransactions.filter((t) => t.payers > 1).length /
-          filteredAndSortedTransactions.length) *
-        100
-      : 0;
-  const avgPayers =
-    splitTransactions.length > 0
-      ? splitTransactions.reduce((acc, t) => acc + t.payers, 0) /
-        splitTransactions.length
-      : 1;
+  
+  const splitKpiCards = useMemo(() => {
+      const splitAdoptionRate =
+        filteredAndSortedTransactions.length > 0
+          ? (splitTransactions.length /
+              filteredAndSortedTransactions.length) *
+            100
+          : 0;
+      const avgPayers =
+        splitTransactions.length > 0
+          ? splitTransactions.reduce((acc, t) => acc + t.payers, 0) /
+            splitTransactions.length
+          : 1;
+
+      const abandonedSplits = splitTransactions.filter(
+            (t) =>
+                t.paymentStatus === 'Unpaid' ||
+                t.paymentStatus === 'Partial'
+        ).length
+      
+      const totalOutstanding = splitTransactions.reduce((acc, t) => acc + t.outstandingAmount, 0)
+
+      return [
+        {
+            title: 'Split Adoption Rate',
+            value: `${splitAdoptionRate.toFixed(1)}%`,
+            icon: CirclePercent
+        },
+        {
+            title: 'Avg. Payers per Split',
+            value: `${avgPayers.toFixed(1)}`,
+            icon: Users
+        },
+        {
+            title: 'Abandoned Splits',
+            value: `${abandonedSplits}`,
+            icon: UserX,
+            isAlert: true
+        },
+        {
+            title: 'Total Outstanding',
+            value: `$${totalOutstanding.toFixed(2)}`,
+            icon: DollarSign
+        }
+      ]
+  }, [filteredAndSortedTransactions, splitTransactions]);
 
   const splitMethodChartData = useMemo(() => {
     const data = splitTransactions.reduce(
@@ -598,7 +621,7 @@ export default function PaymentsReportPage() {
     );
   }, [filteredAndSortedTransactions]);
 
-  const outstandingKpis = useMemo(() => {
+  const outstandingKpiCards = useMemo(() => {
     const totalOutstanding = outstandingTransactions.reduce(
       (acc, t) => acc + t.outstandingAmount,
       0
@@ -609,11 +632,27 @@ export default function PaymentsReportPage() {
       0
     );
     const avgAge = outstandingCount > 0 ? totalAge / outstandingCount : 0;
-    return {
-      totalOutstanding,
-      outstandingCount,
-      avgAge,
-    };
+    return [
+      {
+        title: 'Total Outstanding',
+        value: `$${totalOutstanding.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`,
+        icon: DollarSign,
+        isAlert: true
+      },
+      {
+        title: 'Outstanding Orders',
+        value: `${outstandingCount}`,
+        icon: FileWarning
+      },
+      {
+        title: 'Avg. Days Outstanding',
+        value: `${avgAge.toFixed(1)}`,
+        icon: CalendarDays
+      },
+    ];
   }, [outstandingTransactions]);
 
   const outstandingByStatusChartData = useMemo(() => {
@@ -639,7 +678,7 @@ export default function PaymentsReportPage() {
     return tipTransactions.reduce((acc, t) => acc + (t.tipAmount || 0), 0);
   }, [tipTransactions]);
 
-  const tipsKpis = useMemo(() => {
+  const tipsKpiCards = useMemo(() => {
     const paidTransactionsCount = filteredAndSortedTransactions.filter(
       (t) => t.paidAmount > 0
     ).length;
@@ -657,11 +696,27 @@ export default function PaymentsReportPage() {
         ? (totalGrossTips / totalBillForTippedTxns) * 100
         : 0;
 
-    return {
-      totalGrossTips,
-      tipAdoptionRate,
-      avgTipPercentage,
-    };
+    return [
+      {
+        title: 'Total Tips Collected',
+        value: `$${totalGrossTips.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`,
+        icon: HandCoins,
+        isAlert: true
+      },
+      {
+        title: 'Tip Adoption Rate',
+        value: `${tipAdoptionRate.toFixed(1)}%`,
+        icon: CirclePercent
+      },
+      {
+        title: 'Average Tip %',
+        value: `${avgTipPercentage.toFixed(1)}%`,
+        icon: TrendingUp
+      },
+    ];
   }, [filteredAndSortedTransactions, tipTransactions, totalGrossTips]);
 
   const tipsByStaffChartData = useMemo(() => {
@@ -742,6 +797,42 @@ export default function PaymentsReportPage() {
     </Button>
   );
 
+  const KpiCard = ({ title, value, icon: Icon, isAlert, change }: { title: string, value: string, icon: React.ElementType, isAlert?: boolean, change?: string }) => (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardDescription>{title}</CardDescription>
+        {Icon && (
+          <Icon className="h-4 w-4 text-muted-foreground" />
+        )}
+      </CardHeader>
+      <CardContent>
+        <div className={cn("text-2xl font-bold", isAlert && "text-red-500")}>{value}</div>
+        {change && (
+            <p className="text-xs text-muted-foreground flex items-center">
+            <TrendingUp
+                className={cn(
+                'mr-1 h-4 w-4',
+                change.startsWith('+')
+                    ? 'text-green-500'
+                    : 'text-red-500'
+                )}
+            />
+            <span
+                className={cn(
+                change.startsWith('+')
+                    ? 'text-green-500'
+                    : 'text-red-500',
+                'font-semibold'
+                )}
+            >
+                {change}
+            </span>
+            </p>
+        )}
+      </CardContent>
+    </Card>
+  )
+
   if (isLoading) {
     return <OrdersPageSkeleton view="list" />;
   }
@@ -764,8 +855,9 @@ export default function PaymentsReportPage() {
           </Button>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4 border rounded-lg bg-card">
           <div className="flex flex-wrap items-center gap-4">
+             <span className="text-sm font-medium">Global Filters:</span>
             <DateRangePicker
               dateRange={filters.dateRange}
               onDateRangeChange={(range) => handleFilterChange('dateRange', range)}
@@ -799,106 +891,8 @@ export default function PaymentsReportPage() {
           </TabsList>
 
           <TabsContent value="summary" className="space-y-4 mt-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {kpiCards.map((card) => {
-                const Icon = card.icon;
-                return (
-                  <Card key={card.title}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardDescription>{card.title}</CardDescription>
-                      {Icon && (
-                        <Icon className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{card.value}</div>
-                      <p className="text-xs text-muted-foreground flex items-center">
-                        <TrendingUp
-                          className={cn(
-                            'mr-1 h-4 w-4',
-                            card.change.startsWith('+')
-                              ? 'text-green-500'
-                              : 'text-red-500'
-                          )}
-                        />
-                        <span
-                          className={cn(
-                            card.change.startsWith('+')
-                              ? 'text-green-500'
-                              : 'text-red-500',
-                            'font-semibold'
-                          )}
-                        >
-                          {card.change}
-                        </span>
-                      </p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Sales Overview</CardTitle>
-                <CardDescription>
-                  A summary of your sales performance based on current filters.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer
-                  config={chartConfig}
-                  className="h-[400px] w-full"
-                >
-                  <BarChart
-                    data={summaryChartData}
-                    margin={{
-                      top: 10,
-                      right: 30,
-                      left: 0,
-                      bottom: 0,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis
-                      dataKey="date"
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={8}
-                      fontSize={12}
-                    />
-                    <YAxis
-                      tickFormatter={(value) => `$${Number(value) / 1000}k`}
-                      tickLine={false}
-                      axisLine={false}
-                      fontSize={12}
-                      domain={[0, 'dataMax + 1000']}
-                    />
-                    <Tooltip
-                      cursor={{ fill: 'hsl(var(--muted))' }}
-                      content={<ChartTooltipContent indicator="dot" />}
-                    />
-                    <Bar
-                      dataKey="sales"
-                      fill="var(--color-sales)"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex-shrink-0">
-                    <CardTitle>Transaction Summary</CardTitle>
-                    <CardDescription>
-                      A detailed list of all transactions within the filtered
-                      range.
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap p-4 border rounded-lg bg-card">
+                 <span className="text-sm font-medium">Filters:</span>
                     <Select
                       value={filters.paymentStatus}
                       onValueChange={(value) =>
@@ -955,10 +949,72 @@ export default function PaymentsReportPage() {
                       size="sm"
                       onClick={() => resetFiltersForTab('summary')}
                     >
-                      <RotateCcw className="mr-2 h-4 w-4" /> Reset
+                      <RotateCcw className="mr-2 h-4 w-4" /> Reset Filters
                     </Button>
                   </div>
-                </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {summaryKpiCards.map((card) => (
+                <KpiCard key={card.title} {...card}/>
+              ))}
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Sales Overview</CardTitle>
+                <CardDescription>
+                  A summary of your sales performance based on current filters.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={chartConfig}
+                  className="h-[400px] w-full"
+                >
+                  <BarChart
+                    data={summaryChartData}
+                    margin={{
+                      top: 10,
+                      right: 30,
+                      left: 0,
+                      bottom: 0,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis
+                      dataKey="date"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      fontSize={12}
+                    />
+                    <YAxis
+                      tickFormatter={(value) => `$${Number(value) / 1000}k`}
+                      tickLine={false}
+                      axisLine={false}
+                      fontSize={12}
+                      domain={[0, 'dataMax + 1000']}
+                    />
+                    <Tooltip
+                      cursor={{ fill: 'hsl(var(--muted))' }}
+                      content={<ChartTooltipContent indicator="dot" />}
+                    />
+                    <Bar
+                      dataKey="sales"
+                      fill="var(--color-sales)"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                    <CardTitle>Transaction Summary</CardTitle>
+                    <CardDescription>
+                      A detailed list of all transactions within the filtered
+                      range.
+                    </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="relative w-full overflow-auto">
@@ -1128,60 +1184,36 @@ export default function PaymentsReportPage() {
           </TabsContent>
 
           <TabsContent value="split-bills" className="mt-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardDescription>Split Adoption Rate</CardDescription>
-                  <CirclePercent className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">
-                    {splitAdoptionRate.toFixed(1)}%
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardDescription>Avg. Payers per Split</CardDescription>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">
-                    {avgPayers.toFixed(1)}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardDescription>Abandoned Splits</CardDescription>
-                  <UserX className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-red-500">
-                    {
-                      splitTransactions.filter(
-                        (t) =>
-                          t.paymentStatus === 'Unpaid' ||
-                          t.paymentStatus === 'Partial'
-                      ).length
+             <div className="flex items-center gap-2 flex-wrap p-4 border rounded-lg bg-card">
+                <span className="text-sm font-medium">Filters:</span>
+                 <Select
+                    value={filters.splitMethod}
+                    onValueChange={(value) =>
+                      handleFilterChange('splitMethod', value)
                     }
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardDescription>Total Outstanding</CardDescription>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">
-                    $
-                    {splitTransactions
-                      .reduce((acc, t) => acc + t.outstandingAmount, 0)
-                      .toFixed(2)}
-                  </div>
-                </CardContent>
-              </Card>
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Split Method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Split Methods</SelectItem>
+                      <SelectItem value="Equal">Equal</SelectItem>
+                      <SelectItem value="Item-based">Item-based</SelectItem>
+                      <SelectItem value="Custom">Custom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetFiltersForTab('split-bills')}
+                  >
+                    <RotateCcw className="mr-2 h-4 w-4" /> Reset Filters
+                  </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {splitKpiCards.map((card) => (
+                <KpiCard key={card.title} {...card}/>
+              ))}
             </div>
             
             <Card>
@@ -1224,38 +1256,11 @@ export default function PaymentsReportPage() {
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
+              <CardHeader>
                   <CardTitle>Split Bill Analytics</CardTitle>
                   <CardDescription>
                     Analysis of orders with split payments.
                   </CardDescription>
-                </div>
-                <div className="flex items-center gap-4">
-                  <Select
-                    value={filters.splitMethod}
-                    onValueChange={(value) =>
-                      handleFilterChange('splitMethod', value)
-                    }
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Split Method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Split Methods</SelectItem>
-                      <SelectItem value="Equal">Equal</SelectItem>
-                      <SelectItem value="Item-based">Item-based</SelectItem>
-                      <SelectItem value="Custom">Custom</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetFiltersForTab('split-bills')}
-                  >
-                    <RotateCcw className="mr-2 h-4 w-4" /> Reset
-                  </Button>
-                </div>
               </CardHeader>
               <CardContent>
                 <div className="relative w-full overflow-auto">
@@ -1308,44 +1313,35 @@ export default function PaymentsReportPage() {
             </Card>
           </TabsContent>
           <TabsContent value="outstanding" className="mt-4 space-y-4">
+             <div className="flex items-center gap-2 flex-wrap p-4 border rounded-lg bg-card">
+                <span className="text-sm font-medium">Filters:</span>
+                <Select
+                    value={filters.closeType}
+                    onValueChange={(value) =>
+                      handleFilterChange('closeType', value)
+                    }
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Close Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Close Types</SelectItem>
+                      <SelectItem value="Auto">Auto</SelectItem>
+                      <SelectItem value="Manual">Manual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetFiltersForTab('outstanding')}
+                  >
+                    <RotateCcw className="mr-2 h-4 w-4" /> Reset Filters
+                  </Button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardDescription>Total Outstanding</CardDescription>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-red-500">
-                    $
-                    {outstandingKpis.totalOutstanding.toLocaleString('en-US', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardDescription>Outstanding Orders</CardDescription>
-                  <FileWarning className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">
-                    {outstandingKpis.outstandingCount}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardDescription>Avg. Days Outstanding</CardDescription>
-                  <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">
-                    {outstandingKpis.avgAge.toFixed(1)}
-                  </div>
-                </CardContent>
-              </Card>
+              {outstandingKpiCards.map((card) => (
+                <KpiCard key={card.title} {...card}/>
+              ))}
             </div>
             
              <Card>
@@ -1369,38 +1365,12 @@ export default function PaymentsReportPage() {
              </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
+              <CardHeader>
                   <CardTitle>Outstanding / Partial Payments</CardTitle>
                   <CardDescription>
                     Monitor orders with pending payments to manage risk and
                     collections.
                   </CardDescription>
-                </div>
-                <div className="flex items-center gap-4">
-                  <Select
-                    value={filters.closeType}
-                    onValueChange={(value) =>
-                      handleFilterChange('closeType', value)
-                    }
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Close Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Close Types</SelectItem>
-                      <SelectItem value="Auto">Auto</SelectItem>
-                      <SelectItem value="Manual">Manual</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetFiltersForTab('outstanding')}
-                  >
-                    <RotateCcw className="mr-2 h-4 w-4" /> Reset
-                  </Button>
-                </div>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -1469,44 +1439,38 @@ export default function PaymentsReportPage() {
             </Card>
           </TabsContent>
           <TabsContent value="tips" className="mt-4 space-y-4">
+             <div className="flex items-center gap-2 flex-wrap p-4 border rounded-lg bg-card">
+                <span className="text-sm font-medium">Filters:</span>
+                 <Select
+                    value={filters.staffName}
+                    onValueChange={(value) =>
+                      handleFilterChange('staffName', value)
+                    }
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filter by Staff" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Staff</SelectItem>
+                      {staffNames.map((name) => (
+                        <SelectItem key={name} value={name}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetFiltersForTab('tips')}
+                  >
+                    <RotateCcw className="mr-2 h-4 w-4" /> Reset Filters
+                  </Button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardDescription>Total Tips Collected</CardDescription>
-                  <HandCoins className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-green-600">
-                    $
-                    {tipsKpis.totalGrossTips.toLocaleString('en-US', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardDescription>Tip Adoption Rate</CardDescription>
-                  <CirclePercent className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">
-                    {tipsKpis.tipAdoptionRate.toFixed(1)}%
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardDescription>Average Tip %</CardDescription>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">
-                    {tipsKpis.avgTipPercentage.toFixed(1)}%
-                  </div>
-                </CardContent>
-              </Card>
+             {tipsKpiCards.map((card) => (
+                <KpiCard key={card.title} {...card}/>
+              ))}
             </div>
 
             <Card>
@@ -1553,37 +1517,8 @@ export default function PaymentsReportPage() {
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
+              <CardHeader>
                   <CardTitle>Tips &amp; Service Charges</CardTitle>
-                </div>
-                <div className="flex items-center gap-4">
-                  <Select
-                    value={filters.staffName}
-                    onValueChange={(value) =>
-                      handleFilterChange('staffName', value)
-                    }
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Filter by Staff" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Staff</SelectItem>
-                      {staffNames.map((name) => (
-                        <SelectItem key={name} value={name}>
-                          {name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetFiltersForTab('tips')}
-                  >
-                    <RotateCcw className="mr-2 h-4 w-4" /> Reset
-                  </Button>
-                </div>
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="tips">
