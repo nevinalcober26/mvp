@@ -40,6 +40,15 @@ import {
   File as FileIcon,
   FileText,
   Sheet as SheetIcon,
+  DollarSign,
+  WalletCards,
+  Clock,
+  HandCoins,
+  CirclePercent,
+  Users,
+  UserX,
+  FileWarning,
+  CalendarDays,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -450,6 +459,7 @@ export default function PaymentsReportPage() {
           maximumFractionDigits: 2,
         })}`,
         change: '+2.5%',
+        icon: DollarSign,
       },
       {
         title: 'Total Collected',
@@ -458,6 +468,7 @@ export default function PaymentsReportPage() {
           maximumFractionDigits: 2,
         })}`,
         change: '+2.8%',
+        icon: WalletCards,
       },
       {
         title: 'Outstanding Balance',
@@ -466,13 +477,15 @@ export default function PaymentsReportPage() {
           maximumFractionDigits: 2,
         })}`,
         change: '-5.1%',
+        icon: AlertTriangle,
       },
       {
         title: 'Average Bill Value',
         value: `$${avgBillValue.toFixed(2)}`,
         change: '+0.5%',
+        icon: FileText,
       },
-      { title: 'Average Time to Pay', value: '8m 15s', change: '-2.0%' },
+      { title: 'Average Time to Pay', value: '8m 15s', change: '-2.0%', icon: Clock },
       {
         title: 'Total Tips Collected',
         value: `$${totalTips.toLocaleString('en-US', {
@@ -480,6 +493,7 @@ export default function PaymentsReportPage() {
           maximumFractionDigits: 2,
         })}`,
         change: '+4.2%',
+        icon: HandCoins,
       },
     ];
   }, [filteredAndSortedTransactions]);
@@ -706,38 +720,40 @@ export default function PaymentsReportPage() {
 
           <TabsContent value="summary" className="space-y-4 mt-4">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {kpiCards.map((card) => (
-                <Card key={card.title}>
-                  <CardHeader className="pb-2">
-                    <CardDescription>{card.title}</CardDescription>
-                    <CardTitle className="text-2xl font-bold">
-                      {card.value}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-xs text-muted-foreground flex items-center">
-                      <TrendingUp
-                        className={cn(
-                          'mr-1 h-4 w-4',
-                          card.change.startsWith('+')
-                            ? 'text-green-500'
-                            : 'text-red-500'
-                        )}
-                      />
-                      <span
-                        className={cn(
-                          card.change.startsWith('+')
-                            ? 'text-green-500'
-                            : 'text-red-500',
-                          'font-semibold'
-                        )}
-                      >
-                        {card.change}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              {kpiCards.map((card) => {
+                const Icon = card.icon;
+                return (
+                  <Card key={card.title}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardDescription>{card.title}</CardDescription>
+                      {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{card.value}</div>
+                      <p className="text-xs text-muted-foreground flex items-center">
+                        <TrendingUp
+                          className={cn(
+                            'mr-1 h-4 w-4',
+                            card.change.startsWith('+')
+                              ? 'text-green-500'
+                              : 'text-red-500'
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            card.change.startsWith('+')
+                              ? 'text-green-500'
+                              : 'text-red-500',
+                            'font-semibold'
+                          )}
+                        >
+                          {card.change}
+                        </span>
+                      </p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
 
             <Card>
@@ -1045,7 +1061,62 @@ export default function PaymentsReportPage() {
               )}
             </Card>
           </TabsContent>
-          <TabsContent value="split-bills" className="mt-4">
+          <TabsContent value="split-bills" className="mt-4 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardDescription>Split Adoption Rate</CardDescription>
+                  <CirclePercent className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">
+                    {splitAdoptionRate.toFixed(1)}%
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardDescription>Avg. Payers per Split</CardDescription>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">
+                    {avgPayers.toFixed(1)}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardDescription>Abandoned Splits</CardDescription>
+                  <UserX className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-red-500">
+                    {
+                      splitTransactions.filter(
+                        (t) =>
+                          t.paymentStatus === 'Unpaid' ||
+                          t.paymentStatus === 'Partial'
+                      ).length
+                    }
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardDescription>Total Outstanding</CardDescription>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">
+                    $
+                    {splitTransactions
+                      .reduce((acc, t) => acc + t.outstandingAmount, 0)
+                      .toFixed(2)}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
@@ -1071,51 +1142,7 @@ export default function PaymentsReportPage() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <Card>
-                    <CardHeader className="p-4">
-                      <CardDescription>Split Adoption Rate</CardDescription>
-                      <CardTitle className="text-3xl">
-                        {splitAdoptionRate.toFixed(1)}%
-                      </CardTitle>
-                    </CardHeader>
-                  </Card>
-                  <Card>
-                    <CardHeader className="p-4">
-                      <CardDescription>Avg. Payers per Split</CardDescription>
-                      <CardTitle className="text-3xl">
-                        {avgPayers.toFixed(1)}
-                      </CardTitle>
-                    </CardHeader>
-                  </Card>
-                  <Card>
-                    <CardHeader className="p-4">
-                      <CardDescription>Abandoned Splits</CardDescription>
-                      <CardTitle className="text-3xl text-red-500">
-                        {
-                          splitTransactions.filter(
-                            (t) =>
-                              t.paymentStatus === 'Unpaid' ||
-                              t.paymentStatus === 'Partial'
-                          ).length
-                        }
-                      </CardTitle>
-                    </CardHeader>
-                  </Card>
-                  <Card>
-                    <CardHeader className="p-4">
-                      <CardDescription>Total Outstanding</CardDescription>
-                      <CardTitle className="text-3xl">
-                        $
-                        {splitTransactions
-                          .reduce((acc, t) => acc + t.outstandingAmount, 0)
-                          .toFixed(2)}
-                      </CardTitle>
-                    </CardHeader>
-                  </Card>
-                </div>
-
+              <CardContent>
                 <div className="relative w-full overflow-auto">
                   <Table>
                     <TableHeader>
@@ -1165,30 +1192,39 @@ export default function PaymentsReportPage() {
             </Card>
           </TabsContent>
           <TabsContent value="outstanding" className="mt-4 space-y-4">
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
-                  <CardHeader className="p-4">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardDescription>Total Outstanding</CardDescription>
-                    <CardTitle className="text-3xl text-red-500">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-red-500">
                       ${outstandingKpis.totalOutstanding.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </CardTitle>
-                  </CardHeader>
+                    </div>
+                  </CardContent>
                 </Card>
                 <Card>
-                  <CardHeader className="p-4">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardDescription>Outstanding Orders</CardDescription>
-                    <CardTitle className="text-3xl">
-                      {outstandingKpis.outstandingCount}
-                    </CardTitle>
+                    <FileWarning className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">
+                      {outstandingKpis.outstandingCount}
+                    </div>
+                  </CardContent>
                 </Card>
                 <Card>
-                  <CardHeader className="p-4">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardDescription>Avg. Days Outstanding</CardDescription>
-                    <CardTitle className="text-3xl">
-                      {outstandingKpis.avgAge.toFixed(1)}
-                    </CardTitle>
+                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">
+                      {outstandingKpis.avgAge.toFixed(1)}
+                    </div>
+                  </CardContent>
                 </Card>
               </div>
             <Card>
@@ -1283,30 +1319,39 @@ export default function PaymentsReportPage() {
             </Card>
           </TabsContent>
           <TabsContent value="tips" className="mt-4 space-y-4">
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
-                  <CardHeader className="p-4">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardDescription>Total Tips Collected</CardDescription>
-                    <CardTitle className="text-3xl text-green-600">
+                    <HandCoins className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-green-600">
                       ${tipsKpis.totalGrossTips.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </CardTitle>
-                  </CardHeader>
+                    </div>
+                  </CardContent>
                 </Card>
                 <Card>
-                  <CardHeader className="p-4">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardDescription>Tip Adoption Rate</CardDescription>
-                    <CardTitle className="text-3xl">
-                      {tipsKpis.tipAdoptionRate.toFixed(1)}%
-                    </CardTitle>
+                    <CirclePercent className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">
+                      {tipsKpis.tipAdoptionRate.toFixed(1)}%
+                    </div>
+                  </CardContent>
                 </Card>
                 <Card>
-                  <CardHeader className="p-4">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardDescription>Average Tip %</CardDescription>
-                    <CardTitle className="text-3xl">
-                      {tipsKpis.avgTipPercentage.toFixed(1)}%
-                    </CardTitle>
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">
+                      {tipsKpis.avgTipPercentage.toFixed(1)}%
+                    </div>
+                  </CardContent>
                 </Card>
               </div>
             <Card>
