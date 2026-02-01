@@ -64,6 +64,7 @@ export function DateRangePicker({
             return 'Pick a date range';
         }
         
+        // Find if the current range matches any preset
         for (const preset of presets) {
             const presetRange = preset.range();
             if (dateRange.from && presetRange.from && isSameDay(dateRange.from, presetRange.from) &&
@@ -72,10 +73,12 @@ export function DateRangePicker({
             }
         }
 
+        // Format custom range
         if (dateRange.to) {
             return `${format(dateRange.from, 'LLL dd, y')} - ${format(dateRange.to, 'LLL dd, y')}`;
         }
 
+        // Format single day
         return format(dateRange.from, 'LLL dd, y');
 
     }, [dateRange]);
