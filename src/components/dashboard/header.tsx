@@ -25,8 +25,10 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { SidebarTrigger } from '../ui/sidebar';
 import { PosSyncStatus } from './pos-sync-status';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AppSwitcher } from './app-switcher';
 
 const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+
 
 export function DashboardHeader() {
   const [isClient, setIsClient] = useState(false);
@@ -37,8 +39,13 @@ export function DashboardHeader() {
 
   if (!isClient) {
     return (
-      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8">
-        <Skeleton className="h-7 w-7" />
+      <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8">
+        <div className="hidden md:block">
+          <Skeleton className="h-7 w-7" />
+        </div>
+        <div className="md:hidden">
+          <Skeleton className="h-7 w-7" />
+        </div>
         <div className="flex-1 flex items-center justify-start gap-4">
           <Skeleton className="h-9 w-full max-w-md rounded-lg" />
           <Skeleton className="h-9 w-36 rounded-lg" />
@@ -54,15 +61,15 @@ export function DashboardHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8">
+      <div className="hidden md:block">
+          <SidebarTrigger />
+      </div>
       <div className="md:hidden">
         <SidebarTrigger />
       </div>
 
       <div className="flex-1 flex items-center justify-start gap-4">
-        <div className="hidden md:block">
-            <SidebarTrigger />
-        </div>
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -88,10 +95,18 @@ export function DashboardHeader() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <LayoutGrid className="h-5 w-5" />
-          <span className="sr-only">Toggle apps</span>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <LayoutGrid className="h-5 w-5" />
+              <span className="sr-only">Toggle apps</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="p-0 border-0 bg-transparent shadow-lg">
+            <AppSwitcher />
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <div className="relative">
           <Button variant="ghost" size="icon" className="rounded-full">
             <Bell className="h-5 w-5" />
