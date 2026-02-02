@@ -19,6 +19,7 @@ export function AiSummary({ data, context }: AiSummaryProps) {
     'idle' | 'loading' | 'success' | 'error'
   >('idle');
   const [isVisible, setIsVisible] = useState(true);
+  const [isRateLimited, setIsRateLimited] = useState(false);
   const isLoadingRef = useRef(false);
 
   const generateSummary = useCallback(() => {
@@ -37,6 +38,7 @@ export function AiSummary({ data, context }: AiSummaryProps) {
         .then((result) => {
           setSummary(result.summary);
           setStatus('success');
+          setIsRateLimited(false);
         })
         .catch((err) => {
           console.error('AI Summary Error:', err);
@@ -45,11 +47,11 @@ export function AiSummary({ data, context }: AiSummaryProps) {
             (err.message.includes('429') ||
               err.message.includes('Too Many Requests'))
           ) {
-            setSummary(
-              `AI analysis limit reached. Displaying basic summary: Found **${data.length} items** for **${context}**.`
-            );
+            const staticSummary = `Today's key metrics: **${data.length} items** for **${context}**.`;
+            setSummary(staticSummary);
             setStatus('success');
             setError('');
+            setIsRateLimited(true);
           } else {
             setError(
               `Could not generate summary. The AI may be temporarily unavailable.`
@@ -68,10 +70,16 @@ export function AiSummary({ data, context }: AiSummaryProps) {
     }
   }, [data, context]);
 
-  // Trigger summary generation when data changes.
+  // Trigger summary generation when data changes, but not if rate limited.
   useEffect(() => {
+    if (isRateLimited) return;
     generateSummary();
-  }, [generateSummary]);
+  }, [generateSummary, isRateLimited]);
+
+  const handleRefresh = () => {
+    // Allow manual refresh to try again.
+    setIsRateLimited(false);
+  };
 
   const renderSummaryWithBold = (text: string) => {
     if (!text) return null;
@@ -160,7 +168,7 @@ export function AiSummary({ data, context }: AiSummaryProps) {
             variant="ghost"
             size="icon"
             className="h-7 w-7 shrink-0 rounded-full bg-white/50 hover:bg-white/80"
-            onClick={generateSummary}
+            onClick={handleRefresh}
             disabled={status === 'loading'}
           >
             <RefreshCw

@@ -20,6 +20,7 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
   const [status, setStatus] = useState<
     'idle' | 'loading' | 'success' | 'error'
   >('idle');
+  const [isRateLimited, setIsRateLimited] = useState(false);
   const isLoadingRef = useRef(false);
 
   useEffect(() => {
@@ -60,6 +61,7 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
         .then((result) => {
           setSummary(result.summary);
           setStatus('success');
+          setIsRateLimited(false);
         })
         .catch((err) => {
           console.error('AI Summary Error:', err);
@@ -68,6 +70,7 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
             (err.message.includes('429') ||
               err.message.includes('Too Many Requests'))
           ) {
+            setIsRateLimited(true);
             if (statCards && statCards.length >= 2) {
               const staticSummary = `Today's key metrics: **${statCards[0].title}** is at **${statCards[0].value}** and **${statCards[1].title}** is **${statCards[1].value}**.`;
               setSummary(staticSummary);
@@ -94,8 +97,13 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
   }, [statCards, chartData]);
 
   useEffect(() => {
+    if (isRateLimited) return;
     generateSummary();
-  }, [generateSummary]);
+  }, [generateSummary, isRateLimited]);
+
+  const handleRefresh = () => {
+    setIsRateLimited(false);
+  };
 
   const renderSummaryWithBold = (text: string) => {
     if (!text) return null;
@@ -154,7 +162,7 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
               variant="ghost"
               size="icon"
               className="h-7 w-7 shrink-0 rounded-full bg-white/50 hover:bg-white/80"
-              onClick={generateSummary}
+              onClick={handleRefresh}
               disabled={status === 'loading'}
             >
               <RefreshCw
