@@ -42,6 +42,16 @@ export function Tips() {
         <div className="space-y-6">
             <Card>
                 <CardHeader>
+                    <CardTitle>Advanced Metrics</CardTitle>
+                    <CardDescription>Metrics on tip normalization, volatility, and fairness.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <StatCards cards={advancedMetrics} />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
                      <div className="flex justify-between items-center">
                         <div>
                             <CardTitle>Top 5 Staff by Tips</CardTitle>
@@ -110,16 +120,6 @@ export function Tips() {
                             ))}
                         </TableBody>
                     </Table>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Advanced Metrics</CardTitle>
-                    <CardDescription>Metrics on tip normalization, volatility, and fairness.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <StatCards cards={advancedMetrics} />
                 </CardContent>
             </Card>
         </div>
