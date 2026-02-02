@@ -168,7 +168,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setAllOrders(generateMockOrders(124));
+      setAllOrders(generateMockOrders(30));
       setIsLoading(false);
     }, 1500);
     return () => clearTimeout(timer);
@@ -278,23 +278,13 @@ export default function OrdersPage() {
   }, [filteredAndSortedOrders, currentPage]);
 
   const kpiCards: StatCardData[] = useMemo(() => {
-    const successfulOrders = allOrders.filter(
-      (order) =>
-        order.orderStatus !== 'Cancelled' && order.orderStatus !== 'Refunded'
-    );
-    const totalRevenue = successfulOrders.reduce((sum, order) => sum + order.totalAmount, 0);
-    const totalOrders = allOrders.length;
-    const averageOrderValue = successfulOrders.length > 0 ? totalRevenue / successfulOrders.length : 0;
-    const cancelledCount = allOrders.filter((o) => o.orderStatus === 'Cancelled' || o.orderStatus === 'Refunded').length;
-    const cancelledPercentage = totalOrders > 0 ? (cancelledCount / totalOrders) * 100 : 0;
-
     return [
-      { title: 'Total Revenue', value: `$${totalRevenue.toFixed(2)}`, changeDescription: `from ${successfulOrders.length} orders`, icon: DollarSign, color: 'teal' },
-      { title: 'Total Orders', value: `+${totalOrders}`, changeDescription: 'in the last 30 days', icon: ShoppingCart, color: 'orange' },
-      { title: 'Avg. Order Value', value: `$${averageOrderValue.toFixed(2)}`, change: '+5.2%', changeDescription: 'vs last month', icon: TrendingUp, color: 'pink' },
-      { title: 'Cancelled & Refunded', value: `${cancelledCount}`, changeDescription: `${cancelledPercentage.toFixed(0)}% of total orders`, icon: XCircle, color: 'green' },
+      { title: 'Total Revenue', value: '$1028.50', changeDescription: 'from 30 orders', icon: DollarSign, color: 'teal' },
+      { title: 'Total Orders', value: '+50', changeDescription: 'in the last 30 days', icon: ShoppingCart, color: 'orange' },
+      { title: 'Avg. Order Value', value: '$34.28', change: '+5.2%', changeDescription: 'vs last month', icon: TrendingUp, color: 'pink' },
+      { title: 'Cancelled & Refunded', value: '20', changeDescription: '40% of total orders', icon: XCircle, color: 'green' },
     ];
-  }, [allOrders]);
+  }, []);
   
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
