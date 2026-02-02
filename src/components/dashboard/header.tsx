@@ -27,6 +27,7 @@ import { SidebarTrigger } from '../ui/sidebar';
 import { PosSyncStatus } from './pos-sync-status';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AppSwitcher } from './app-switcher';
+import { NotificationMenu } from './notification-menu';
 
 const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
@@ -180,13 +181,17 @@ export function DashboardHeader() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <div className="relative">
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Bell className="h-5 w-5" />
-            <span className="sr-only">Toggle notifications</span>
-          </Button>
-          <div className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500" />
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="rounded-full relative">
+              <Bell className="h-5 w-5" />
+              <span className="sr-only">Toggle notifications</span>
+              <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500" />
+            </Button>
+          </DropdownMenuTrigger>
+          <NotificationMenu />
+        </DropdownMenu>
+        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
