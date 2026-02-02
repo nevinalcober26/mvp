@@ -206,15 +206,21 @@ const ExportDialog = ({
 };
 
 const allColumns = [
-    { id: 'customer', label: 'Customer', defaultVisible: true, category: 'Customer' },
-    { id: 'orderType', label: 'Order Type', defaultVisible: true, category: 'Order' },
-    { id: 'items', label: 'Items', defaultVisible: false, category: 'Order' },
-    { id: 'categories', label: 'Categories', defaultVisible: false, category: 'Order' },
-    { id: 'orderComments', label: 'Order Comments', defaultVisible: false, category: 'Order' },
-    { id: 'paymentState', label: 'Payment State', defaultVisible: true, category: 'Payment' },
-    { id: 'paymentMethod', label: 'Payment Method', defaultVisible: false, category: 'Payment' },
+    { id: 'customer', label: 'Customer', defaultVisible: true, category: 'Details' },
+    { id: 'branch', label: 'Branch', defaultVisible: true, category: 'Details' },
+    { id: 'table', label: 'Table', defaultVisible: true, category: 'Details' },
+    { id: 'orderType', label: 'Order Type', defaultVisible: true, category: 'Details' },
+    { id: 'orderStatus', label: 'Order Status', defaultVisible: true, category: 'Status' },
+    { id: 'paymentState', label: 'Payment State', defaultVisible: true, category: 'Status' },
     { id: 'total', label: 'Total', defaultVisible: true, category: 'Payment' },
+    { id: 'paid', label: 'Paid', defaultVisible: true, category: 'Payment' },
+    { id: 'pending', label: 'Pending', defaultVisible: true, category: 'Payment' },
+    { id: 'items', label: 'Items', defaultVisible: false, category: 'Details' },
+    { id: 'categories', label: 'Categories', defaultVisible: false, category: 'Details' },
+    { id: 'orderComments', label: 'Comments', defaultVisible: false, category: 'Details' },
+    { id: 'paymentMethod', label: 'Payment Method', defaultVisible: false, category: 'Payment' },
 ] as const;
+
 
 type ColumnId = typeof allColumns[number]['id'];
 
@@ -717,25 +723,25 @@ export default function OrdersPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="relative w-full overflow-auto" style={{ width: '1280px', overflow: 'scroll' }}>
+            <div className="relative w-full overflow-auto">
               {view === 'list' ? (
                   <Table>
                     <TableHeader className="sticky top-0 bg-background z-10">
                       <TableRow>
                         <TableHead><SortableHeader tKey="orderId" label="Order ID" /></TableHead>
                         {visibleColumns.customer && <TableHead>Customer</TableHead>}
-                        <TableHead><SortableHeader tKey="branch" label="Branch" /></TableHead>
-                        <TableHead><SortableHeader tKey="table" label="Table" /></TableHead>
-                        {visibleColumns.items && <TableHead>Items</TableHead>}
-                        {visibleColumns.categories && <TableHead>Categories</TableHead>}
-                        {visibleColumns.orderComments && <TableHead>Comments</TableHead>}
+                        {visibleColumns.branch && <TableHead>Branch</TableHead>}
+                        {visibleColumns.table && <TableHead>Table</TableHead>}
                         {visibleColumns.orderType && <TableHead><SortableHeader tKey="orderType" label="Order Type" /></TableHead>}
-                        <TableHead>Order Status</TableHead>
+                        {visibleColumns.orderStatus && <TableHead>Order Status</TableHead>}
                         {visibleColumns.paymentState && <TableHead><SortableHeader tKey="paymentState" label="Payment State" /></TableHead>}
-                        {visibleColumns.paymentMethod && <TableHead>Payment Method</TableHead>}
                         {visibleColumns.total && <TableHead className="text-right"><SortableHeader tKey="totalAmount" label="Total" /></TableHead>}
-                        <TableHead className="text-right">Paid</TableHead>
-                        <TableHead className="text-right">Pending</TableHead>
+                        {visibleColumns.paid && <TableHead className="text-right">Paid</TableHead>}
+                        {visibleColumns.pending && <TableHead className="text-right">Penc</TableHead>}
+                        {visibleColumns.items && <TableHead className="max-w-[200px]">Items</TableHead>}
+                        {visibleColumns.categories && <TableHead>Categories</TableHead>}
+                        {visibleColumns.orderComments && <TableHead className="max-w-[150px]">Comments</TableHead>}
+                        {visibleColumns.paymentMethod && <TableHead>Payment Method</TableHead>}
                         <TableHead className="text-right sticky right-0 bg-background" style={{ boxShadow: '-5px 0 5px -5px #0003' }}>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -746,9 +752,9 @@ export default function OrdersPage() {
                           onClick={() => handleViewDetails(order)}
                           className="cursor-pointer"
                         >
-                          <TableCell className="font-medium">{order.orderId}</TableCell>
+                          <TableCell className="font-medium p-2">{order.orderId}</TableCell>
                           {visibleColumns.customer && (
-                            <TableCell>
+                            <TableCell className="p-2">
                               {order.customer ? (
                                 <div>
                                   <div className="font-medium">
@@ -768,19 +774,12 @@ export default function OrdersPage() {
                               )}
                             </TableCell>
                           )}
-                          <TableCell>{order.branch}</TableCell>
-                          <TableCell>{order.table}</TableCell>
-                          {visibleColumns.items && <TableCell className="max-w-[200px] truncate">{order.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}</TableCell>}
-                          {visibleColumns.categories && <TableCell>{[...new Set(order.items.map(item => item.category))].join(', ')}</TableCell>}
-                          {visibleColumns.orderComments && <TableCell className="max-w-[150px] truncate">{order.orderComments}</TableCell>}
-                          {visibleColumns.orderType && <TableCell>{order.orderType}</TableCell>}
-                          <TableCell>
-                            <Badge variant={getStatusBadgeVariant(order.orderStatus)}>
-                              {order.orderStatus}
-                            </Badge>
-                          </TableCell>
+                          {visibleColumns.branch && <TableCell className="p-2">{order.branch}</TableCell>}
+                          {visibleColumns.table && <TableCell className="p-2">{order.table}</TableCell>}
+                          {visibleColumns.orderType && <TableCell className="p-2">{order.orderType}</TableCell>}
+                          {visibleColumns.orderStatus && <TableCell className="p-2"><Badge variant={getStatusBadgeVariant(order.orderStatus)}>{order.orderStatus}</Badge></TableCell>}
                           {visibleColumns.paymentState && (
-                            <TableCell>
+                            <TableCell className="p-2">
                               <Badge variant={getStatusBadgeVariant(order.paymentState)}>
                                 {order.paymentState}
                                 {order.paymentState === 'Partial' && order.splitType === 'equally' && ' (Equally)'}
@@ -788,11 +787,16 @@ export default function OrdersPage() {
                               </Badge>
                             </TableCell>
                           )}
-                          {visibleColumns.paymentMethod && <TableCell>{[...new Set(order.payments.map(p => p.method))].join(', ')}</TableCell>}
-                          {visibleColumns.total && <TableCell className="text-right font-mono">${order.totalAmount.toFixed(2)}</TableCell>}
-                          <TableCell className="text-right font-mono text-green-600">${order.paidAmount.toFixed(2)}</TableCell>
-                          <TableCell className="text-right font-mono text-red-600">${(order.totalAmount - order.paidAmount).toFixed(2)}</TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()} className="sticky right-0 bg-background" style={{ boxShadow: '-5px 0 5px -5px #0003' }}>
+                           {visibleColumns.total && <TableCell className="text-right font-mono p-2">${order.totalAmount.toFixed(2)}</TableCell>}
+                          {visibleColumns.paid && <TableCell className="text-right font-mono text-green-600 p-2">${order.paidAmount.toFixed(2)}</TableCell>}
+                          {visibleColumns.pending && <TableCell className="text-right font-mono text-red-600 p-2">${(order.totalAmount - order.paidAmount).toFixed(2)}</TableCell>}
+
+                          {visibleColumns.items && <TableCell className="max-w-[200px] truncate p-2">{order.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}</TableCell>}
+                          {visibleColumns.categories && <TableCell className="p-2">{[...new Set(order.items.map(item => item.category))].join(', ')}</TableCell>}
+                          {visibleColumns.orderComments && <TableCell className="max-w-[150px] truncate p-2">{order.orderComments}</TableCell>}
+                          {visibleColumns.paymentMethod && <TableCell className="p-2">{[...new Set(order.payments.map(p => p.method))].join(', ')}</TableCell>}
+
+                          <TableCell onClick={(e) => e.stopPropagation()} className="sticky right-0 bg-background p-2" style={{ boxShadow: '-5px 0 5px -5px #0003' }}>
                             <div className="flex items-center justify-end gap-2">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
