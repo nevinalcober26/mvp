@@ -539,6 +539,24 @@ export default function SplitBillsReportPage() {
                     layout="vertical"
                     margin={{ left: 20, right: 20 }}
                   >
+                    <defs>
+                      <linearGradient id="fillEqual" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.2} />
+                      </linearGradient>
+                      <linearGradient id="fillItemBased" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.2} />
+                      </linearGradient>
+                      <linearGradient id="fillCustom" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0.2} />
+                      </linearGradient>
+                      <linearGradient id="fillUnknown" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0.2} />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                     <YAxis
                       dataKey="name"
@@ -558,15 +576,19 @@ export default function SplitBillsReportPage() {
                       radius={[0, 4, 4, 0]}
                       label={{ position: 'right', offset: 8, formatter: (value) => value, fontSize: 12 }}
                     >
-                      {splitMethodChartData.map((entry) => (
+                      {splitMethodChartData.map((entry) => {
+                        const gradientMap = {
+                            'Equal': 'url(#fillEqual)',
+                            'Item-based': 'url(#fillItemBased)',
+                            'Custom': 'url(#fillCustom)',
+                            'Unknown': 'url(#fillUnknown)'
+                        }
+                        return (
                         <Cell
                           key={`cell-${entry.name}`}
-                          fill={
-                            (chartConfig[entry.name as keyof typeof chartConfig] as any)
-                              ?.color
-                          }
+                          fill={gradientMap[entry.name as keyof typeof gradientMap]}
                         />
-                      ))}
+                      )})}
                     </Bar>
                   </BarChart>
                 </ChartContainer>
