@@ -38,12 +38,12 @@ export function StaffPerformanceSidebar({ activeSection, setActiveSection }: Sta
           className={cn(
             'w-full justify-start relative text-sm',
             activeSection === item.id
-              ? 'bg-primary/10 text-primary font-bold'
+              ? 'bg-teal-100 text-teal-600 font-semibold'
               : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
           )}
         >
           {activeSection === item.id && (
-            <div className="absolute left-0 w-1 h-6 bg-primary rounded-r-full" />
+            <div className="absolute left-0 w-1 h-6 bg-teal-400 rounded-r-full" />
           )}
           <item.icon className="mr-3 h-5 w-5" />
           {item.label}
