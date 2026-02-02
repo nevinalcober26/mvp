@@ -66,31 +66,73 @@ const initialBoardData: Column[] = [
     id: 'food',
     name: 'Food',
     items: [
-      { id: 'item-1', name: 'Breakfast', children: [] },
       {
-        id: 'item-2',
-        name: 'Pancakes & French Toast',
+        id: 'appetizers',
+        name: 'Appetizers',
         children: [
-          { id: 'item-2-1', name: 'Classic Pancakes', children: [] },
-          { id: 'item-2-2', name: 'Blueberry Pancakes', children: [] },
+          { id: 'soups', name: 'Soups', children: [] },
+          { id: 'salads', name: 'Salads', children: [] },
         ],
       },
-      { id: 'item-3', name: 'Keto & Vegan', children: [] },
+      {
+        id: 'main-courses',
+        name: 'Main Courses',
+        children: [
+          { id: 'pizza', name: 'Pizza', children: [] },
+          { id: 'pasta', name: 'Pasta', children: [] },
+          { id: 'burgers', name: 'Burgers', children: [] },
+        ],
+      },
+      {
+        id: 'desserts',
+        name: 'Desserts',
+        children: [
+            { id: 'cakes', name: 'Cakes', children: [] },
+            { id: 'ice-cream', name: 'Ice Cream', children: [] },
+        ],
+      },
     ],
   },
   {
     id: 'beverages',
     name: 'Beverages',
     items: [
-      { id: 'item-4', name: 'Coffee', children: [] },
-      { id: 'item-5', name: 'Juices', children: [] },
+      {
+        id: 'hot-drinks',
+        name: 'Hot Drinks',
+        children: [
+          { id: 'coffee', name: 'Coffee', children: [] },
+          { id: 'tea', name: 'Tea', children: [] },
+        ],
+      },
+      {
+        id: 'cold-drinks',
+        name: 'Cold Drinks',
+        children: [
+          { id: 'juices', name: 'Juices', children: [] },
+          { id: 'soft-drinks', name: 'Soft Drinks', children: [] },
+        ],
+      },
+      { id: 'mocktails', name: 'Mocktails', children: [] },
     ],
   },
   {
     id: 'specials',
     name: 'Special Offers',
-    items: [],
+    items: [
+        { id: 'daily-specials', name: 'Daily Specials', children: [] },
+        { id: 'combo-meals', name: 'Combo Meals', children: [] },
+    ],
   },
+  {
+    id: 'breakfast',
+    name: 'Breakfast',
+    items: [
+        { id: 'pancakes-waffles', name: 'Pancakes & Waffles', children: [] },
+        { id: 'omelettes', name: 'Omelettes', children: [] },
+        { id: 'healthy-bowls', name: 'Healthy Bowls', children: [] },
+    ]
+  }
 ];
 
 // Helper functions for tree operations
