@@ -261,7 +261,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setAllOrders(generateMockOrders(50));
+      setAllOrders(generateMockOrders(30));
       setIsLoading(false);
     }, 1500);
     return () => clearTimeout(timer);
