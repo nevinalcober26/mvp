@@ -29,7 +29,6 @@ import { Badge } from '@/components/ui/badge';
 import {
   ArrowUpDown,
   Download,
-  TrendingUp,
   AlertTriangle,
   Filter,
   RotateCcw,
@@ -39,12 +38,6 @@ import {
   DollarSign,
   WalletCards,
   Clock,
-  HandCoins,
-  CirclePercent,
-  Users,
-  UserX,
-  FileWarning,
-  CalendarDays,
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
@@ -55,7 +48,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -90,6 +82,7 @@ import { DateRangePicker } from '@/components/dashboard/reports/date-range-picke
 import type { Order } from '@/app/dashboard/orders/types';
 import { generateMockOrders } from '@/app/dashboard/orders/mock';
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
+import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 
 type Transaction = {
   id: string;
@@ -416,7 +409,7 @@ export default function PaymentsReportPage() {
     return filtered;
   }, [transactions, sortConfig, filters]);
 
-  const summaryKpiCards = useMemo(() => {
+  const summaryKpiCards: StatCardData[] = useMemo(() => {
     const totalSales = filteredAndSortedTransactions.reduce(
       (acc, t) => acc + t.totalAmount,
       0
@@ -444,6 +437,7 @@ export default function PaymentsReportPage() {
         })}`,
         change: '+2.5%',
         icon: DollarSign,
+        color: 'teal',
       },
       {
         title: 'Total Collected',
@@ -453,6 +447,7 @@ export default function PaymentsReportPage() {
         })}`,
         change: '+2.8%',
         icon: WalletCards,
+        color: 'green',
       },
       {
         title: 'Outstanding Balance',
@@ -462,18 +457,21 @@ export default function PaymentsReportPage() {
         })}`,
         change: '-5.1%',
         icon: AlertTriangle,
+        color: 'pink',
       },
       {
         title: 'Average Bill Value',
         value: `$${avgBillValue.toFixed(2)}`,
         change: '+0.5%',
         icon: FileText,
+        color: 'orange',
       },
       {
         title: 'Average Time to Pay',
         value: '8m 15s',
         change: '-2.0%',
         icon: Clock,
+        color: 'teal',
       },
     ];
   }, [filteredAndSortedTransactions]);
@@ -573,42 +571,6 @@ export default function PaymentsReportPage() {
       />
     </Button>
   );
-
-  const KpiCard = ({ title, value, icon: Icon, isAlert, change }: { title: string, value: string, icon: React.ElementType, isAlert?: boolean, change?: string }) => (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardDescription>{title}</CardDescription>
-        {Icon && (
-          <Icon className={cn("h-4 w-4 text-muted-foreground", isAlert && "text-red-500")} />
-        )}
-      </CardHeader>
-      <CardContent>
-        <div className={cn("text-2xl font-bold", isAlert && "text-red-500")}>{value}</div>
-        {change && (
-            <p className="text-xs text-muted-foreground flex items-center">
-            <TrendingUp
-                className={cn(
-                'mr-1 h-4 w-4',
-                change.startsWith('+')
-                    ? 'text-green-500'
-                    : 'text-red-500'
-                )}
-            />
-            <span
-                className={cn(
-                change.startsWith('+')
-                    ? 'text-green-500'
-                    : 'text-red-500',
-                'font-semibold'
-                )}
-            >
-                {change}
-            </span>
-            </p>
-        )}
-      </CardContent>
-    </Card>
-  )
 
   if (isLoading) {
     return <OrdersPageSkeleton view="list" />;
@@ -735,11 +697,7 @@ export default function PaymentsReportPage() {
         </div>
 
         <div className="space-y-6 mt-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {summaryKpiCards.map((card) => (
-              <KpiCard key={card.title} {...card}/>
-            ))}
-          </div>
+          <StatCards cards={summaryKpiCards} />
 
           <Card>
             <CardHeader>

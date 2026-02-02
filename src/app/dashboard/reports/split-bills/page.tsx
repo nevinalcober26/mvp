@@ -46,7 +46,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -79,6 +78,7 @@ import { DateRangePicker } from '@/components/dashboard/reports/date-range-picke
 import type { Order } from '@/app/dashboard/orders/types';
 import { generateMockOrders } from '@/app/dashboard/orders/mock';
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
+import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 
 type Transaction = {
   id: string;
@@ -344,7 +344,7 @@ export default function SplitBillsReportPage() {
     [filteredTransactions]
   );
   
-  const splitKpiCards = useMemo(() => {
+  const splitKpiCards: StatCardData[] = useMemo(() => {
       const splitAdoptionRate =
         filteredTransactions.length > 0
           ? (splitTransactions.length /
@@ -369,23 +369,26 @@ export default function SplitBillsReportPage() {
         {
             title: 'Split Adoption Rate',
             value: `${splitAdoptionRate.toFixed(1)}%`,
-            icon: CirclePercent
+            icon: CirclePercent,
+            color: 'teal'
         },
         {
             title: 'Avg. Payers per Split',
             value: `${avgPayers.toFixed(1)}`,
-            icon: Users
+            icon: Users,
+            color: 'orange'
         },
         {
             title: 'Abandoned Splits',
             value: `${abandonedSplits}`,
             icon: UserX,
-            isAlert: true
+            color: 'pink'
         },
         {
             title: 'Total Outstanding',
             value: `$${totalOutstanding.toFixed(2)}`,
-            icon: DollarSign
+            icon: DollarSign,
+            color: 'green'
         }
       ]
   }, [filteredTransactions, splitTransactions]);
@@ -408,20 +411,6 @@ export default function SplitBillsReportPage() {
     if (filters.splitMethod !== 'all') count++;
     return count;
   }, [filters]);
-
-  const KpiCard = ({ title, value, icon: Icon, isAlert }: { title: string, value: string, icon: React.ElementType, isAlert?: boolean }) => (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardDescription>{title}</CardDescription>
-        {Icon && (
-          <Icon className={cn("h-4 w-4 text-muted-foreground", isAlert && "text-red-500")} />
-        )}
-      </CardHeader>
-      <CardContent>
-        <div className={cn("text-2xl font-bold", isAlert && "text-red-500")}>{value}</div>
-      </CardContent>
-    </Card>
-  )
 
   if (isLoading) {
     return <OrdersPageSkeleton view="list" />;
@@ -508,11 +497,7 @@ export default function SplitBillsReportPage() {
         </div>
 
         <div className="space-y-6 mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {splitKpiCards.map((card) => (
-                <KpiCard key={card.title} {...card}/>
-              ))}
-            </div>
+            <StatCards cards={splitKpiCards} />
             
             <Card>
               <CardHeader>

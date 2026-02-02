@@ -4,12 +4,21 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { StatCards, type StatCardData } from "@/components/dashboard/stat-cards";
+import { Clock } from "lucide-react";
 
 const balancesData = [
   { waiter: 'John', amount: 22.50, openTables: 1, oldestAge: "45m", recoveredVsLost: "$50 / $5" },
   { waiter: 'David', amount: 40.80, openTables: 2, oldestAge: "1h 15m", recoveredVsLost: "$20 / $15" },
   { waiter: 'Maria', amount: 5.50, openTables: 1, oldestAge: "8m", recoveredVsLost: "$10 / $0" },
 ];
+
+const balanceCards: StatCardData[] = [
+    { title: "0-10 min", value: "$5.50", icon: Clock, color: 'green' },
+    { title: "10-30 min", value: "$0.00", icon: Clock, color: 'orange' },
+    { title: "30+ min", value: "$63.30", icon: Clock, color: 'pink' }
+];
+
 
 export function Balances() {
     return (
@@ -19,19 +28,8 @@ export function Balances() {
                     <CardTitle>Outstanding Balances by Waiter</CardTitle>
                     <CardDescription>Monitor waiters with open balances.</CardDescription>
                 </CardHeader>
-                 <CardContent className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                        <p className="text-sm text-muted-foreground">0-10 min</p>
-                        <p className="text-2xl font-bold">$5.50</p>
-                    </div>
-                     <div>
-                        <p className="text-sm text-muted-foreground">10-30 min</p>
-                        <p className="text-2xl font-bold">$0.00</p>
-                    </div>
-                    <div>
-                        <p className="text-sm text-muted-foreground">30+ min</p>
-                        <p className="text-2xl font-bold text-destructive">$63.30</p>
-                    </div>
+                 <CardContent>
+                    <StatCards cards={balanceCards} />
                 </CardContent>
             </Card>
             <Card>

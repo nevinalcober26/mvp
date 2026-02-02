@@ -2,6 +2,8 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { StatCards, type StatCardData } from "@/components/dashboard/stat-cards";
+import { Clock } from "lucide-react";
 
 const turnoverData = [
   { waiter: 'Alex', tables: 12, avgTime: "18m", dwellTime: "45m", splitVsNonSplit: "-5m" },
@@ -13,6 +15,11 @@ const turnoverData = [
 
 const chartData = turnoverData.map(d => ({ name: d.waiter, time: parseInt(d.avgTime) }));
 
+const turnoverCards: StatCardData[] = [
+    { title: "Avg. Time to First Payment", value: "8m 30s", icon: Clock, color: 'teal' },
+    { title: "Avg. Time to Fully Paid", value: "18m 15s", icon: Clock, color: 'orange' },
+];
+
 export function Turnover() {
     return (
         <div className="space-y-6">
@@ -21,15 +28,8 @@ export function Turnover() {
                     <CardTitle>Table Turnover Performance</CardTitle>
                     <CardDescription>Analyze how quickly tables are being turned over by staff.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                        <p className="text-sm text-muted-foreground">Avg. Time to First Payment</p>
-                        <p className="text-2xl font-bold">8m 30s</p>
-                    </div>
-                     <div>
-                        <p className="text-sm text-muted-foreground">Avg. Time to Fully Paid</p>
-                        <p className="text-2xl font-bold">18m 15s</p>
-                    </div>
+                <CardContent>
+                    <StatCards cards={turnoverCards} />
                 </CardContent>
             </Card>
             

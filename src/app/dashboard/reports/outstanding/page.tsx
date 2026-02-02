@@ -78,6 +78,7 @@ import { DateRangePicker } from '@/components/dashboard/reports/date-range-picke
 import type { Order } from '@/app/dashboard/orders/types';
 import { generateMockOrders } from '@/app/dashboard/orders/mock';
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
+import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 
 type Transaction = {
   id: string;
@@ -312,7 +313,7 @@ export default function OutstandingReportPage() {
     );
   }, [filteredTransactions]);
 
-  const outstandingKpiCards = useMemo(() => {
+  const outstandingKpiCards: StatCardData[] = useMemo(() => {
     const totalOutstanding = outstandingTransactions.reduce(
       (acc, t) => acc + t.outstandingAmount,
       0
@@ -331,17 +332,20 @@ export default function OutstandingReportPage() {
           maximumFractionDigits: 2,
         })}`,
         icon: DollarSign,
-        isAlert: true
+        color: 'pink',
+        changeDescription: 'Across all filtered orders'
       },
       {
         title: 'Outstanding Orders',
         value: `${outstandingCount}`,
-        icon: FileWarning
+        icon: FileWarning,
+        color: 'orange'
       },
       {
         title: 'Avg. Days Outstanding',
         value: `${avgAge.toFixed(1)}`,
-        icon: CalendarDays
+        icon: CalendarDays,
+        color: 'green'
       },
     ];
   }, [outstandingTransactions]);
@@ -364,20 +368,6 @@ export default function OutstandingReportPage() {
     if (filters.closeType !== 'all') count++;
     return count;
   }, [filters]);
-
-  const KpiCard = ({ title, value, icon: Icon, isAlert }: { title: string, value: string, icon: React.ElementType, isAlert?: boolean }) => (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardDescription>{title}</CardDescription>
-        {Icon && (
-          <Icon className={cn("h-4 w-4 text-muted-foreground", isAlert && "text-red-500")} />
-        )}
-      </CardHeader>
-      <CardContent>
-        <div className={cn("text-2xl font-bold", isAlert && "text-red-500")}>{value}</div>
-      </CardContent>
-    </Card>
-  )
 
   if (isLoading) {
     return <OrdersPageSkeleton view="list" />;
@@ -463,11 +453,7 @@ export default function OutstandingReportPage() {
         </div>
 
         <div className="space-y-6 mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {outstandingKpiCards.map((card) => (
-                <KpiCard key={card.title} {...card}/>
-              ))}
-            </div>
+            <StatCards cards={outstandingKpiCards} />
             
              <Card>
                 <CardHeader>

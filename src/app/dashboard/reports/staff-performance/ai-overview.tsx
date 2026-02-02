@@ -3,11 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatCards, type StatCardData } from "@/components/dashboard/stat-cards";
+import { AlertTriangle, DollarSign, TrendingUp } from "lucide-react";
 
-const kpis = [
-    { title: "Risky Tables", value: "3" },
-    { title: "Revenue at Risk", value: "$245.50" },
-    { title: "Tips Trend (7d)", value: "+5.2%" },
+const kpis: StatCardData[] = [
+    { title: "Risky Tables", value: "3", icon: AlertTriangle, color: 'pink' },
+    { title: "Revenue at Risk", value: "$245.50", icon: DollarSign, color: 'orange' },
+    { title: "Tips Trend (7d)", value: "+5.2%", icon: TrendingUp, color: 'green', change: "+5.2%" },
 ];
 
 const alerts = [
@@ -19,18 +21,7 @@ const alerts = [
 export function AiOverview() {
     return (
         <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {kpis.map(kpi => (
-                    <Card key={kpi.title}>
-                        <CardHeader>
-                            <CardTitle className="text-sm font-medium text-muted-foreground">{kpi.title}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-bold">{kpi.value}</p>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+            <StatCards cards={kpis} />
 
             <Card>
                 <CardHeader>

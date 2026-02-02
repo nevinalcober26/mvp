@@ -78,6 +78,7 @@ import { DateRangePicker } from '@/components/dashboard/reports/date-range-picke
 import type { Order } from '@/app/dashboard/orders/types';
 import { generateMockOrders } from '@/app/dashboard/orders/mock';
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
+import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 
 type Transaction = {
   id: string;
@@ -344,7 +345,7 @@ export default function TipsAndChargesReportPage() {
       return serviceChargeTransactions.reduce((acc, t) => acc + (t.serviceChargeAmount || 0), 0);
   }, [serviceChargeTransactions]);
 
-  const tipsKpiCards = useMemo(() => {
+  const tipsKpiCards: StatCardData[] = useMemo(() => {
     const paidTransactionsCount = filteredTransactions.filter(
       (t) => t.paidAmount > 0
     ).length;
@@ -370,16 +371,19 @@ export default function TipsAndChargesReportPage() {
           maximumFractionDigits: 2,
         })}`,
         icon: HandCoins,
+        color: 'teal'
       },
       {
         title: 'Tip Adoption Rate',
         value: `${tipAdoptionRate.toFixed(1)}%`,
-        icon: CirclePercent
+        icon: CirclePercent,
+        color: 'orange'
       },
       {
         title: 'Average Tip %',
         value: `${avgTipPercentage.toFixed(1)}%`,
-        icon: TrendingUp
+        icon: TrendingUp,
+        color: 'pink'
       },
     ];
   }, [filteredTransactions, tipTransactions, totalGrossTips]);
@@ -408,20 +412,6 @@ export default function TipsAndChargesReportPage() {
     if (filters.staffName !== 'all') count++;
     return count;
   }, [filters]);
-
-  const KpiCard = ({ title, value, icon: Icon }: { title: string, value: string, icon: React.ElementType }) => (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardDescription>{title}</CardDescription>
-        {Icon && (
-          <Icon className="h-4 w-4 text-muted-foreground" />
-        )}
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-      </CardContent>
-    </Card>
-  )
 
   if (isLoading) {
     return <OrdersPageSkeleton view="list" />;
@@ -508,11 +498,7 @@ export default function TipsAndChargesReportPage() {
         </div>
 
         <div className="space-y-6 mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-             {tipsKpiCards.map((card) => (
-                <KpiCard key={card.title} {...card}/>
-              ))}
-            </div>
+            <StatCards cards={tipsKpiCards} />
 
             <Card>
               <CardHeader>
