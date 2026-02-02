@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Download, Trophy } from "lucide-react";
+import { Download, Trophy, Zap, Scale, GitCompareArrows } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { StatCards, type StatCardData } from "@/components/dashboard/stat-cards";
 
 const tipsData = [
     { waiter: 'Alex', total: 55.20, perTable: 4.60, perOrder: 3.68, perPayment: 3.68, avgPercent: 18.2, digitalVsCash: "80/20" },
@@ -17,6 +18,12 @@ const tipsData = [
 
 export function Tips() {
     const sortedTips = [...tipsData].sort((a, b) => b.total - a.total);
+
+    const advancedMetrics: StatCardData[] = [
+        { title: "Tip Volatility", value: "12.5%", icon: Zap, color: 'pink', change: "-2.1%", changeDescription: "Lower is better" },
+        { title: "Normalization Index", value: "8.5/10", icon: Scale, color: 'orange', change: "+0.5", changeDescription: "vs. restaurant avg." },
+        { title: "Fairness Score", value: "92%", icon: GitCompareArrows, color: 'teal', changeDescription: "Based on Gini Coefficient" },
+    ];
 
     const getRankComponent = (rank: number) => {
         if (rank === 0) {
@@ -109,9 +116,10 @@ export function Tips() {
             <Card>
                 <CardHeader>
                     <CardTitle>Advanced Metrics</CardTitle>
+                    <CardDescription>Metrics on tip normalization, volatility, and fairness.</CardDescription>
                 </CardHeader>
-                <CardContent className="text-muted-foreground text-sm">
-                    <p>Advanced metrics on tip normalization, volatility, and fairness coming soon.</p>
+                <CardContent>
+                    <StatCards cards={advancedMetrics} />
                 </CardContent>
             </Card>
         </div>
