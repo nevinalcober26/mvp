@@ -394,7 +394,6 @@ export default function CategoriesPage() {
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold flex items-center gap-2">
               Categories
-              <Badge variant="destructive">BLOOMSBURY'S (RAS AL KHAIMAH)</Badge>
             </h1>
             <div className="flex items-center gap-4">
               <Button onClick={() => handleOpenAddDialog('new-column')}>
