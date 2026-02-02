@@ -38,45 +38,61 @@ export function DashboardHeader() {
   );
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
     if (!isClient) return;
 
     let textIndex = 0;
     let charIndex = 0;
     let isDeleting = false;
-    let timeoutId: NodeJS.Timeout;
+    let typeTimeout: NodeJS.Timeout;
+    let cursorTimeout: NodeJS.Timeout;
+    let showCursor = true;
 
     const type = () => {
       const currentText = placeholderTexts[textIndex];
+      let textToShow;
       if (isDeleting) {
-        setPlaceholder(currentText.substring(0, charIndex - 1));
+        textToShow = currentText.substring(0, charIndex - 1);
         charIndex--;
       } else {
-        setPlaceholder(currentText.substring(0, charIndex + 1));
+        textToShow = currentText.substring(0, charIndex + 1);
         charIndex++;
       }
+      // Use a functional update to get the latest state of the cursor
+      setPlaceholder(textToShow + (showCursor ? '|' : ''));
 
       if (!isDeleting && charIndex === currentText.length) {
         isDeleting = true;
-        timeoutId = setTimeout(type, 2000); // Pause at end
+        typeTimeout = setTimeout(type, 2000); // Pause at end
       } else if (isDeleting && charIndex === 0) {
         isDeleting = false;
         textIndex = (textIndex + 1) % placeholderTexts.length;
-        timeoutId = setTimeout(type, 500); // Pause before typing new text
+        typeTimeout = setTimeout(type, 500); // Pause before typing new text
       } else {
         const typingSpeed = isDeleting ? 75 : 120;
-        timeoutId = setTimeout(type, typingSpeed);
+        typeTimeout = setTimeout(type, typingSpeed);
       }
     };
 
-    const startTimeout = setTimeout(type, 1000);
+    const blink = () => {
+      showCursor = !showCursor;
+      setPlaceholder((p) => {
+        const baseText = p.endsWith('|') ? p.slice(0, -1) : p;
+        return baseText + (showCursor ? '|' : '');
+      });
+      cursorTimeout = setTimeout(blink, 500);
+    };
+
+    const startTimeout = setTimeout(() => {
+      // Clear initial placeholder before starting animation
+      setPlaceholder('');
+      type();
+      blink();
+    }, 1000);
 
     return () => {
       clearTimeout(startTimeout);
-      clearTimeout(timeoutId);
+      clearTimeout(typeTimeout);
+      clearTimeout(cursorTimeout);
     };
   }, [isClient, placeholderTexts]);
 
@@ -118,7 +134,7 @@ export function DashboardHeader() {
           <Input
             type="search"
             placeholder={placeholder}
-            className="w-full rounded-lg bg-secondary pl-10"
+            className="w-full rounded-lg bg-background pl-10"
           />
         </div>
         <PosSyncStatus />
