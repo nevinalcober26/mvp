@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
 import { AuthCardSkeleton } from '@/components/dashboard/skeletons';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     // This effect runs on the client after component mount
@@ -35,6 +37,10 @@ export default function LoginPage() {
   const handleSignIn = () => {
     setError('');
     if (username === 'admin' && password === 'admin') {
+      toast({
+        title: 'Welcome, Admin!',
+        description: 'You have successfully logged in.',
+      });
       localStorage.setItem('isLoggedIn', 'true');
       router.push('/dashboard');
     } else {
