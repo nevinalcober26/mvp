@@ -52,6 +52,8 @@ import {
 } from 'recharts';
 import {
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
@@ -202,7 +204,7 @@ const getStatusBadgeVariant = (status: Transaction['paymentStatus']) => {
 const chartConfig = {
   count: {
     label: 'Count',
-    color: 'hsl(var(--chart-2))',
+    color: 'hsl(330, 85%, 60%)',
   },
 };
 
@@ -528,6 +530,7 @@ export default function SplitBillsReportPage() {
                       cursor={{ fill: 'hsl(var(--muted))' }}
                       content={<ChartTooltipContent indicator="dot" />}
                     />
+                    <ChartLegend content={<ChartLegendContent />} />
                     <Bar
                       dataKey="count"
                       fill="var(--color-count)"
