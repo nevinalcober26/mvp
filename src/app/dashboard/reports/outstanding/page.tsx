@@ -66,6 +66,7 @@ import {
   setHours,
   setMinutes,
   setSeconds,
+  formatDistanceToNow,
 } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -321,8 +322,8 @@ export default function OutstandingReportPage() {
         tooltipText: 'The total number of orders that are either partially paid or completely unpaid.'
       },
       {
-        title: 'Avg. Days Outstanding',
-        value: `${avgAge.toFixed(1)}`,
+        title: 'Avg. Time Outstanding',
+        value: `${avgAge.toFixed(1)} Days`,
         icon: CalendarDays,
         color: 'green',
         tooltipText: 'The average number of days an order has remained in an outstanding (unpaid or partially paid) state.'
@@ -503,10 +504,10 @@ export default function OutstandingReportPage() {
                         <TableHead>
                           <UiTooltip>
                             <UiTooltipTrigger className="flex items-center gap-1">
-                              Days Open <Info className="h-3 w-3 text-muted-foreground" />
+                              Time Open <Info className="h-3 w-3 text-muted-foreground" />
                             </UiTooltipTrigger>
                             <UiTooltipContent>
-                              <p>The number of days the order has been in an unpaid state.</p>
+                              <p>The time elapsed since the order was created.</p>
                             </UiTooltipContent>
                           </UiTooltip>
                         </TableHead>
@@ -526,7 +527,7 @@ export default function OutstandingReportPage() {
                               Close Type <Info className="h-3 w-3 text-muted-foreground" />
                             </UiTooltipTrigger>
                             <UiTooltipContent>
-                               <div className="max-w-xs space-y-2 p-1">
+                              <div className="max-w-xs space-y-2 p-1">
                                 <p>
                                   <strong className="font-semibold">Auto:</strong> Order automatically closed by the system, typically after a successful online or QR code payment by the customer.
                                 </p>
@@ -551,10 +552,6 @@ export default function OutstandingReportPage() {
                     </TableHeader>
                     <TableBody>
                       {outstandingTransactions.map((t) => {
-                        const daysOutstanding = differenceInDays(
-                          new Date(),
-                          new Date(t.timestamp)
-                        );
                         const isHighRisk = t.outstandingAmount > 50;
                         return (
                           <TableRow
@@ -570,8 +567,8 @@ export default function OutstandingReportPage() {
                             <TableCell>${t.totalAmount.toFixed(2)}</TableCell>
                             <TableCell className="text-green-600">${t.paidAmount.toFixed(2)}</TableCell>
                             <TableCell className="font-semibold text-red-600">${t.outstandingAmount.toFixed(2)}</TableCell>
-                            <TableCell>{daysOutstanding} day(s)</TableCell>
-                            <TableCell>{new Date(t.lastPaymentAttempt).toLocaleDateString()}</TableCell>
+                            <TableCell>{formatDistanceToNow(new Date(t.timestamp), { addSuffix: true })}</TableCell>
+                            <TableCell>{formatDistanceToNow(new Date(t.lastPaymentAttempt), { addSuffix: true })}</TableCell>
                             <TableCell>
                               <Badge variant="outline" className="font-normal capitalize flex items-center gap-1.5 w-fit">
                                 {t.closeType === 'Manual' ? (

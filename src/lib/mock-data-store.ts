@@ -3,7 +3,7 @@
 import type { Product, Variation } from '@/app/dashboard/products/types';
 import type { Customer, Visit, Payment as CustomerPayment } from '@/app/dashboard/customer/list/types';
 import type { Order, OrderItem, Payment as OrderPayment } from '@/app/dashboard/orders/types';
-import { format, subDays, subHours, endOfDay, setHours, setMinutes, subMinutes } from 'date-fns';
+import { format, subDays, subHours, endOfDay, setHours, setMinutes, subMinutes, formatDistanceToNow } from 'date-fns';
 
 // --- Product Generation ---
 const productNames = [
@@ -48,7 +48,6 @@ const firstNames = ['John', 'Jane', 'Alex', 'Emily', 'Chris', 'Katie', 'Michael'
 const lastNames = ['Smith', 'Doe', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez'];
 const staffNames = ['Alex', 'Maria', 'John', 'Sarah', 'David', 'Frank M.'];
 const branches: Order['branch'][] = ['Ras Al Khaimah', 'Dubai Mall'];
-const orderStatuses: Order['orderStatus'][] = ['Completed', 'Open', 'Draft', 'Cancelled', 'Refunded', 'Paid'];
 const comments = ['Customer requested extra napkins.', 'Allergy alert: No nuts.', 'Birthday celebration at the table.', null, 'Guest is in a hurry.'];
 
 const generateRelatedMockData = (customerCount: number, orderCount: number, products: Product[]) => {
@@ -89,44 +88,44 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
         });
 
         const totalAmount = currentItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        const orderStatus = orderStatuses[i % orderStatuses.length];
-
-        let randomDate: Date;
-        let paymentState: Order['paymentState'] = 'Unpaid';
+        
+        const isOutstanding = i % 5 === 0; // Make ~20% of orders outstanding.
+        let orderTimestamp: number, paymentState: Order['paymentState'], orderStatus: Order['orderStatus'];
         let paidAmount = 0;
+        let lastPaymentAttempt: number;
 
-        // Make outstanding orders recent to be more realistic
-        if (orderStatus === 'Open') {
-            // These are recent, potentially unpaid or partially paid orders
-            if (Math.random() > 0.5) { // 50% chance of being partially paid
+        if (isOutstanding && i > orderCount - 20) { // Make only recent orders outstanding
+            orderTimestamp = subMinutes(new Date(), Math.floor(Math.random() * 180) + 5).getTime();
+            orderStatus = 'Open';
+            lastPaymentAttempt = subMinutes(new Date(orderTimestamp), -5).getTime();
+            if (Math.random() > 0.4) {
                 paymentState = 'Partial';
-                paidAmount = totalAmount * (Math.random() * 0.5 + 0.2); // 20-70% paid
+                paidAmount = totalAmount * (Math.random() * 0.6 + 0.1);
             } else {
                 paymentState = 'Unpaid';
                 paidAmount = 0;
             }
-            // Set date to be very recent: 15 to 240 minutes ago
-            randomDate = subMinutes(new Date(), Math.floor(Math.random() * 225) + 15);
         } else {
-            // These are older, completed/cancelled/refunded/draft orders
-            const randomDayOffset = Math.floor(Math.random() * 90);
-            randomDate = subDays(endOfDay(new Date()), randomDayOffset);
-            randomDate = setHours(randomDate, Math.floor(Math.random() * 24));
-            randomDate = setMinutes(randomDate, Math.floor(Math.random() * 60));
+            orderTimestamp = subDays(endOfDay(new Date()), Math.floor(Math.random() * 30) + 1).getTime();
+            lastPaymentAttempt = subHours(new Date(orderTimestamp), -1).getTime();
+            paidAmount = totalAmount;
 
-            if (orderStatus === 'Completed' || orderStatus === 'Paid') {
-                paymentState = 'Fully Paid';
-                paidAmount = totalAmount;
+            const finalStatuses: Order['orderStatus'][] = ['Completed', 'Paid'];
+            if (i % 10 === 0) finalStatuses.push('Cancelled');
+            if (i % 15 === 0) finalStatuses.push('Refunded');
+            orderStatus = finalStatuses[Math.floor(Math.random() * finalStatuses.length)];
+
+            if (orderStatus === 'Cancelled') {
+                paymentState = 'Voided';
+                paidAmount = 0;
             } else if (orderStatus === 'Refunded') {
                 paymentState = 'Returned';
-                paidAmount = totalAmount;
-            } else if (orderStatus === 'Cancelled') {
-                paymentState = 'Voided';
-            } else if (orderStatus === 'Draft') {
-                paymentState = 'Unpaid';
-                paidAmount = 0;
+            } else {
+                paymentState = 'Fully Paid';
             }
         }
+
+        const randomDate = new Date(orderTimestamp);
         
         const customerPayments: CustomerPayment[] = [];
         const tip = paidAmount * (Math.random() > 0.5 ? 0.1 : 0.15);
