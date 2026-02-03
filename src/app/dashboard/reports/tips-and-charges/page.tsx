@@ -36,6 +36,7 @@ import {
   HandCoins,
   CirclePercent,
   TrendingUp,
+  Info,
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
@@ -80,6 +81,12 @@ import { mockDataStore } from '@/lib/mock-data-store';
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 import { AiSummary } from '@/components/dashboard/ai-summary';
+import {
+    TooltipProvider,
+    Tooltip as UiTooltip,
+    TooltipContent as UiTooltipContent,
+    TooltipTrigger as UiTooltipTrigger,
+  } from '@/components/ui/tooltip';
 
 type Transaction = {
   id: string;
@@ -500,34 +507,46 @@ export default function TipsAndChargesReportPage() {
                   <CardTitle>Tips Report</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <div className="relative w-full overflow-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Order ID</TableHead>
-                          <TableHead>Waiter</TableHead>
-                          <TableHead>Tip Amount</TableHead>
-                          <TableHead>Tip %</TableHead>
-                          <TableHead>Method</TableHead>
-                          <TableHead>Type</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {tipTransactions.slice(0, 10).map((t) => (
-                          <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
-                              <TableCell className="font-medium">{t.orderId}</TableCell>
-                              <TableCell>{t.staffName}</TableCell>
-                              <TableCell className="font-mono">${t.tipAmount?.toFixed(2)}</TableCell>
-                              <TableCell className="font-mono">
-                                {t.paidAmount > 0 ? `${((t.tipAmount! / t.paidAmount) * 100).toFixed(1)}%` : 'N/A'}
-                              </TableCell>
-                              <TableCell>{t.paymentMethod}</TableCell>
-                              <TableCell><Badge variant="outline">{t.tipType}</Badge></TableCell>
+                  <TooltipProvider>
+                    <div className="relative w-full overflow-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Order ID</TableHead>
+                            <TableHead>Waiter</TableHead>
+                            <TableHead>
+                                <UiTooltip>
+                                    <UiTooltipTrigger className="flex items-center gap-1">Tip Amount <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                    <UiTooltipContent><p>The monetary value of the tip.</p></UiTooltipContent>
+                                </UiTooltip>
+                            </TableHead>
+                            <TableHead>
+                                <UiTooltip>
+                                    <UiTooltipTrigger className="flex items-center gap-1">Tip % <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                    <UiTooltipContent><p>The tip amount as a percentage of the paid amount.</p></UiTooltipContent>
+                                </UiTooltip>
+                            </TableHead>
+                            <TableHead>Method</TableHead>
+                            <TableHead>Type</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                        </TableHeader>
+                        <TableBody>
+                          {tipTransactions.slice(0, 10).map((t) => (
+                            <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
+                                <TableCell className="font-medium">{t.orderId}</TableCell>
+                                <TableCell>{t.staffName}</TableCell>
+                                <TableCell className="font-mono">${t.tipAmount?.toFixed(2)}</TableCell>
+                                <TableCell className="font-mono">
+                                  {t.paidAmount > 0 ? `${((t.tipAmount! / t.paidAmount) * 100).toFixed(1)}%` : 'N/A'}
+                                </TableCell>
+                                <TableCell>{t.paymentMethod}</TableCell>
+                                <TableCell><Badge variant="outline">{t.tipType}</Badge></TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </TooltipProvider>
                   {tipTransactions.length === 0 && (
                     <p className="text-center text-muted-foreground p-8">
                       No transactions with tips match the current filters.
@@ -551,30 +570,42 @@ export default function TipsAndChargesReportPage() {
                   <CardTitle>Service Charge Report</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <div className="relative w-full overflow-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Order ID</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead className="text-right">Bill Amount</TableHead>
-                          <TableHead className="text-right">Service Charge</TableHead>
-                          <TableHead>Staff</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {serviceChargeTransactions.slice(0, 10).map((t) => (
-                          <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
-                              <TableCell className="font-medium">{t.orderId}</TableCell>
-                              <TableCell>{new Date(t.timestamp).toLocaleDateString()}</TableCell>
-                              <TableCell className="text-right font-mono">${t.totalAmount.toFixed(2)}</TableCell>
-                              <TableCell className="text-right font-mono">${t.serviceChargeAmount?.toFixed(2)}</TableCell>
-                              <TableCell>{t.staffName}</TableCell>
+                  <TooltipProvider>
+                    <div className="relative w-full overflow-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Order ID</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead className="text-right">
+                                <UiTooltip>
+                                    <UiTooltipTrigger className="flex items-center gap-1 justify-end">Bill Amount <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                    <UiTooltipContent><p>The total amount of the bill before service charge.</p></UiTooltipContent>
+                                </UiTooltip>
+                            </TableHead>
+                            <TableHead className="text-right">
+                                <UiTooltip>
+                                    <UiTooltipTrigger className="flex items-center gap-1 justify-end">Service Charge <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                    <UiTooltipContent><p>The amount added to the bill as a service charge.</p></UiTooltipContent>
+                                </UiTooltip>
+                            </TableHead>
+                            <TableHead>Staff</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                        </TableHeader>
+                        <TableBody>
+                          {serviceChargeTransactions.slice(0, 10).map((t) => (
+                            <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
+                                <TableCell className="font-medium">{t.orderId}</TableCell>
+                                <TableCell>{new Date(t.timestamp).toLocaleDateString()}</TableCell>
+                                <TableCell className="text-right font-mono">${t.totalAmount.toFixed(2)}</TableCell>
+                                <TableCell className="text-right font-mono">${t.serviceChargeAmount?.toFixed(2)}</TableCell>
+                                <TableCell>{t.staffName}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </TooltipProvider>
                   {serviceChargeTransactions.length === 0 && (
                     <p className="text-center text-muted-foreground p-8">
                       No transactions with service charges match the current filters.

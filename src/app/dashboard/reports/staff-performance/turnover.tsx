@@ -3,7 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { StatCards, type StatCardData } from "@/components/dashboard/stat-cards";
-import { Clock } from "lucide-react";
+import { Clock, Info } from "lucide-react";
+import {
+    TooltipProvider,
+    Tooltip as UiTooltip,
+    TooltipContent as UiTooltipContent,
+    TooltipTrigger as UiTooltipTrigger,
+  } from '@/components/ui/tooltip';
 
 const turnoverData = [
   { waiter: 'Alex', tables: 12, avgTime: "18m", dwellTime: "45m", splitVsNonSplit: "-5m" },
@@ -16,8 +22,8 @@ const turnoverData = [
 const chartData = turnoverData.map(d => ({ name: d.waiter, time: parseInt(d.avgTime) }));
 
 const turnoverCards: StatCardData[] = [
-    { title: "Avg. Time to First Payment", value: "8m 30s", icon: Clock, color: 'teal' },
-    { title: "Avg. Time to Fully Paid", value: "18m 15s", icon: Clock, color: 'orange' },
+    { title: "Avg. Time to First Payment", value: "8m 30s", icon: Clock, color: 'teal', tooltipText: 'The average time from when an order is opened to when the first payment is attempted.' },
+    { title: "Avg. Time to Fully Paid", value: "18m 15s", icon: Clock, color: 'orange', tooltipText: 'The average time from when an order is opened until it is fully paid and closed.' },
 ];
 
 export function Turnover() {
@@ -55,28 +61,45 @@ export function Turnover() {
                     <CardTitle>Turnover Details</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Waiter</TableHead>
-                                <TableHead>Tables Served</TableHead>
-                                <TableHead>Avg. Turnover Time</TableHead>
-                                <TableHead>Avg. Dwell Time</TableHead>
-                                <TableHead>Split vs. Non-split</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {turnoverData.map((row) => (
-                                <TableRow key={row.waiter}>
-                                    <TableCell className="font-medium">{row.waiter}</TableCell>
-                                    <TableCell>{row.tables}</TableCell>
-                                    <TableCell>{row.avgTime}</TableCell>
-                                    <TableCell>{row.dwellTime}</TableCell>
-                                    <TableCell className={row.splitVsNonSplit.startsWith('+') ? "text-destructive" : "text-green-600"}>{row.splitVsNonSplit}</TableCell>
+                    <TooltipProvider>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Waiter</TableHead>
+                                    <TableHead>Tables Served</TableHead>
+                                    <TableHead>
+                                        <UiTooltip>
+                                            <UiTooltipTrigger className="flex items-center gap-1">Avg. Turnover Time <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                            <UiTooltipContent><p>The average time a waiter takes to serve a table and close the bill.</p></UiTooltipContent>
+                                        </UiTooltip>
+                                    </TableHead>
+                                    <TableHead>
+                                        <UiTooltip>
+                                            <UiTooltipTrigger className="flex items-center gap-1">Avg. Dwell Time <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                            <UiTooltipContent><p>The average time customers spend at a table from seating to departure.</p></UiTooltipContent>
+                                        </UiTooltip>
+                                    </TableHead>
+                                    <TableHead>
+                                        <UiTooltip>
+                                            <UiTooltipTrigger className="flex items-center gap-1">Split vs. Non-split <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                            <UiTooltipContent><p>The difference in average turnover time between bills that were split and those that were not.</p></UiTooltipContent>
+                                        </UiTooltip>
+                                    </TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {turnoverData.map((row) => (
+                                    <TableRow key={row.waiter}>
+                                        <TableCell className="font-medium">{row.waiter}</TableCell>
+                                        <TableCell>{row.tables}</TableCell>
+                                        <TableCell>{row.avgTime}</TableCell>
+                                        <TableCell>{row.dwellTime}</TableCell>
+                                        <TableCell className={row.splitVsNonSplit.startsWith('+') ? "text-destructive" : "text-green-600"}>{row.splitVsNonSplit}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TooltipProvider>
                 </CardContent>
             </Card>
         </div>

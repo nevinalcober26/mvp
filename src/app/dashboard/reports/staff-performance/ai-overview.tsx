@@ -5,11 +5,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StatCards, type StatCardData } from "@/components/dashboard/stat-cards";
-import { AlertTriangle, DollarSign, TrendingUp, Eye } from "lucide-react";
+import { AlertTriangle, DollarSign, TrendingUp, Eye, Info } from "lucide-react";
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
 import type { Order } from '@/app/dashboard/orders/types';
 import { mockDataStore } from '@/lib/mock-data-store';
 import { useToast } from '@/hooks/use-toast';
+import {
+    TooltipProvider,
+    Tooltip as UiTooltip,
+    TooltipContent as UiTooltipContent,
+    TooltipTrigger as UiTooltipTrigger,
+  } from '@/components/ui/tooltip';
 
 const kpis: StatCardData[] = [
     { title: "Risky Tables", value: "3", icon: AlertTriangle, color: 'pink', tooltipText: 'Tables with unusual payment behavior, such as long pending times or multiple failed payments.' },
@@ -57,33 +63,50 @@ export function AiOverview() {
                         <CardTitle>Notable AI Alerts</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Timestamp</TableHead>
-                                    <TableHead>Reference</TableHead>
-                                    <TableHead>Severity</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {alerts.map((alert, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell className="font-medium">{alert.type}</TableCell>
-                                        <TableCell>{alert.timestamp}</TableCell>
-                                        <TableCell>{alert.reference}</TableCell>
-                                        <TableCell><Badge variant={alert.severity === 'High' ? 'destructive' : alert.severity === 'Medium' ? 'secondary' : 'outline'}>{alert.severity}</Badge></TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => handleViewDetails(alert.orderId)}>
-                                                <Eye className="h-5 w-5" />
-                                                <span className="sr-only">View details</span>
-                                            </Button>
-                                        </TableCell>
+                        <TooltipProvider>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>
+                                            <UiTooltip>
+                                                <UiTooltipTrigger className="flex items-center gap-1">Type <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                                <UiTooltipContent><p>The category of the detected anomaly or insight.</p></UiTooltipContent>
+                                            </UiTooltip>
+                                        </TableHead>
+                                        <TableHead>Timestamp</TableHead>
+                                        <TableHead>
+                                            <UiTooltip>
+                                                <UiTooltipTrigger className="flex items-center gap-1">Reference <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                                <UiTooltipContent><p>The waiter, table, or entity related to the alert.</p></UiTooltipContent>
+                                            </UiTooltip>
+                                        </TableHead>
+                                        <TableHead>
+                                            <UiTooltip>
+                                                <UiTooltipTrigger className="flex items-center gap-1">Severity <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                                <UiTooltipContent><p>The potential impact level of the alert.</p></UiTooltipContent>
+                                            </UiTooltip>
+                                        </TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {alerts.map((alert, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell className="font-medium">{alert.type}</TableCell>
+                                            <TableCell>{alert.timestamp}</TableCell>
+                                            <TableCell>{alert.reference}</TableCell>
+                                            <TableCell><Badge variant={alert.severity === 'High' ? 'destructive' : alert.severity === 'Medium' ? 'secondary' : 'outline'}>{alert.severity}</Badge></TableCell>
+                                            <TableCell className="text-right">
+                                                <Button variant="ghost" size="icon" onClick={() => handleViewDetails(alert.orderId)}>
+                                                    <Eye className="h-5 w-5" />
+                                                    <span className="sr-only">View details</span>
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TooltipProvider>
                     </CardContent>
                 </Card>
             </div>

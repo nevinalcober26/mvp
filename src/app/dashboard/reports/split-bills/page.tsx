@@ -36,6 +36,7 @@ import {
   CirclePercent,
   Users,
   UserX,
+  Info,
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
@@ -83,6 +84,12 @@ import { mockDataStore } from '@/lib/mock-data-store';
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 import { AiSummary } from '@/components/dashboard/ai-summary';
+import {
+  TooltipProvider,
+  Tooltip as UiTooltip,
+  TooltipContent as UiTooltipContent,
+  TooltipTrigger as UiTooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type Transaction = {
   id: string;
@@ -563,41 +570,73 @@ export default function SplitBillsReportPage() {
                   </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="relative w-full overflow-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Order ID</TableHead>
-                        <TableHead>Total Bill</TableHead>
-                        <TableHead className="text-center"># of Payers</TableHead>
-                        <TableHead>Split Method</TableHead>
-                        <TableHead>Time to Settle</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {splitTransactions.map((t) => (
-                        <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
-                           <TableCell className="font-medium">{t.orderId}</TableCell>
-                           <TableCell className="font-mono">${t.totalAmount.toFixed(2)}</TableCell>
-                           <TableCell className="text-center">{t.payers}</TableCell>
-                           <TableCell>{t.splitMethod || 'N/A'}</TableCell>
-                           <TableCell>8m 15s</TableCell>
-                           <TableCell>
-                            <Badge variant={getStatusBadgeVariant(t.paymentStatus)}>
-                              {t.paymentStatus}
-                            </Badge>
-                          </TableCell>
+                <TooltipProvider>
+                  <div className="relative w-full overflow-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>
+                            <UiTooltip>
+                              <UiTooltipTrigger className="flex items-center gap-1">Order ID <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                              <UiTooltipContent><p>The unique identifier for the order.</p></UiTooltipContent>
+                            </UiTooltip>
+                          </TableHead>
+                          <TableHead>
+                            <UiTooltip>
+                              <UiTooltipTrigger className="flex items-center gap-1">Total Bill <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                              <UiTooltipContent><p>The total amount of the order before splitting.</p></UiTooltipContent>
+                            </UiTooltip>
+                          </TableHead>
+                          <TableHead className="text-center">
+                            <UiTooltip>
+                              <UiTooltipTrigger className="flex items-center gap-1"># of Payers <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                              <UiTooltipContent><p>The number of people who contributed to the payment.</p></UiTooltipContent>
+                            </UiTooltip>
+                          </TableHead>
+                          <TableHead>
+                            <UiTooltip>
+                              <UiTooltipTrigger className="flex items-center gap-1">Split Method <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                              <UiTooltipContent><p>The method used to divide the bill (e.g., equally, by item).</p></UiTooltipContent>
+                            </UiTooltip>
+                          </TableHead>
+                          <TableHead>
+                            <UiTooltip>
+                              <UiTooltipTrigger className="flex items-center gap-1">Time to Settle <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                              <UiTooltipContent><p>The time taken from the first payment attempt to full settlement.</p></UiTooltipContent>
+                            </UiTooltip>
+                          </TableHead>
+                          <TableHead>
+                            <UiTooltip>
+                              <UiTooltipTrigger className="flex items-center gap-1">Status <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                              <UiTooltipContent><p>The final payment status of the order.</p></UiTooltipContent>
+                            </UiTooltip>
+                          </TableHead>
                         </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                  {splitTransactions.length === 0 && (
-                    <p className="text-center text-muted-foreground py-8">
-                      No split bill transactions match the current filters.
-                    </p>
-                  )}
-                </div>
+                      </TableHeader>
+                      <TableBody>
+                        {splitTransactions.map((t) => (
+                          <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
+                             <TableCell className="font-medium">{t.orderId}</TableCell>
+                             <TableCell className="font-mono">${t.totalAmount.toFixed(2)}</TableCell>
+                             <TableCell className="text-center">{t.payers}</TableCell>
+                             <TableCell>{t.splitMethod || 'N/A'}</TableCell>
+                             <TableCell>8m 15s</TableCell>
+                             <TableCell>
+                              <Badge variant={getStatusBadgeVariant(t.paymentStatus)}>
+                                {t.paymentStatus}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                    {splitTransactions.length === 0 && (
+                      <p className="text-center text-muted-foreground py-8">
+                        No split bill transactions match the current filters.
+                      </p>
+                    )}
+                  </div>
+                </TooltipProvider>
               </CardContent>
             </Card>
         </div>

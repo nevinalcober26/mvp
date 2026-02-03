@@ -3,7 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { StatCards, type StatCardData } from "@/components/dashboard/stat-cards";
-import { DollarSign, FileText, AlertCircle } from "lucide-react";
+import { DollarSign, FileText, AlertCircle, Info } from "lucide-react";
+import {
+    TooltipProvider,
+    Tooltip as UiTooltip,
+    TooltipContent as UiTooltipContent,
+    TooltipTrigger as UiTooltipTrigger,
+  } from '@/components/ui/tooltip';
 
 const leakageData = [
   { id: "#3215", waiter: "John", type: "Closed w/o Settlement", amount: 22.50, status: "Unresolved" },
@@ -50,30 +56,47 @@ export function Leakage() {
 
             <Card>
                 <CardContent className="pt-6">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Order ID</TableHead>
-                                <TableHead>Waiter</TableHead>
-                                <TableHead>Leak Type</TableHead>
-                                <TableHead>Amount at Risk</TableHead>
-                                <TableHead>Status</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {leakageData.map((row) => (
-                                <TableRow key={row.id}>
-                                    <TableCell className="font-medium">{row.id}</TableCell>
-                                    <TableCell>{row.waiter}</TableCell>
-                                    <TableCell>{row.type}</TableCell>
-                                    <TableCell className="font-semibold text-destructive">${row.amount.toFixed(2)}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={row.status === 'Unresolved' ? 'destructive' : 'outline'}>{row.status}</Badge>
-                                    </TableCell>
+                    <TooltipProvider>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Order ID</TableHead>
+                                    <TableHead>Waiter</TableHead>
+                                    <TableHead>
+                                        <UiTooltip>
+                                            <UiTooltipTrigger className="flex items-center gap-1">Leak Type <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                            <UiTooltipContent><p>The specific reason for the potential revenue loss.</p></UiTooltipContent>
+                                        </UiTooltip>
+                                    </TableHead>
+                                    <TableHead>
+                                        <UiTooltip>
+                                            <UiTooltipTrigger className="flex items-center gap-1">Amount at Risk <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                            <UiTooltipContent><p>The monetary value associated with the revenue leakage incident.</p></UiTooltipContent>
+                                        </UiTooltip>
+                                    </TableHead>
+                                    <TableHead>
+                                        <UiTooltip>
+                                            <UiTooltipTrigger className="flex items-center gap-1">Status <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                            <UiTooltipContent><p>The current status of the investigation into the leakage incident.</p></UiTooltipContent>
+                                        </UiTooltip>
+                                    </TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {leakageData.map((row) => (
+                                    <TableRow key={row.id}>
+                                        <TableCell className="font-medium">{row.id}</TableCell>
+                                        <TableCell>{row.waiter}</TableCell>
+                                        <TableCell>{row.type}</TableCell>
+                                        <TableCell className="font-semibold text-destructive">${row.amount.toFixed(2)}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={row.status === 'Unresolved' ? 'destructive' : 'outline'}>{row.status}</Badge>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TooltipProvider>
                 </CardContent>
             </Card>
         </div>

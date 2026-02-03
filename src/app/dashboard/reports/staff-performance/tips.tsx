@@ -4,9 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Download, Trophy, Zap, Scale, GitCompareArrows } from "lucide-react";
+import { Download, Trophy, Zap, Scale, GitCompareArrows, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StatCards, type StatCardData } from "@/components/dashboard/stat-cards";
+import {
+    TooltipProvider,
+    Tooltip as UiTooltip,
+    TooltipContent as UiTooltipContent,
+    TooltipTrigger as UiTooltipTrigger,
+  } from '@/components/ui/tooltip';
 
 const tipsData = [
     { waiter: 'Alex', total: 55.20, perTable: 4.60, perOrder: 3.68, perPayment: 3.68, avgPercent: 18.2, digitalVsCash: "80/20" },
@@ -98,28 +104,45 @@ export function Tips() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Waiter</TableHead>
-                                <TableHead>Total Tips</TableHead>
-                                <TableHead>Tips/Table</TableHead>
-                                <TableHead>Avg Tip %</TableHead>
-                                <TableHead>Digital vs Cash</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {tipsData.map((row) => (
-                                <TableRow key={row.waiter} className="cursor-pointer">
-                                    <TableCell className="font-medium">{row.waiter}</TableCell>
-                                    <TableCell>${row.total.toFixed(2)}</TableCell>
-                                    <TableCell>${row.perTable.toFixed(2)}</TableCell>
-                                    <TableCell>{row.avgPercent.toFixed(1)}%</TableCell>
-                                    <TableCell>{row.digitalVsCash}</TableCell>
+                    <TooltipProvider>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Waiter</TableHead>
+                                    <TableHead>Total Tips</TableHead>
+                                    <TableHead>
+                                        <UiTooltip>
+                                            <UiTooltipTrigger className="flex items-center gap-1">Tips/Table <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                            <UiTooltipContent><p>The average tip amount received per table served.</p></UiTooltipContent>
+                                        </UiTooltip>
+                                    </TableHead>
+                                    <TableHead>
+                                        <UiTooltip>
+                                            <UiTooltipTrigger className="flex items-center gap-1">Avg Tip % <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                            <UiTooltipContent><p>The average tip as a percentage of the total bill.</p></UiTooltipContent>
+                                        </UiTooltip>
+                                    </TableHead>
+                                    <TableHead>
+                                        <UiTooltip>
+                                            <UiTooltipTrigger className="flex items-center gap-1">Digital vs Cash <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                            <UiTooltipContent><p>The ratio of tips received through digital payments versus cash.</p></UiTooltipContent>
+                                        </UiTooltip>
+                                    </TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {tipsData.map((row) => (
+                                    <TableRow key={row.waiter} className="cursor-pointer">
+                                        <TableCell className="font-medium">{row.waiter}</TableCell>
+                                        <TableCell>${row.total.toFixed(2)}</TableCell>
+                                        <TableCell>${row.perTable.toFixed(2)}</TableCell>
+                                        <TableCell>{row.avgPercent.toFixed(1)}%</TableCell>
+                                        <TableCell>{row.digitalVsCash}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TooltipProvider>
                 </CardContent>
             </Card>
         </div>

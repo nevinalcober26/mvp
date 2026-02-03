@@ -5,7 +5,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { StatCards, type StatCardData } from "@/components/dashboard/stat-cards";
-import { Clock, Eye } from "lucide-react";
+import { Clock, Eye, Info } from "lucide-react";
+import {
+    TooltipProvider,
+    Tooltip as UiTooltip,
+    TooltipContent as UiTooltipContent,
+    TooltipTrigger as UiTooltipTrigger,
+  } from '@/components/ui/tooltip';
 
 const balancesData = [
   { waiter: 'John', amount: 22.50, openTables: 1, oldestAge: "45m", recoveredVsLost: "$50 / $5" },
@@ -34,35 +40,57 @@ export function Balances() {
             </Card>
             <Card>
                 <CardContent className="pt-6">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Waiter</TableHead>
-                                <TableHead>Outstanding Amount</TableHead>
-                                <TableHead># Open Tables</TableHead>
-                                <TableHead>Oldest Balance Age</TableHead>
-                                <TableHead>Recovered vs Lost</TableHead>
-                                <TableHead className="text-right"></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {balancesData.map((row) => (
-                                <TableRow key={row.waiter} className={cn(row.amount > 25 && "bg-destructive/10")}>
-                                    <TableCell className="font-medium">{row.waiter}</TableCell>
-                                    <TableCell className="font-semibold text-destructive">${row.amount.toFixed(2)}</TableCell>
-                                    <TableCell>{row.openTables}</TableCell>
-                                    <TableCell>{row.oldestAge}</TableCell>
-                                    <TableCell>{row.recoveredVsLost}</TableCell>
-                                    <TableCell className="text-right">
-                                        <Button variant="ghost" size="icon">
-                                            <Eye className="h-5 w-5" />
-                                            <span className="sr-only">View open tables</span>
-                                        </Button>
-                                    </TableCell>
+                    <TooltipProvider>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Waiter</TableHead>
+                                    <TableHead>
+                                        <UiTooltip>
+                                            <UiTooltipTrigger className="flex items-center gap-1">Outstanding Amount <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                            <UiTooltipContent><p>The total unpaid amount currently assigned to the waiter.</p></UiTooltipContent>
+                                        </UiTooltip>
+                                    </TableHead>
+                                    <TableHead>
+                                        <UiTooltip>
+                                            <UiTooltipTrigger className="flex items-center gap-1"># Open Tables <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                            <UiTooltipContent><p>The number of tables with open balances assigned to the waiter.</p></UiTooltipContent>
+                                        </UiTooltip>
+                                    </TableHead>
+                                    <TableHead>
+                                        <UiTooltip>
+                                            <UiTooltipTrigger className="flex items-center gap-1">Oldest Balance Age <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                            <UiTooltipContent><p>The age of the longest-standing open balance for the waiter.</p></UiTooltipContent>
+                                        </UiTooltip>
+                                    </TableHead>
+                                    <TableHead>
+                                        <UiTooltip>
+                                            <UiTooltipTrigger className="flex items-center gap-1">Recovered vs Lost <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                            <UiTooltipContent><p>A ratio of successfully collected balances versus those written off as lost.</p></UiTooltipContent>
+                                        </UiTooltip>
+                                    </TableHead>
+                                    <TableHead className="text-right"></TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {balancesData.map((row) => (
+                                    <TableRow key={row.waiter} className={cn(row.amount > 25 && "bg-destructive/10")}>
+                                        <TableCell className="font-medium">{row.waiter}</TableCell>
+                                        <TableCell className="font-semibold text-destructive">${row.amount.toFixed(2)}</TableCell>
+                                        <TableCell>{row.openTables}</TableCell>
+                                        <TableCell>{row.oldestAge}</TableCell>
+                                        <TableCell>{row.recoveredVsLost}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="icon">
+                                                <Eye className="h-5 w-5" />
+                                                <span className="sr-only">View open tables</span>
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TooltipProvider>
                 </CardContent>
             </Card>
         </div>

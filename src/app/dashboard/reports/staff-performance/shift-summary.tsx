@@ -2,6 +2,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Info } from 'lucide-react';
+import {
+    TooltipProvider,
+    Tooltip as UiTooltip,
+    TooltipContent as UiTooltipContent,
+    TooltipTrigger as UiTooltipTrigger,
+  } from '@/components/ui/tooltip';
 
 const shiftData = [
   { waiter: 'Alex', shift: "Morning", tables: 12, sales: 450.75, tips: 55.20, openBalances: 0, voids: 0, notes: "All tables closed." },
@@ -38,34 +45,46 @@ export function ShiftSummary() {
                 </div>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Waiter</TableHead>
-                            <TableHead>Shift</TableHead>
-                            <TableHead>Tables</TableHead>
-                            <TableHead>Sales</TableHead>
-                            <TableHead>Tips</TableHead>
-                            <TableHead>Open Balances</TableHead>
-                            <TableHead>Voids/Refunds</TableHead>
-                            <TableHead>Notes</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {shiftData.map((row) => (
-                            <TableRow key={row.waiter} className="cursor-pointer">
-                                <TableCell className="font-medium">{row.waiter}</TableCell>
-                                <TableCell>{row.shift}</TableCell>
-                                <TableCell>{row.tables}</TableCell>
-                                <TableCell>${row.sales.toFixed(2)}</TableCell>
-                                <TableCell>${row.tips.toFixed(2)}</TableCell>
-                                <TableCell className={row.openBalances > 0 ? "text-destructive" : ""}>${row.openBalances.toFixed(2)}</TableCell>
-                                <TableCell>{row.voids}</TableCell>
-                                <TableCell className="max-w-[200px] truncate">{row.notes}</TableCell>
+                <TooltipProvider>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Waiter</TableHead>
+                                <TableHead>Shift</TableHead>
+                                <TableHead>Tables</TableHead>
+                                <TableHead>Sales</TableHead>
+                                <TableHead>Tips</TableHead>
+                                <TableHead>
+                                    <UiTooltip>
+                                        <UiTooltipTrigger className="flex items-center gap-1">Open Balances <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                        <UiTooltipContent><p>Total amount of unpaid bills at the end of the shift.</p></UiTooltipContent>
+                                    </UiTooltip>
+                                </TableHead>
+                                <TableHead>
+                                    <UiTooltip>
+                                        <UiTooltipTrigger className="flex items-center gap-1">Voids/Refunds <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                        <UiTooltipContent><p>Number of orders voided or refunded during the shift.</p></UiTooltipContent>
+                                    </UiTooltip>
+                                </TableHead>
+                                <TableHead>Notes</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {shiftData.map((row) => (
+                                <TableRow key={row.waiter} className="cursor-pointer">
+                                    <TableCell className="font-medium">{row.waiter}</TableCell>
+                                    <TableCell>{row.shift}</TableCell>
+                                    <TableCell>{row.tables}</TableCell>
+                                    <TableCell>${row.sales.toFixed(2)}</TableCell>
+                                    <TableCell>${row.tips.toFixed(2)}</TableCell>
+                                    <TableCell className={row.openBalances > 0 ? "text-destructive" : ""}>${row.openBalances.toFixed(2)}</TableCell>
+                                    <TableCell>{row.voids}</TableCell>
+                                    <TableCell className="max-w-[200px] truncate">{row.notes}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TooltipProvider>
             </CardContent>
         </Card>
     );

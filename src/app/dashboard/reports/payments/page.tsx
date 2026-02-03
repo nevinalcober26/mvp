@@ -27,7 +27,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  ArrowUpDown,
   Download,
   AlertTriangle,
   Filter,
@@ -38,6 +37,7 @@ import {
   DollarSign,
   WalletCards,
   Clock,
+  Info,
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
@@ -84,6 +84,12 @@ import { mockDataStore } from '@/lib/mock-data-store';
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 import { AiSummary } from '@/components/dashboard/ai-summary';
+import {
+  TooltipProvider,
+  Tooltip as UiTooltip,
+  TooltipContent as UiTooltipContent,
+  TooltipTrigger as UiTooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type Transaction = {
   id: string;
@@ -241,11 +247,6 @@ export default function PaymentsReportPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof Transaction;
-    direction: 'ascending' | 'descending';
-  } | null>({ key: 'timestamp', direction: 'descending' });
-
   useEffect(() => {
     setIsLoading(true);
     const timer = setTimeout(() => {
@@ -278,9 +279,6 @@ export default function PaymentsReportPage() {
       title: 'Export Initiated',
       description: `Your transactions are being prepared for a ${format} download.`,
     });
-    console.log(
-      `Exporting ${filteredAndSortedTransactions.length} transactions as ${format}...`
-    );
   };
 
   const handleFilterChange = (
@@ -296,8 +294,8 @@ export default function PaymentsReportPage() {
     setCurrentPage(1);
   };
 
-  const filteredAndSortedTransactions = useMemo(() => {
-    let filtered = transactions.filter((transaction) => {
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((transaction) => {
       const transactionDate = new Date(transaction.timestamp);
       const matchesDate =
         filters.dateRange?.from && filters.dateRange?.to
@@ -325,35 +323,22 @@ export default function PaymentsReportPage() {
         matchesTable
       );
     });
-
-    if (sortConfig !== null) {
-      filtered.sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) {
-          return sortConfig.direction === 'ascending' ? -1 : 1;
-        }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
-          return sortConfig.direction === 'ascending' ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-    return filtered;
-  }, [transactions, sortConfig, filters]);
+  }, [transactions, filters]);
 
   const summaryKpiCards: StatCardData[] = useMemo(() => {
-    const totalSales = filteredAndSortedTransactions.reduce(
+    const totalSales = filteredTransactions.reduce(
       (acc, t) => acc + t.totalAmount,
       0
     );
-    const totalCollected = filteredAndSortedTransactions.reduce(
+    const totalCollected = filteredTransactions.reduce(
       (acc, t) => acc + t.paidAmount,
       0
     );
-    const outstandingBalance = filteredAndSortedTransactions.reduce(
+    const outstandingBalance = filteredTransactions.reduce(
       (acc, t) => acc + t.outstandingAmount,
       0
     );
-    const paidTransactions = filteredAndSortedTransactions.filter(
+    const paidTransactions = filteredTransactions.filter(
       (t) => t.paymentStatus === 'Paid' || t.paymentStatus === 'Partial'
     );
     const avgBillValue =
@@ -410,18 +395,18 @@ export default function PaymentsReportPage() {
         tooltipText: 'The average time it takes for a customer to complete payment after an order is opened.'
       },
     ];
-  }, [filteredAndSortedTransactions]);
+  }, [filteredTransactions]);
 
   const totalPages = Math.ceil(
-    filteredAndSortedTransactions.length / itemsPerPage
+    filteredTransactions.length / itemsPerPage
   );
   const paginatedTransactions = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredAndSortedTransactions.slice(
+    return filteredTransactions.slice(
       startIndex,
       startIndex + itemsPerPage
     );
-  }, [filteredAndSortedTransactions, currentPage]);
+  }, [filteredTransactions, currentPage]);
 
   const summaryChartData = useMemo(() => {
     if (!filters.dateRange?.from) return [];
@@ -437,7 +422,7 @@ export default function PaymentsReportPage() {
       salesByDay[day] = 0;
     }
 
-    filteredAndSortedTransactions.forEach((t) => {
+    filteredTransactions.forEach((t) => {
       const day = format(new Date(t.timestamp), 'MMM d');
       if (day in salesByDay) {
         salesByDay[day] += t.totalAmount;
@@ -450,19 +435,7 @@ export default function PaymentsReportPage() {
         sales: salesByDay[day],
       }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [filteredAndSortedTransactions, filters.dateRange]);
-
-  const requestSort = (key: keyof Transaction) => {
-    let direction: 'ascending' | 'descending' = 'ascending';
-    if (
-      sortConfig &&
-      sortConfig.key === key &&
-      sortConfig.direction === 'ascending'
-    ) {
-      direction = 'descending';
-    }
-    setSortConfig({ key, direction });
-  };
+  }, [filteredTransactions, filters.dateRange]);
 
   const tableNumbers = useMemo(() => {
     const uniqueTables = [...new Set(transactions.map((t) => t.table))];
@@ -482,31 +455,6 @@ export default function PaymentsReportPage() {
     if (filters.table !== 'all') count++;
     return count;
   }, [filters]);
-
-
-  const SortableHeader = ({
-    tKey,
-    label,
-    className,
-  }: {
-    tKey: keyof Transaction;
-    label: string;
-    className?: string;
-  }) => (
-    <Button
-      variant="ghost"
-      onClick={() => requestSort(tKey)}
-      className={cn('px-2', className)}
-    >
-      {label}
-      <ArrowUpDown
-        className={cn(
-          'ml-2 h-4 w-4',
-          sortConfig?.key !== tKey && 'text-muted-foreground/50'
-        )}
-      />
-    </Button>
-  );
 
   if (isLoading) {
     return <OrdersPageSkeleton view="list" />;
@@ -529,7 +477,7 @@ export default function PaymentsReportPage() {
           </Button>
         </div>
 
-        <AiSummary data={filteredAndSortedTransactions} context="payments summary" />
+        <AiSummary data={filteredTransactions} context="payments summary" />
             
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3">
           <div className="flex flex-wrap items-center gap-4">
@@ -696,94 +644,143 @@ export default function PaymentsReportPage() {
                   </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="relative w-full overflow-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow><TableHead>
-                        <SortableHeader tKey="id" label="Transaction ID" />
-                      </TableHead>
-                      <TableHead>
-                        <SortableHeader
-                          tKey="orderId"
-                          label="Table/Order ID"
-                        />
-                      </TableHead>
-                      <TableHead>
-                        <SortableHeader tKey="timestamp" label="Timestamp" />
-                      </TableHead>
-                      <TableHead className="text-right">
-                        <SortableHeader
-                          tKey="totalAmount"
-                          label="Total Amount"
-                        />
-                      </TableHead>
-                      <TableHead className="text-right">
-                        <SortableHeader
-                          tKey="paidAmount"
-                          label="Paid Amount"
-                        />
-                      </TableHead>
-                      <TableHead className="text-right">
-                        <SortableHeader
-                          tKey="outstandingAmount"
-                          label="Outstanding"
-                        />
-                      </TableHead>
-                      <TableHead>
-                        <SortableHeader
-                          tKey="paymentStatus"
-                          label="Payment Status"
-                        />
-                      </TableHead>
-                      <TableHead>
-                        <SortableHeader
-                          tKey="paymentMethod"
-                          label="Payment Method"
-                        />
-                      </TableHead>
-                      <TableHead className="text-right">
-                        <SortableHeader tKey="payers" label="# of Payers" />
-                      </TableHead></TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedTransactions.map((t) => (
-                      <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
-                          <TableCell className="font-medium">{t.id}</TableCell>
-                          <TableCell>{t.orderId}</TableCell>
-                          <TableCell>
-                          {new Date(t.timestamp).toLocaleString()}
-                        </TableCell>
-                          <TableCell className="text-right font-mono">
-                          ${t.totalAmount.toFixed(2)}
-                        </TableCell>
-                          <TableCell className="text-right font-mono text-green-600">
-                          ${t.paidAmount.toFixed(2)}
-                        </TableCell>
-                          <TableCell className="text-right font-mono text-red-600">
-                          ${t.outstandingAmount.toFixed(2)}
-                        </TableCell>
-                          <TableCell>
-                          <Badge
-                            variant={getStatusBadgeVariant(t.paymentStatus)}
-                          >
-                            {t.paymentStatus}
-                          </Badge>
-                        </TableCell>
-                          <TableCell>{t.paymentMethod}</TableCell>
-                          <TableCell className="text-right">
-                          {t.payers}
-                        </TableCell>
+              <TooltipProvider>
+                <div className="relative w-full overflow-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>
+                            <UiTooltip>
+                                <UiTooltipTrigger className="flex items-center gap-1">
+                                Transaction ID <Info className="h-3 w-3 text-muted-foreground" />
+                                </UiTooltipTrigger>
+                                <UiTooltipContent>
+                                <p>The unique identifier for each payment transaction.</p>
+                                </UiTooltipContent>
+                            </UiTooltip>
+                        </TableHead>
+                        <TableHead>
+                            <UiTooltip>
+                                <UiTooltipTrigger className="flex items-center gap-1">
+                                Order ID <Info className="h-3 w-3 text-muted-foreground" />
+                                </UiTooltipTrigger>
+                                <UiTooltipContent>
+                                <p>The ID of the order associated with this transaction.</p>
+                                </UiTooltipContent>
+                            </UiTooltip>
+                        </TableHead>
+                        <TableHead>
+                            <UiTooltip>
+                                <UiTooltipTrigger className="flex items-center gap-1">
+                                Timestamp <Info className="h-3 w-3 text-muted-foreground" />
+                                </UiTooltipTrigger>
+                                <UiTooltipContent>
+                                <p>The date and time the transaction was recorded.</p>
+                                </UiTooltipContent>
+                            </UiTooltip>
+                        </TableHead>
+                        <TableHead className="text-right">
+                             <UiTooltip>
+                                <UiTooltipTrigger className="flex items-center gap-1 justify-end">
+                                Total <Info className="h-3 w-3 text-muted-foreground" />
+                                </UiTooltipTrigger>
+                                <UiTooltipContent>
+                                <p>The total bill amount for the order.</p>
+                                </UiTooltipContent>
+                            </UiTooltip>
+                        </TableHead>
+                        <TableHead className="text-right">
+                             <UiTooltip>
+                                <UiTooltipTrigger className="flex items-center gap-1 justify-end">
+                                Paid <Info className="h-3 w-3 text-muted-foreground" />
+                                </UiTooltipTrigger>
+                                <UiTooltipContent>
+                                <p>The amount successfully paid by the customer.</p>
+                                </UiTooltipContent>
+                            </UiTooltip>
+                        </TableHead>
+                        <TableHead className="text-right">
+                           <UiTooltip>
+                                <UiTooltipTrigger className="flex items-center gap-1 justify-end">
+                                Outstanding <Info className="h-3 w-3 text-muted-foreground" />
+                                </UiTooltipTrigger>
+                                <UiTooltipContent>
+                                <p>The remaining balance that is yet to be paid.</p>
+                                </UiTooltipContent>
+                            </UiTooltip>
+                        </TableHead>
+                        <TableHead>
+                           <UiTooltip>
+                                <UiTooltipTrigger className="flex items-center gap-1">
+                                Status <Info className="h-3 w-3 text-muted-foreground" />
+                                </UiTooltipTrigger>
+                                <UiTooltipContent>
+                                <p>The current payment status of the transaction.</p>
+                                </UiTooltipContent>
+                            </UiTooltip>
+                        </TableHead>
+                        <TableHead>
+                           <UiTooltip>
+                                <UiTooltipTrigger className="flex items-center gap-1">
+                                Method <Info className="h-3 w-3 text-muted-foreground" />
+                                </UiTooltipTrigger>
+                                <UiTooltipContent>
+                                <p>The payment method used for the transaction.</p>
+                                </UiTooltipContent>
+                            </UiTooltip>
+                        </TableHead>
+                        <TableHead className="text-right">
+                           <UiTooltip>
+                                <UiTooltipTrigger className="flex items-center gap-1 justify-end">
+                                Payers <Info className="h-3 w-3 text-muted-foreground" />
+                                </UiTooltipTrigger>
+                                <UiTooltipContent>
+                                <p>The number of customers who split the bill.</p>
+                                </UiTooltipContent>
+                            </UiTooltip>
+                        </TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedTransactions.map((t) => (
+                        <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
+                            <TableCell className="font-medium">{t.id}</TableCell>
+                            <TableCell>{t.orderId}</TableCell>
+                            <TableCell>
+                            {new Date(t.timestamp).toLocaleString()}
+                          </TableCell>
+                            <TableCell className="text-right font-mono">
+                            ${t.totalAmount.toFixed(2)}
+                          </TableCell>
+                            <TableCell className="text-right font-mono text-green-600">
+                            ${t.paidAmount.toFixed(2)}
+                          </TableCell>
+                            <TableCell className="text-right font-mono text-red-600">
+                            ${t.outstandingAmount.toFixed(2)}
+                          </TableCell>
+                            <TableCell>
+                            <Badge
+                              variant={getStatusBadgeVariant(t.paymentStatus)}
+                            >
+                              {t.paymentStatus}
+                            </Badge>
+                          </TableCell>
+                            <TableCell>{t.paymentMethod}</TableCell>
+                            <TableCell className="text-right">
+                            {t.payers}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </TooltipProvider>
             </CardContent>
             <CardFooter className="flex items-center justify-between">
               <div className="text-xs text-muted-foreground">
                 Showing{' '}
                 <strong>
-                  {filteredAndSortedTransactions.length > 0
+                  {filteredTransactions.length > 0
                     ? (currentPage - 1) * itemsPerPage + 1
                     : 0}
                 </strong>{' '}
@@ -791,10 +788,10 @@ export default function PaymentsReportPage() {
                 <strong>
                   {Math.min(
                     currentPage * itemsPerPage,
-                    filteredAndSortedTransactions.length
+                    filteredTransactions.length
                   )}
                 </strong>{' '}
-                of <strong>{filteredAndSortedTransactions.length}</strong>{' '}
+                of <strong>{filteredTransactions.length}</strong>{' '}
                 transactions
               </div>
               <div className="flex items-center space-x-2">

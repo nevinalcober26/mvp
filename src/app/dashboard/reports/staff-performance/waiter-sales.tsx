@@ -4,7 +4,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download } from "lucide-react";
+import { Download, Info } from "lucide-react";
+import {
+    TooltipProvider,
+    Tooltip as UiTooltip,
+    TooltipContent as UiTooltipContent,
+    TooltipTrigger as UiTooltipTrigger,
+  } from '@/components/ui/tooltip';
 
 const salesData = [
   { waiter: 'Alex', tables: 12, orders: 15, gross: 450.75, collected: 450.75, outstanding: 0, avgBill: 30.05, splitPercent: 10 },
@@ -38,34 +44,61 @@ export function WaiterSales() {
                 </div>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Waiter</TableHead>
-                            <TableHead>Tables</TableHead>
-                            <TableHead>Orders</TableHead>
-                            <TableHead>Gross Sales</TableHead>
-                            <TableHead>Collected</TableHead>
-                            <TableHead>Outstanding</TableHead>
-                            <TableHead>Avg. Bill</TableHead>
-                            <TableHead>% Split Bills</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {salesData.map((row) => (
-                            <TableRow key={row.waiter} className="cursor-pointer">
-                                <TableCell className="font-medium">{row.waiter}</TableCell>
-                                <TableCell>{row.tables}</TableCell>
-                                <TableCell>{row.orders}</TableCell>
-                                <TableCell>${row.gross.toFixed(2)}</TableCell>
-                                <TableCell>${row.collected.toFixed(2)}</TableCell>
-                                <TableCell className={row.outstanding > 0 ? "text-destructive" : ""}>${row.outstanding.toFixed(2)}</TableCell>
-                                <TableCell>${row.avgBill.toFixed(2)}</TableCell>
-                                <TableCell>{row.splitPercent}%</TableCell>
+                <TooltipProvider>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Waiter</TableHead>
+                                <TableHead>Tables</TableHead>
+                                <TableHead>Orders</TableHead>
+                                <TableHead>
+                                    <UiTooltip>
+                                        <UiTooltipTrigger className="flex items-center gap-1">Gross Sales <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                        <UiTooltipContent><p>The total value of all orders served by the waiter.</p></UiTooltipContent>
+                                    </UiTooltip>
+                                </TableHead>
+                                <TableHead>
+                                    <UiTooltip>
+                                        <UiTooltipTrigger className="flex items-center gap-1">Collected <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                        <UiTooltipContent><p>The total amount of money collected from the waiter's sales.</p></UiTooltipContent>
+                                    </UiTooltip>
+                                </TableHead>
+                                <TableHead>
+                                    <UiTooltip>
+                                        <UiTooltipTrigger className="flex items-center gap-1">Outstanding <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                        <UiTooltipContent><p>The total amount of unpaid balances from the waiter's sales.</p></UiTooltipContent>
+                                    </UiTooltip>
+                                </TableHead>
+                                <TableHead>
+                                    <UiTooltip>
+                                        <UiTooltipTrigger className="flex items-center gap-1">Avg. Bill <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                        <UiTooltipContent><p>The average value of each bill handled by the waiter.</p></UiTooltipContent>
+                                    </UiTooltip>
+                                </TableHead>
+                                <TableHead>
+                                    <UiTooltip>
+                                        <UiTooltipTrigger className="flex items-center gap-1">% Split Bills <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
+                                        <UiTooltipContent><p>The percentage of the waiter's bills that were split.</p></UiTooltipContent>
+                                    </UiTooltip>
+                                </TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {salesData.map((row) => (
+                                <TableRow key={row.waiter} className="cursor-pointer">
+                                    <TableCell className="font-medium">{row.waiter}</TableCell>
+                                    <TableCell>{row.tables}</TableCell>
+                                    <TableCell>{row.orders}</TableCell>
+                                    <TableCell>${row.gross.toFixed(2)}</TableCell>
+                                    <TableCell>${row.collected.toFixed(2)}</TableCell>
+                                    <TableCell className={row.outstanding > 0 ? "text-destructive" : ""}>${row.outstanding.toFixed(2)}</TableCell>
+                                    <TableCell>${row.avgBill.toFixed(2)}</TableCell>
+                                    <TableCell>{row.splitPercent}%</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TooltipProvider>
             </CardContent>
         </Card>
     );
