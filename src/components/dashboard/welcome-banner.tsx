@@ -95,10 +95,10 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
   }, [statCards, chartData]);
 
   useEffect(() => {
-    // Trigger summary generation when data changes, but not if rate limited.
-    if (isRateLimited) return;
+    // Trigger summary generation only once on component mount.
     generateSummary();
-  }, [generateSummary, isRateLimited]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleRefresh = () => {
     // Allow manual refresh to try again.
