@@ -36,6 +36,7 @@ import {
   DollarSign,
   FileWarning,
   CalendarDays,
+  Info,
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
@@ -80,6 +81,13 @@ import { mockDataStore } from '@/lib/mock-data-store';
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 import { AiSummary } from '@/components/dashboard/ai-summary';
+import {
+  TooltipProvider,
+  Tooltip as UiTooltip,
+  TooltipContent as UiTooltipContent,
+  TooltipTrigger as UiTooltipTrigger,
+} from '@/components/ui/tooltip';
+
 
 type Transaction = {
   id: string;
@@ -455,55 +463,118 @@ export default function OutstandingReportPage() {
                   </CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Order ID</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead>Paid</TableHead>
-                      <TableHead>Remaining</TableHead>
-                      <TableHead>Days Open</TableHead>
-                      <TableHead>Last Attempt</TableHead>
-                      <TableHead>Close Type</TableHead>
-                      <TableHead>
-                        <span className="sr-only">Warning</span>
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {outstandingTransactions.map((t) => {
-                      const daysOutstanding = differenceInDays(
-                        new Date(),
-                        new Date(t.timestamp)
-                      );
-                      const isHighRisk = t.outstandingAmount > 50;
-                      return (
-                        <TableRow
-                          key={t.id}
-                          className={cn(
-                            "cursor-pointer",
-                            isHighRisk &&
-                              'bg-red-50/50 border-l-4 border-red-500'
-                          )}
-                          onClick={() => handleViewDetails(t)}
-                        >
-                          <TableCell className="font-medium">{t.orderId}</TableCell>
-                          <TableCell>${t.totalAmount.toFixed(2)}</TableCell>
-                          <TableCell className="text-green-600">${t.paidAmount.toFixed(2)}</TableCell>
-                          <TableCell className="font-semibold text-red-600">${t.outstandingAmount.toFixed(2)}</TableCell>
-                          <TableCell>{daysOutstanding} day(s)</TableCell>
-                          <TableCell>{new Date(t.lastPaymentAttempt).toLocaleDateString()}</TableCell>
-                          <TableCell>{t.closeType}</TableCell>
-                          <TableCell className="text-right">
-                            {isHighRisk && (
-                              <AlertTriangle className="h-5 w-5 text-red-500" />
+                <TooltipProvider>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>
+                          <UiTooltip>
+                            <UiTooltipTrigger className="flex items-center gap-1">
+                              Total <Info className="h-3 w-3 text-muted-foreground" />
+                            </UiTooltipTrigger>
+                            <UiTooltipContent>
+                              <p>The total bill amount for the order.</p>
+                            </UiTooltipContent>
+                          </UiTooltip>
+                        </TableHead>
+                        <TableHead>
+                          <UiTooltip>
+                            <UiTooltipTrigger className="flex items-center gap-1">
+                              Paid <Info className="h-3 w-3 text-muted-foreground" />
+                            </UiTooltipTrigger>
+                            <UiTooltipContent>
+                              <p>The amount successfully paid by the customer.</p>
+                            </UiTooltipContent>
+                          </UiTooltip>
+                        </TableHead>
+                        <TableHead>
+                          <UiTooltip>
+                            <UiTooltipTrigger className="flex items-center gap-1">
+                              Remaining <Info className="h-3 w-3 text-muted-foreground" />
+                            </UiTooltipTrigger>
+                            <UiTooltipContent>
+                              <p>The outstanding balance that still needs to be paid.</p>
+                            </UiTooltipContent>
+                          </UiTooltip>
+                        </TableHead>
+                        <TableHead>
+                          <UiTooltip>
+                            <UiTooltipTrigger className="flex items-center gap-1">
+                              Days Open <Info className="h-3 w-3 text-muted-foreground" />
+                            </UiTooltipTrigger>
+                            <UiTooltipContent>
+                              <p>The number of days the order has been in an unpaid state.</p>
+                            </UiTooltipContent>
+                          </UiTooltip>
+                        </TableHead>
+                        <TableHead>
+                          <UiTooltip>
+                            <UiTooltipTrigger className="flex items-center gap-1">
+                              Last Attempt <Info className="h-3 w-3 text-muted-foreground" />
+                            </UiTooltipTrigger>
+                            <UiTooltipContent>
+                              <p>The date of the last recorded payment attempt.</p>
+                            </UiTooltipContent>
+                          </UiTooltip>
+                        </TableHead>
+                        <TableHead>
+                          <UiTooltip>
+                            <UiTooltipTrigger className="flex items-center gap-1">
+                              Close Type <Info className="h-3 w-3 text-muted-foreground" />
+                            </UiTooltipTrigger>
+                            <UiTooltipContent>
+                              <p>How the order was closed (e.g., auto or manually by staff).</p>
+                            </UiTooltipContent>
+                          </UiTooltip>
+                        </TableHead>
+                        <TableHead className="text-right">
+                          <UiTooltip>
+                            <UiTooltipTrigger className="flex items-center gap-1 justify-end">
+                              Risk <Info className="h-3 w-3 text-muted-foreground" />
+                            </UiTooltipTrigger>
+                            <UiTooltipContent>
+                              <p>Orders with a large remaining balance are marked as high-risk.</p>
+                            </UiTooltipContent>
+                          </UiTooltip>
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {outstandingTransactions.map((t) => {
+                        const daysOutstanding = differenceInDays(
+                          new Date(),
+                          new Date(t.timestamp)
+                        );
+                        const isHighRisk = t.outstandingAmount > 50;
+                        return (
+                          <TableRow
+                            key={t.id}
+                            className={cn(
+                              "cursor-pointer",
+                              isHighRisk &&
+                                'bg-red-50/50 border-l-4 border-red-500'
                             )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                            onClick={() => handleViewDetails(t)}
+                          >
+                            <TableCell className="font-medium">{t.orderId}</TableCell>
+                            <TableCell>${t.totalAmount.toFixed(2)}</TableCell>
+                            <TableCell className="text-green-600">${t.paidAmount.toFixed(2)}</TableCell>
+                            <TableCell className="font-semibold text-red-600">${t.outstandingAmount.toFixed(2)}</TableCell>
+                            <TableCell>{daysOutstanding} day(s)</TableCell>
+                            <TableCell>{new Date(t.lastPaymentAttempt).toLocaleDateString()}</TableCell>
+                            <TableCell>{t.closeType}</TableCell>
+                            <TableCell className="text-right">
+                              {isHighRisk && (
+                                <AlertTriangle className="h-5 w-5 text-red-500 inline-block" />
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TooltipProvider>
                 {outstandingTransactions.length === 0 && (
                   <p className="text-center text-muted-foreground py-8">
                     No outstanding payments match the current filters.
