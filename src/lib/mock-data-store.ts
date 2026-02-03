@@ -3,7 +3,7 @@
 import type { Product, Variation } from '@/app/dashboard/products/types';
 import type { Customer, Visit, Payment as CustomerPayment } from '@/app/dashboard/customer/list/types';
 import type { Order, OrderItem, Payment as OrderPayment } from '@/app/dashboard/orders/types';
-import { format, subDays, subHours, endOfDay, setHours, setMinutes, setSeconds } from 'date-fns';
+import { format, subDays, subHours, endOfDay, setHours, setMinutes, subMinutes } from 'date-fns';
 
 // --- Product Generation ---
 const productNames = [
@@ -73,11 +73,6 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
 
     // Generate Orders and associate with Customers
     for (let i = 0; i < orderCount; i++) {
-        const randomDayOffset = Math.floor(Math.random() * 90); // Orders in last 90 days
-        let randomDate = subDays(endOfDay(new Date()), randomDayOffset);
-        randomDate = setHours(randomDate, Math.floor(Math.random() * 24));
-        randomDate = setMinutes(randomDate, Math.floor(Math.random() * 60));
-
         const hasCustomer = i % 4 !== 0;
         const customer = hasCustomer ? customers[i % customers.length] : undefined;
 
@@ -95,19 +90,44 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
 
         const totalAmount = currentItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
         const orderStatus = orderStatuses[i % orderStatuses.length];
-        
+
+        let randomDate: Date;
         let paymentState: Order['paymentState'] = 'Unpaid';
         let paidAmount = 0;
-        if (orderStatus === 'Completed' || orderStatus === 'Paid' || orderStatus === 'Refunded') {
-            paymentState = orderStatus === 'Refunded' ? 'Returned' : 'Fully Paid';
-            paidAmount = totalAmount;
-        } else if (orderStatus === 'Open' && Math.random() > 0.4) {
-            paymentState = 'Partial';
-            paidAmount = totalAmount * (Math.random() * 0.5 + 0.2);
-        } else if (orderStatus === 'Cancelled') {
-            paymentState = 'Voided';
-        }
 
+        // Make outstanding orders recent to be more realistic
+        if (orderStatus === 'Open') {
+            // These are recent, potentially unpaid or partially paid orders
+            if (Math.random() > 0.5) { // 50% chance of being partially paid
+                paymentState = 'Partial';
+                paidAmount = totalAmount * (Math.random() * 0.5 + 0.2); // 20-70% paid
+            } else {
+                paymentState = 'Unpaid';
+                paidAmount = 0;
+            }
+            // Set date to be very recent: 15 to 240 minutes ago
+            randomDate = subMinutes(new Date(), Math.floor(Math.random() * 225) + 15);
+        } else {
+            // These are older, completed/cancelled/refunded/draft orders
+            const randomDayOffset = Math.floor(Math.random() * 90);
+            randomDate = subDays(endOfDay(new Date()), randomDayOffset);
+            randomDate = setHours(randomDate, Math.floor(Math.random() * 24));
+            randomDate = setMinutes(randomDate, Math.floor(Math.random() * 60));
+
+            if (orderStatus === 'Completed' || orderStatus === 'Paid') {
+                paymentState = 'Fully Paid';
+                paidAmount = totalAmount;
+            } else if (orderStatus === 'Refunded') {
+                paymentState = 'Returned';
+                paidAmount = totalAmount;
+            } else if (orderStatus === 'Cancelled') {
+                paymentState = 'Voided';
+            } else if (orderStatus === 'Draft') {
+                paymentState = 'Unpaid';
+                paidAmount = 0;
+            }
+        }
+        
         const customerPayments: CustomerPayment[] = [];
         const tip = paidAmount * (Math.random() > 0.5 ? 0.1 : 0.15);
         if(paidAmount > 0) {
@@ -117,7 +137,7 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
                 tip: tip,
                 method: i % 3 === 0 ? 'Cash' : 'Credit Card',
                 status: 'Paid',
-                date: format(subHours(randomDate, 1), 'PPpp'),
+                date: format(subHours(randomDate, Math.random() > 0.5 ? 0 : 1), 'PPpp'),
             });
         }
         
