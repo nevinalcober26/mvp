@@ -89,15 +89,14 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
 
         const totalAmount = currentItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
         
-        const isOutstanding = i % 5 === 0; // Make ~20% of orders outstanding.
         let orderTimestamp: number, paymentState: Order['paymentState'], orderStatus: Order['orderStatus'];
         let paidAmount = 0;
-        let lastPaymentAttempt: number;
-
-        if (isOutstanding && i > orderCount - 20) { // Make only recent orders outstanding
+        
+        const isRecentOutstanding = i % 5 === 0 && Math.random() > 0.5; // ~10% of orders are recent and outstanding
+        
+        if (isRecentOutstanding) {
             orderTimestamp = subMinutes(new Date(), Math.floor(Math.random() * 180) + 5).getTime();
             orderStatus = 'Open';
-            lastPaymentAttempt = subMinutes(new Date(orderTimestamp), -5).getTime();
             if (Math.random() > 0.4) {
                 paymentState = 'Partial';
                 paidAmount = totalAmount * (Math.random() * 0.6 + 0.1);
@@ -107,7 +106,6 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
             }
         } else {
             orderTimestamp = subDays(endOfDay(new Date()), Math.floor(Math.random() * 30) + 1).getTime();
-            lastPaymentAttempt = subHours(new Date(orderTimestamp), -1).getTime();
             paidAmount = totalAmount;
 
             const finalStatuses: Order['orderStatus'][] = ['Completed', 'Paid'];
@@ -128,24 +126,58 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
         const randomDate = new Date(orderTimestamp);
         
         const customerPayments: CustomerPayment[] = [];
-        const tip = paidAmount * (Math.random() > 0.5 ? 0.1 : 0.15);
-        if(paidAmount > 0) {
-            customerPayments.push({
-                id: `txn_${12345 + i}`,
-                amount: paidAmount,
-                tip: tip,
-                method: i % 3 === 0 ? 'Cash' : 'Credit Card',
-                status: 'Paid',
-                date: format(subHours(randomDate, Math.random() > 0.5 ? 0 : 1), 'PPpp'),
-            });
+        // Split about 1/3 of fully paid orders.
+        const shouldSplit = paidAmount > 0 && paymentState === 'Fully Paid' && i % 3 === 0;
+
+        if (paidAmount > 0) {
+            if (shouldSplit) {
+                const numPayers = Math.floor(Math.random() * 2) + 2; // 2-3 payers
+                const basePayment = parseFloat((paidAmount / numPayers).toFixed(2));
+                const totalTip = parseFloat((paidAmount * (Math.random() * 0.1 + 0.1)).toFixed(2));
+                const baseTip = parseFloat((totalTip / numPayers).toFixed(2));
+                let accumulatedPayment = 0;
+                let accumulatedTip = 0;
+
+                for (let j = 0; j < numPayers; j++) {
+                    const isLastPayer = j === numPayers - 1;
+                    
+                    const paymentAmount = isLastPayer ? paidAmount - accumulatedPayment : basePayment;
+                    const tipAmount = isLastPayer ? totalTip - accumulatedTip : baseTip;
+
+                    accumulatedPayment += paymentAmount;
+                    accumulatedTip += tipAmount;
+
+                    customerPayments.push({
+                        id: `txn_${12345 + i}_${j}`,
+                        amount: paymentAmount,
+                        tip: tipAmount,
+                        method: j % 2 === 0 ? 'Credit Card' : 'Online',
+                        status: 'Paid',
+                        date: format(subMinutes(randomDate, Math.random() * 5), 'PPpp'),
+                    });
+                }
+            } else {
+                // Not split
+                const tip = paidAmount * (Math.random() > 0.5 ? 0.1 : 0.15);
+                 if (paidAmount > 0.01) {
+                    customerPayments.push({
+                        id: `txn_${12345 + i}`,
+                        amount: paidAmount,
+                        tip: tip,
+                        method: i % 3 === 0 ? 'Cash' : 'Credit Card',
+                        status: 'Paid',
+                        date: format(subHours(randomDate, Math.random() > 0.5 ? 0 : 1), 'PPpp'),
+                    });
+                 }
+            }
         }
         
-        const orderPayments: OrderPayment[] = customerPayments.map(p => ({
+        const orderPayments: OrderPayment[] = customerPayments.map((p, index) => ({
             method: p.method,
             amount: p.amount.toFixed(2),
             date: p.date,
             transactionId: p.id,
-            guestName: customer?.name || 'Guest 1',
+            guestName: customer?.name || `Guest ${index + 1}`,
             tip: p.tip
         }));
         
@@ -162,7 +194,7 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
             orderDate: randomDate.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
             orderTimestamp: randomDate.getTime(),
             payments: orderPayments,
-            splitType: orderPayments.length > 1 ? (i % 2 === 0 ? 'equally' : 'byItem') : undefined,
+            splitType: customerPayments.length > 1 ? (i % 2 === 0 ? 'equally' : 'byItem') : undefined,
             customer: customer ? { name: customer.name, email: customer.email, phone: customer.phone } : undefined,
             staffName: staffNames[i % staffNames.length],
             orderComments: comments[i % comments.length] || undefined,
