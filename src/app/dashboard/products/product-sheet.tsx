@@ -77,7 +77,6 @@ const productSchema = z
     name: z.string().min(1, 'Product name is required'),
     category: z.string().min(1, 'Category is required'),
     properties: z.string().optional(),
-    branch: z.string().min(1, 'Branch is required'),
     price: z.coerce.number().min(0.01, 'Price must be greater than 0'),
     smallDescription: z.string().optional(),
     description: z.string().optional(),
@@ -170,7 +169,6 @@ export function ProductSheet({
       name: product?.name || '',
       category: product?.category || '',
       properties: product?.properties || '',
-      branch: product?.branch || '',
       price: product?.price || 0,
       smallDescription: product?.smallDescription || '',
       description: product?.description || '',
@@ -307,15 +305,18 @@ export function ProductSheet({
     const { discountType, discountValue, ...restOfData } = data;
 
     const fullProductData: Product = {
-      ...product!,
+      ...(product || {}),
+      ...restOfData,
       id: product?.id || `new_${Date.now()}`,
       stock: product?.stock || 0,
       status: product?.status || 'Active',
-      ...restOfData,
+      branch: product?.branch || 'Ras Al Khaimah',
       discountedPrice,
+      smallDescription: data.smallDescription || '',
+      description: data.description || '',
     };
-
-    onSave(fullProductData);
+    
+    onSave(fullProductData as Product);
     onOpenChange(false);
     form.reset();
   };
@@ -325,7 +326,6 @@ export function ProductSheet({
     const tabMap: Record<string, string> = {
       name: 'basic-info',
       category: 'basic-info',
-      branch: 'basic-info',
       price: 'pricing',
       discountValue: 'pricing',
       variations: 'variations',
@@ -346,10 +346,8 @@ export function ProductSheet({
   const isBasicInfoComplete =
     !errors.name &&
     !errors.category &&
-    !errors.branch &&
     form.getValues('name') &&
-    form.getValues('category') &&
-    form.getValues('branch');
+    form.getValues('category');
   const isPricingComplete = !errors.price && !errors.discountValue && form.getValues('price') > 0;
   const areVariationsComplete = !errors.variations;
 
@@ -426,7 +424,7 @@ export function ProductSheet({
                                         </FormItem>
                                         )}
                                     />
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <FormField
                                             control={form.control}
                                             name="category"
@@ -476,30 +474,6 @@ export function ProductSheet({
                                                     {mockProperties.map((prop) => (
                                                         <SelectItem key={prop} value={prop}>{prop}</SelectItem>
                                                     ))}
-                                                </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="branch"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Branch*</FormLabel>
-                                                <Select
-                                                onValueChange={field.onChange}
-                                                defaultValue={field.value}
-                                                >
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                    <SelectValue placeholder="Select a branch" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="Ras Al Khaimah">Ras Al Khaimah</SelectItem>
-                                                    <SelectItem value="Dubai Mall">Dubai Mall</SelectItem>
                                                 </SelectContent>
                                                 </Select>
                                                 <FormMessage />
