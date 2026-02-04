@@ -69,38 +69,63 @@ import { useToast } from '@/hooks/use-toast';
 import { generateProductDescription } from '@/ai/flows/generate-product-description-flow';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 
-const productSchema = z.object({
-  name: z.string().min(1, 'Product name is required'),
-  category: z.string().min(1, 'Category is required'),
-  branch: z.string().min(1, 'Branch is required'),
-  price: z.coerce.number().min(0.01, 'Price must be greater than 0'),
-  smallDescription: z.string().optional(),
-  description: z.string().optional(),
-  discountedPrice: z.coerce.number().optional(),
-  recommend: z.boolean().default(false),
-  displayFullwidth: z.boolean().default(false),
-  hiddenTitle: z.boolean().default(false),
-  hiddenImage: z.boolean().default(false),
-  disableLink: z.boolean().default(false),
-  cardShadow: z.boolean().default(true),
-  hidden: z.boolean().default(false),
-  outOfStock: z.boolean().default(false),
-  upsell: z.boolean().default(false),
-  enableCombo: z.boolean().default(false),
-  comboGroup: z.string().optional(),
-  videoUrl: z.string().url().optional().or(z.literal('')),
-  variations: z
-    .array(
-      z.object({
-        value: z.string().min(1, 'Variation value is required'),
-        matrix: z.string().optional(),
-        price: z.coerce.number().min(0, "Price can't be negative"),
-        visible: z.boolean().default(true),
-        hidden: z.boolean().default(false),
-      })
-    )
-    .optional(),
-});
+const productSchema = z
+  .object({
+    name: z.string().min(1, 'Product name is required'),
+    category: z.string().min(1, 'Category is required'),
+    branch: z.string().min(1, 'Branch is required'),
+    price: z.coerce.number().min(0.01, 'Price must be greater than 0'),
+    smallDescription: z.string().optional(),
+    description: z.string().optional(),
+    discountType: z.enum(['none', 'percentage', 'fixed']).default('none'),
+    discountValue: z.coerce.number().positive('Discount must be a positive number.').optional(),
+    recommend: z.boolean().default(false),
+    displayFullwidth: z.boolean().default(false),
+    hiddenTitle: z.boolean().default(false),
+    hiddenImage: z.boolean().default(false),
+    disableLink: z.boolean().default(false),
+    cardShadow: z.boolean().default(true),
+    hidden: z.boolean().default(false),
+    outOfStock: z.boolean().default(false),
+    upsell: z.boolean().default(false),
+    enableCombo: z.boolean().default(false),
+    comboGroup: z.string().optional(),
+    videoUrl: z.string().url().optional().or(z.literal('')),
+    variations: z
+      .array(
+        z.object({
+          value: z.string().min(1, 'Variation value is required'),
+          matrix: z.string().optional(),
+          price: z.coerce.number().min(0, "Price can't be negative"),
+          visible: z.boolean().default(true),
+          hidden: z.boolean().default(false),
+        })
+      )
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.discountType === 'percentage') {
+      if (!data.discountValue) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Percentage value is required.', path: ['discountValue'] });
+      } else if (data.discountValue > 100) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Percentage cannot be over 100.', path: ['discountValue'] });
+      }
+    }
+    if (data.discountType === 'fixed') {
+      if (!data.discountValue) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Discount amount is required.', path: ['discountValue'] });
+      } else if (data.discountValue >= data.price) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Fixed discount must be less than the product price.',
+          path: ['discountValue'],
+        });
+      }
+    }
+    if (data.discountType !== 'none' && !data.discountValue) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'A discount value is required.', path: ['discountValue'] });
+    }
+  });
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
@@ -132,6 +157,14 @@ export function ProductSheet({
   );
 
   const defaultValues = useMemo(() => {
+    let discountType: 'none' | 'percentage' | 'fixed' = 'none';
+    let discountValue: number | undefined;
+
+    if (product?.price && product.discountedPrice && product.discountedPrice < product.price) {
+        discountType = 'fixed';
+        discountValue = product.price - product.discountedPrice;
+    }
+
     return {
       name: product?.name || '',
       category: product?.category || '',
@@ -139,7 +172,8 @@ export function ProductSheet({
       price: product?.price || 0,
       smallDescription: product?.smallDescription || '',
       description: product?.description || '',
-      discountedPrice: product?.discountedPrice ?? undefined,
+      discountType,
+      discountValue,
       recommend: product?.recommend || false,
       displayFullwidth: product?.displayFullwidth || false,
       hiddenTitle: product?.hiddenTitle || false,
@@ -174,6 +208,26 @@ export function ProductSheet({
   const { isDirty, isValid, errors } = form.formState;
   const productName = form.watch('name');
   const productCategory = form.watch('category');
+
+  const price = form.watch('price');
+  const discountType = form.watch('discountType');
+  const discountValue = form.watch('discountValue');
+
+  const { finalPrice, finalDiscountPercent } = useMemo(() => {
+    let calculatedPrice: number | undefined;
+    let calculatedPercent: number | undefined;
+
+    if (price > 0 && discountValue && discountValue > 0) {
+      if (discountType === 'percentage' && discountValue <= 100) {
+        calculatedPrice = price * (1 - discountValue / 100);
+        calculatedPercent = discountValue;
+      } else if (discountType === 'fixed' && discountValue < price) {
+        calculatedPrice = price - discountValue;
+        calculatedPercent = (discountValue / price) * 100;
+      }
+    }
+    return { finalPrice: calculatedPrice, finalDiscountPercent: calculatedPercent };
+  }, [price, discountType, discountValue]);
 
   useEffect(() => {
     form.reset(defaultValues);
@@ -240,14 +294,24 @@ export function ProductSheet({
   };
 
   const onSubmit = (data: ProductFormValues) => {
+    let discountedPrice: number | undefined;
+    if (data.discountType === 'percentage' && data.discountValue) {
+        discountedPrice = data.price * (1 - data.discountValue / 100);
+    } else if (data.discountType === 'fixed' && data.discountValue) {
+        discountedPrice = data.price - data.discountValue;
+    }
+
+    const { discountType, discountValue, ...restOfData } = data;
+
     const fullProductData: Product = {
       ...product!,
       id: product?.id || `new_${Date.now()}`,
-      stock: product?.stock || 0, 
-      status: product?.status || 'Active', 
-      ...data,
-      discountedPrice: data.discountedPrice || undefined,
+      stock: product?.stock || 0,
+      status: product?.status || 'Active',
+      ...restOfData,
+      discountedPrice,
     };
+
     onSave(fullProductData);
     onOpenChange(false);
     form.reset();
@@ -260,7 +324,7 @@ export function ProductSheet({
       category: 'basic-info',
       branch: 'basic-info',
       price: 'pricing',
-      discountedPrice: 'pricing',
+      discountValue: 'pricing',
       variations: 'variations',
     };
 
@@ -283,17 +347,8 @@ export function ProductSheet({
     form.getValues('name') &&
     form.getValues('category') &&
     form.getValues('branch');
-  const isPricingComplete = !errors.price && form.getValues('price') > 0;
+  const isPricingComplete = !errors.price && !errors.discountValue && form.getValues('price') > 0;
   const areVariationsComplete = !errors.variations;
-
-  const discount = useMemo(() => {
-    const price = form.watch('price');
-    const discountedPrice = form.watch('discountedPrice');
-    if (price && discountedPrice && discountedPrice < price && price > 0) {
-      return (((price - discountedPrice) / price) * 100).toFixed(0);
-    }
-    return '0';
-  }, [form.watch('price'), form.watch('discountedPrice')]);
 
   const TabIndicator = ({ isComplete }: { isComplete: boolean }) =>
     isComplete ? (
@@ -556,12 +611,16 @@ export function ProductSheet({
                         </div>
                       </TabsContent>
                       <TabsContent value="pricing">
-                        <Card className="max-w-lg">
-                            <CardHeader>
-                                <CardTitle>Pricing Strategy</CardTitle>
-                                <CardDescription>Set the price for your product and an optional discounted price.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
+                        <Card className="max-w-2xl">
+                          <CardHeader>
+                            <CardTitle>Pricing Strategy</CardTitle>
+                            <CardDescription>
+                              Set the price for your product and an optional
+                              discount.
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-6">
                                 <FormField
                                     control={form.control}
                                     name="price"
@@ -569,7 +628,7 @@ export function ProductSheet({
                                     <FormItem>
                                         <FormLabel>Price (AED)*</FormLabel>
                                         <FormControl>
-                                        <Input type="number" {...field} />
+                                        <Input type="number" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -577,42 +636,82 @@ export function ProductSheet({
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="discountedPrice"
+                                    name="discountType"
                                     render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Discounted Price</FormLabel>
+                                        <FormLabel>Discount Type</FormLabel>
+                                        <Select
+                                            onValueChange={(value) => {
+                                                field.onChange(value);
+                                                form.setValue('discountValue', undefined);
+                                                form.clearErrors('discountValue');
+                                            }}
+                                            value={field.value}
+                                        >
                                         <FormControl>
-                                        <Input type="number" {...field} />
+                                            <SelectTrigger>
+                                            <SelectValue placeholder="Select discount type" />
+                                            </SelectTrigger>
                                         </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="none">No Discount</SelectItem>
+                                            <SelectItem value="percentage">Percentage (%)</SelectItem>
+                                            <SelectItem value="fixed">Fixed Amount</SelectItem>
+                                        </SelectContent>
+                                        </Select>
+                                        <FormMessage />
                                     </FormItem>
                                     )}
                                 />
-                                <FormItem>
-                                    <FormLabel className="flex items-center gap-1.5">
-                                    Discount %
-                                    <Tooltip delayDuration={100}>
-                                        <TooltipTrigger asChild>
-                                        <button
-                                            type="button"
-                                            onClick={(e) => e.preventDefault()}
-                                        >
-                                            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                                        </button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                        <p>
-                                            Calculated automatically from the Price and
-                                            Discounted Price.
-                                        </p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                    </FormLabel>
-                                    <div className="relative">
-                                        <Input value={discount} readOnly className="pr-8 font-mono bg-muted" />
-                                        <span className="absolute inset-y-0 right-3 flex items-center text-muted-foreground">%</span>
-                                    </div>
-                                </FormItem>
-                            </CardContent>
+                                {discountType !== 'none' && (
+                                    <FormField
+                                        control={form.control}
+                                        name="discountValue"
+                                        render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>
+                                            {discountType === 'percentage'
+                                                ? 'Discount Percentage'
+                                                : 'Discount Amount (AED)'}
+                                            </FormLabel>
+                                            <FormControl>
+                                            <Input
+                                                type="number"
+                                                placeholder={
+                                                discountType === 'percentage'
+                                                    ? 'e.g. 15'
+                                                    : 'e.g. 5.00'
+                                                }
+                                                {...field}
+                                                onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)}
+                                            />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                        )}
+                                    />
+                                )}
+                            </div>
+                            <Card className="bg-muted/50 p-6 space-y-4">
+                                <h4 className="font-semibold text-center">Summary</h4>
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Original Price</p>
+                                    <p className="text-lg font-mono font-semibold">{price > 0 ? `$${price.toFixed(2)}` : '-'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Discount</p>
+                                    <p className="text-lg font-mono font-semibold text-red-600">
+                                        {finalDiscountPercent ? `-${finalDiscountPercent.toFixed(1)}%` : '-'}
+                                    </p>
+                                </div>
+                                <div className="border-t pt-4">
+                                     <p className="text-sm text-muted-foreground">Final Price</p>
+                                    <p className="text-2xl font-mono font-bold text-green-600">
+                                        {finalPrice ? `$${finalPrice.toFixed(2)}` : (price > 0 ? `$${price.toFixed(2)}` : '-')}
+                                    </p>
+                                </div>
+                            </Card>
+                          </CardContent>
                         </Card>
                       </TabsContent>
                       <TabsContent value="display">
