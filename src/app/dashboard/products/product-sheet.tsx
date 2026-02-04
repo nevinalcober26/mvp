@@ -313,7 +313,7 @@ export function ProductSheet({
       id: product?.id || `new_${Date.now()}`,
       stock: product?.stock || 0,
       status: product?.status || 'Active',
-      branch: product?.branch || 'Ras Al Khaimah',
+      branch: 'Ras Al Khaimah', // Default branch
       discountedPrice,
       smallDescription: data.smallDescription || '',
       description: data.description || '',
@@ -991,57 +991,128 @@ export function ProductSheet({
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {variationFields.length > 0 && (
-                                    <div className="space-y-4">
-                                        <div className="grid grid-cols-[1fr,1fr,100px,auto,auto,auto,auto] gap-4 items-center text-sm font-medium text-muted-foreground px-1">
-                                             <Label>Value*</Label>
-                                                <Label className="flex items-center gap-1.5">
-                                                    Matrix ID
-                                                    <Tooltip delayDuration={100}>
-                                                    <TooltipTrigger asChild>
-                                                        <button type="button" onClick={(e) => e.preventDefault()} >
-                                                            <HelpCircle className="h-4 w-4 cursor-help" />
-                                                        </button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent><p>Optional identifier for your POS system.</p></TooltipContent>
-                                                    </Tooltip>
-                                                </Label>
-                                                <Label className="flex items-center gap-1.5">
-                                                    Price*
-                                                    <Tooltip delayDuration={100}>
-                                                    <TooltipTrigger asChild>
-                                                        <button type="button" onClick={(e) => e.preventDefault()}>
-                                                            <HelpCircle className="h-4 w-4 cursor-help" />
-                                                        </button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent><p>This price will override the base price.</p></TooltipContent>
-                                                    </Tooltip>
-                                                </Label>
-                                                <Label className="text-center">Cat. Page</Label>
-                                                <Label className="text-center">Prod. Page</Label>
-                                                <Label className="text-center">Hidden</Label>
-                                                <div><span className="sr-only">Actions</span></div>
-                                        </div>
-                                        {variationFields.map((field, index) => (
-                                        <div
-                                            key={field.id}
-                                            className="grid grid-cols-[1fr,1fr,100px,auto,auto,auto,auto] gap-4 items-start"
-                                        >
-                                            <FormField control={form.control} name={`variations.${index}.value`} render={({ field }) => (<FormItem><FormControl><Input placeholder="e.g. Large" {...field}/></FormControl><FormMessage /></FormItem>)} />
-                                            <FormField control={form.control} name={`variations.${index}.matrix`} render={({ field }) => (<FormItem><FormControl><Input placeholder="Matrix ID" {...field}/></FormControl><FormMessage /></FormItem>)} />
-                                            <FormField control={form.control} name={`variations.${index}.price`} render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="Price" {...field}/></FormControl><FormMessage /></FormItem>)} />
-                                            <FormField control={form.control} name={`variations.${index}.categoryPage`} render={({ field }) => (<FormItem className="flex h-10 items-center justify-center"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>)} />
-                                            <FormField control={form.control} name={`variations.${index}.productPage`} render={({ field }) => (<FormItem className="flex h-10 items-center justify-center"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>)} />
-                                            <FormField control={form.control} name={`variations.${index}.hidden`} render={({ field }) => (<FormItem className="flex h-10 items-center justify-center"><FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl></FormItem>)}/>
-                                            <Button type="button" variant="ghost" size="icon" onClick={() => removeVariation(index)}><Trash className="h-4 w-4 text-destructive" /></Button>
-                                        </div>
-                                        ))}
-                                    </div>
-                                )}
+                                <div className="space-y-6">
+                                    {variationFields.map((field, index) => (
+                                        <Card key={field.id} className="p-4 bg-muted/40 relative">
+                                            <CardContent className="p-0 space-y-4">
+                                                <div className="flex justify-between items-center">
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`variations.${index}.value`}
+                                                        render={({ field }) => (
+                                                            <FormItem className="w-full">
+                                                                <FormLabel>Variation Name*</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="e.g. Large" {...field} />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => removeVariation(index)}
+                                                        className="ml-4 mt-6 shrink-0"
+                                                    >
+                                                        <Trash className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`variations.${index}.price`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Price Override*</FormLabel>
+                                                                <FormControl>
+                                                                    <Input type="number" placeholder="Overrides base price" {...field} />
+                                                                </FormControl>
+                                                                <FormDescription>This price will be used instead of the base product price.</FormDescription>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`variations.${index}.matrix`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Matrix / SKU (Optional)</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="Identifier for POS" {...field} />
+                                                                </FormControl>
+                                                                <FormDescription>Optional ID for your inventory system.</FormDescription>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                </div>
+                                                
+                                                <div>
+                                                    <Label className="text-sm font-medium">Display Options</Label>
+                                                    <div className="mt-2 space-y-2 rounded-lg border p-4">
+                                                        <FormField
+                                                            control={form.control}
+                                                            name={`variations.${index}.hidden`}
+                                                            render={({ field }) => (
+                                                                <FormItem className="flex items-center justify-between">
+                                                                    <div className="space-y-0.5">
+                                                                        <FormLabel>Hidden Variation</FormLabel>
+                                                                        <FormDescription>
+                                                                            If checked, this variation will be hidden from customers.
+                                                                        </FormDescription>
+                                                                    </div>
+                                                                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <div className={cn("pl-4 border-l ml-2 pt-2 space-y-2", form.watch(`variations.${index}.hidden`) && "opacity-50")}>
+                                                            <FormField
+                                                                control={form.control}
+                                                                name={`variations.${index}.categoryPage`}
+                                                                render={({ field }) => (
+                                                                    <FormItem className="flex items-center justify-between">
+                                                                        <FormLabel>Show on Category Page</FormLabel>
+                                                                        <FormControl>
+                                                                            <Checkbox 
+                                                                                checked={field.value} 
+                                                                                onCheckedChange={field.onChange}
+                                                                                disabled={form.watch(`variations.${index}.hidden`)}
+                                                                            />
+                                                                        </FormControl>
+                                                                    </FormItem>
+                                                                )}
+                                                            />
+                                                            <FormField
+                                                                control={form.control}
+                                                                name={`variations.${index}.productPage`}
+                                                                render={({ field }) => (
+                                                                    <FormItem className="flex items-center justify-between">
+                                                                        <FormLabel>Show on Product Page</FormLabel>
+                                                                        <FormControl>
+                                                                            <Checkbox 
+                                                                                checked={field.value} 
+                                                                                onCheckedChange={field.onChange}
+                                                                                disabled={form.watch(`variations.${index}.hidden`)}
+                                                                            />
+                                                                        </FormControl>
+                                                                    </FormItem>
+                                                                )}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    size="sm"
                                     onClick={() =>
                                     appendVariation({ value: '', matrix: '', price: 0, hidden: false, categoryPage: true, productPage: true })
                                     }
