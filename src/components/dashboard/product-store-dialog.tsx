@@ -4,6 +4,7 @@ import {
   Dialog,
   DialogContent,
   DialogClose,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,7 +12,7 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
+  CardTitle as SuiteCardTitle,
 } from '@/components/ui/card';
 import {
   Heart,
@@ -93,9 +94,9 @@ const SuiteCard = ({ suite }: { suite: (typeof suites)[0] }) => (
         >
           <suite.icon className={cn('h-6 w-6', suite.iconColor)} />
         </div>
-        <CardTitle className="text-lg font-bold capitalize">
+        <SuiteCardTitle className="text-lg font-bold capitalize">
           {suite.title}
-        </CardTitle>
+        </SuiteCardTitle>
       </div>
     </CardHeader>
     <CardContent className="flex-grow">
@@ -135,9 +136,9 @@ export function ProductStoreDialog({
         <div className="flex justify-between items-center p-6 border-b">
           <div className="flex items-center gap-3">
             <LayoutGrid className="h-6 w-6" />
-            <h2 className="text-xl font-semibold">
+            <DialogTitle className="text-xl font-semibold">
               Product <span className="font-normal">store</span>
-            </h2>
+            </DialogTitle>
           </div>
           <div className="flex items-center gap-2">
             <Button
