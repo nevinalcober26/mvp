@@ -304,67 +304,67 @@ export default function ProductsPage() {
     <>
       <DashboardHeader />
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Products</h1>
+            <p className="text-muted-foreground">
+              Manage your menu items and their variations.
+            </p>
+          </div>
+          {selectedRows.length > 0 ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                {selectedRows.length} selected
+              </span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    Actions
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => handleBulkSetStatus('Draft')}
+                  >
+                    Set to Draft
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleBulkSetStatus('Active')}
+                  >
+                    Set to Active
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleBulkSetStatus('Archived')}
+                  >
+                    Deactivate (Archive)
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    onClick={handleBulkDelete}
+                  >
+                    Delete products
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm">
+                <FileDown className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+              <Button onClick={handleAddProduct} size="sm">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Product
+              </Button>
+            </div>
+          )}
+        </div>
         <Card>
           <CardHeader>
-            <div className="flex items-start justify-between">
-              <div>
-                <CardTitle>Products</CardTitle>
-                <CardDescription>
-                  Manage your menu items and their variations.
-                </CardDescription>
-              </div>
-              {selectedRows.length > 0 ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">
-                    {selectedRows.length} selected
-                  </span>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline">
-                        Actions
-                        <ChevronDown className="ml-2 h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => handleBulkSetStatus('Draft')}
-                      >
-                        Set to Draft
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleBulkSetStatus('Active')}
-                      >
-                        Set to Active
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleBulkSetStatus('Archived')}
-                      >
-                        Deactivate (Archive)
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={handleBulkDelete}
-                      >
-                        Delete products
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Export
-                  </Button>
-                  <Button onClick={handleAddProduct} size="sm">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Product
-                  </Button>
-                </div>
-              )}
-            </div>
-            <div className="pt-4 flex items-center justify-between">
+            <div className="flex items-center justify-between">
               <Input
                 placeholder="Search products..."
                 value={search}
