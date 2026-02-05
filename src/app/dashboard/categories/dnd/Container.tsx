@@ -1,3 +1,4 @@
+
 'use client';
 import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable, UniqueIdentifier } from '@dnd-kit/core';
@@ -7,7 +8,7 @@ import { SortableItem } from './SortableItem';
 import type { Item, Column } from '@/app/dashboard/categories/types';
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, MoreHorizontal, Trash, Edit, Clock } from 'lucide-react';
+import { Plus, MoreHorizontal, Trash, Edit, Clock, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -88,28 +89,32 @@ export function Container({ id, label, items, onItemClick, onAddItem, onDeleteIt
         ref={setDroppableNodeRef}
         className={cn("flex-grow flex flex-col transition-shadow", shouldHighlight && "shadow-lg ring-2 ring-primary")}
         >
-            <CardHeader 
-              className="flex-row items-center justify-between cursor-grab"
-              {...attributes}
-              {...listeners}
+            <CardHeader
+              className="flex-row items-center justify-between"
             >
-                <CardTitle>{label}</CardTitle>
+                <div className="flex items-center gap-2">
+                  <div className="cursor-grab p-1" {...attributes} {...listeners}>
+                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <CardTitle>{label}</CardTitle>
+                </div>
+
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
-                        <DropdownMenuItem className="cursor-pointer" onSelect={(e) => e.preventDefault()}>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem className="cursor-pointer">
                             <Clock className="mr-2 h-4 w-4" />
                             Schedule
                         </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => { onItemClick({ id, name: label, items }); }} className="cursor-pointer">
+                        <DropdownMenuItem onSelect={() => onItemClick({ id, name: label, items })} className="cursor-pointer">
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => { onDeleteItem(id, true); }} className="text-destructive cursor-pointer">
+                        <DropdownMenuItem onSelect={() => onDeleteItem(id, true)} className="text-destructive cursor-pointer">
                             <Trash className="mr-2 h-4 w-4" />
                             Delete Column
                         </DropdownMenuItem>

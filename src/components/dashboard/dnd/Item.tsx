@@ -1,3 +1,4 @@
+
 'use client';
 import React from 'react';
 import { Card } from '@/components/ui/card';
@@ -57,7 +58,6 @@ export const Item = React.forwardRef<HTMLDivElement, ItemProps>(
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            onCloseAutoFocus={(e) => e.preventDefault()}
           >
             <DropdownMenuItem className="cursor-pointer">
               <Clock className="mr-2 h-4 w-4" />
