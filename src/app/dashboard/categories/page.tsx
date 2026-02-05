@@ -239,7 +239,7 @@ export default function CategoriesPage() {
 
     const column = board.find((c) => c.id === activeId);
     if (column) {
-      return { type: 'column', data: column as Column };
+      return { type: 'container', data: column as Column };
     }
     
     const item = findItemDeep(board, activeId)?.item;
@@ -284,69 +284,82 @@ export default function CategoriesPage() {
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
-    
+
+    // No destination, or dropping on itself, do nothing.
     if (!over || active.id === over.id) {
         setActiveId(null);
         setOverId(null);
         return;
     }
 
-    const isActiveAContainer = active.data.current?.type === 'container';
+    const isDraggingColumn = active.data.current?.type === 'container';
+    const isDraggingItem = active.data.current?.type === 'item';
 
-    if (isActiveAContainer) {
+    // --- Scenario 1: Dragging a Column ---
+    if (isDraggingColumn) {
+        // Find the destination column's ID. This is necessary because `over.id`
+        // might be an item inside the column, not the column itself.
         const overColumnId = findColumnForItemId(over.id);
-        
+
         if (overColumnId && active.id !== overColumnId) {
-            const activeIndex = board.findIndex((col) => col.id === active.id);
-            const overIndex = board.findIndex((col) => col.id === overColumnId);
-
-            if (activeIndex !== -1 && overIndex !== -1) {
-              setBoard((currentBoard) => arrayMove(currentBoard, activeIndex, overIndex));
-            }
-        }
-        
-        setActiveId(null);
-        setOverId(null);
-        return;
-    }
-
-    setBoard(board => produce(board, draft => {
-        const activeItem = findAndRemoveItem(draft, active.id);
-        if (!activeItem) return;
-
-        const overId = over.id;
-        const overIsContainer = over.data.current?.type === 'container-drop-zone';
-        const overIsItem = over.data.current?.type === 'item-drop-zone';
-
-        if (overIsContainer) {
-            const overColumn = draft.find(c => c.id === overId);
-            overColumn?.items.push(activeItem);
-            return;
-        }
-
-        if (overIsItem) {
-            const parentItemData = findItemDeep(draft, overId);
-            if (parentItemData) {
-                if (!parentItemData.item.children) {
-                    parentItemData.item.children = [];
+            setBoard((currentBoard) => {
+                const activeIndex = currentBoard.findIndex((col) => col.id === active.id);
+                const overIndex = currentBoard.findIndex((col) => col.id === overColumnId);
+                
+                // Only move if both columns are found
+                if (activeIndex !== -1 && overIndex !== -1) {
+                  return arrayMove(currentBoard, activeIndex, overIndex);
                 }
-                parentItemData.item.children.unshift(activeItem);
-            }
-            return;
+                return currentBoard;
+            });
         }
+    }
+    // --- Scenario 2: Dragging an Item ---
+    else if (isDraggingItem) {
+        setBoard(board => produce(board, draft => {
+            const activeItem = findAndRemoveItem(draft, active.id);
+            if (!activeItem) return;
 
-        const overItemData = findItemDeep(draft, overId);
-        if (overItemData) {
-            const { container: overContainer } = overItemData;
-            const overIndex = overContainer.findIndex(item => item.id === overId);
+            const overId = over.id;
             
-            if (overIndex !== -1) {
-                overContainer.splice(overIndex, 0, activeItem);
+            // Case 2a: Dropping on a column (empty space)
+            const overIsContainerDropZone = over.data.current?.type === 'container-drop-zone';
+            if (overIsContainerDropZone) {
+                const overColumn = draft.find(c => c.id === overId);
+                // Add to the end of the column's items
+                overColumn?.items.push(activeItem);
+                return;
             }
-            return;
-        }
-    }));
+            
+            // Case 2b: Dropping on another item to nest it
+            const overIsItemDropZone = over.data.current?.type === 'item-drop-zone';
+            if (overIsItemDropZone) {
+                const parentItemData = findItemDeep(draft, overId);
+                if (parentItemData) {
+                    if (!parentItemData.item.children) {
+                        parentItemData.item.children = [];
+                    }
+                    // Add to the beginning of the children array to feel responsive
+                    parentItemData.item.children.unshift(activeItem);
+                }
+                return;
+            }
 
+            // Case 2c: Dropping near another item to reorder
+            const overItemData = findItemDeep(draft, overId);
+            if (overItemData) {
+                const { container: overContainer } = overItemData;
+                const overIndex = overContainer.findIndex(item => item.id === overId);
+                
+                if (overIndex !== -1) {
+                    overContainer.splice(overIndex, 0, activeItem);
+                }
+                return;
+            }
+        }));
+    }
+    
+    // Reset dragging state
     setActiveId(null);
     setOverId(null);
   }, [board, findColumnForItemId]);
@@ -524,7 +537,7 @@ export default function CategoriesPage() {
               </div>
             </SortableContext>
             <DragOverlay>
-              {activeElement?.type === 'column' ? (
+              {activeElement?.type === 'container' ? (
                   <Card className="w-80 shadow-lg bg-card">
                       <CardHeader className="flex-row items-center justify-between">
                           <CardTitle>{(activeElement.data as Column).name}</CardTitle>
