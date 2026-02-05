@@ -103,7 +103,6 @@ export function CategorySheet({
   board,
   onUpdateCategory,
 }: CategorySheetProps) {
-  const [displayCategory, setDisplayCategory] = useState(category);
   const [activeTab, setActiveTab] = useState('general');
 
   const form = useForm<CategoryFormValues>({
@@ -112,40 +111,34 @@ export function CategorySheet({
   });
 
   useEffect(() => {
-    if (category) {
-      setDisplayCategory(category);
-    }
-  }, [category]);
-
-  useEffect(() => {
-    if (open && displayCategory) {
-      const parentId = 'items' in displayCategory ? 'none' : findParent(board, displayCategory.id);
+    if (open && category) {
+      const parentId = 'items' in category ? 'none' : findParent(board, category.id);
       form.reset({
-        name: displayCategory.name || '',
-        description: displayCategory.description || '',
+        name: category.name || '',
+        description: category.description || '',
         parentId: parentId ? parentId.toString() : 'none',
-        displayFullwidth: displayCategory.displayFullwidth || false,
-        hiddenTitle: displayCategory.hiddenTitle || false,
-        hiddenImage: displayCategory.hiddenImage || false,
-        cardShadow: displayCategory.cardShadow ?? true,
-        hidden: displayCategory.hidden || false,
-        disableLink: displayCategory.disableLink || false,
-        externalLink: displayCategory.externalLink || '',
-        enableSpecial: displayCategory.enableSpecial || false,
-        displaySeparate: displayCategory.displaySeparate || false,
-        specialType: displayCategory.specialType || undefined,
+        displayFullwidth: category.displayFullwidth || false,
+        hiddenTitle: category.hiddenTitle || false,
+        hiddenImage: category.hiddenImage || false,
+        cardShadow: category.cardShadow ?? true,
+        hidden: category.hidden || false,
+        disableLink: category.disableLink || false,
+        externalLink: category.externalLink || '',
+        enableSpecial: category.enableSpecial || false,
+        displaySeparate: category.displaySeparate || false,
+        specialType: category.specialType || undefined,
       });
     }
-  }, [open, displayCategory, board, form]);
+  }, [open, category, board, form]);
 
-  const categoryOptions = useMemo(() => displayCategory ? getCategoryOptions(
+  const categoryOptions = useMemo(() => category ? getCategoryOptions(
     board,
-    'items' in displayCategory ? undefined : displayCategory.id
-  ) : [], [displayCategory, board]);
+    'items' in category ? undefined : category.id
+  ) : [], [category, board]);
 
   const onSubmit = (data: CategoryFormValues) => {
-    if (displayCategory) {
-      onUpdateCategory(displayCategory.id, data);
+    if (category) {
+      onUpdateCategory(category.id, data);
     }
     onOpenChange(false);
   };
@@ -166,7 +159,7 @@ export function CategorySheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-2xl w-full p-0">
-        {displayCategory && (
+        {category && (
             <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
                 <SheetHeader className="p-6 border-b">
