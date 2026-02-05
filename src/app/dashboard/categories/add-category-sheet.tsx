@@ -115,7 +115,7 @@ export function AddCategorySheet({
   
   const { errors } = form.formState;
 
-  const isGeneralComplete = !errors.name;
+  const isGeneralComplete = !errors.name && form.getValues('name');
   
   const tabsConfig = [
     { value: 'general', label: 'General', isComplete: isGeneralComplete },
