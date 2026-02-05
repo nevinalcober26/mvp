@@ -52,21 +52,20 @@ export const Item = React.forwardRef<HTMLDivElement, ItemProps>(
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            onClick={(e) => e.stopPropagation()}
           >
             <DropdownMenuItem className="cursor-pointer">
               <Clock className="mr-2 h-4 w-4" />
               Schedule
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={onClick}
+              onSelect={onClick}
               className="cursor-pointer"
             >
               <Edit className="mr-2 h-4 w-4" />
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={onDelete}
+              onSelect={onDelete}
               className="text-destructive cursor-pointer"
             >
               <Trash className="mr-2 h-4 w-4" />
