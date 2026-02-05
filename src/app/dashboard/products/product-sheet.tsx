@@ -54,8 +54,6 @@ import {
 } from '@/components/ui/form';
 import {
   Upload,
-  CheckCircle,
-  AlertCircle,
   PlusCircle,
   Trash,
   Video,
@@ -360,13 +358,14 @@ export function ProductSheet({
     form.getValues('category');
   const isPricingComplete = !errors.price && !errors.discountValue && form.getValues('price') > 0;
   const areVariationsComplete = !errors.variations;
-
-  const TabIndicator = ({ isComplete }: { isComplete: boolean }) =>
-    isComplete ? (
-      <CheckCircle className="h-4 w-4 text-green-500" />
-    ) : (
-      <AlertCircle className="h-4 w-4 text-red-500" />
-    );
+  
+  const tabsConfig = [
+    { value: 'basic-info', label: 'Basic Info', isComplete: isBasicInfoComplete },
+    { value: 'pricing', label: 'Pricing', isComplete: isPricingComplete },
+    { value: 'display', label: 'Display & Options', isComplete: true },
+    { value: 'media', label: 'Media', isComplete: true },
+    { value: 'variations', label: 'Variations', isComplete: areVariationsComplete },
+  ];
 
   return (
     <>
@@ -392,22 +391,41 @@ export function ProductSheet({
                     onValueChange={setActiveTab}
                     className="h-full flex flex-col"
                   >
-                    <TabsList className="w-full justify-start rounded-none border-b px-6 sticky top-0 bg-background z-10">
-                      <TabsTrigger value="basic-info" className="gap-2">
-                        <TabIndicator isComplete={isBasicInfoComplete} /> Basic
-                        Info
-                      </TabsTrigger>
-                      <TabsTrigger value="pricing" className="gap-2">
-                        <TabIndicator isComplete={isPricingComplete} /> Pricing
-                      </TabsTrigger>
-                      <TabsTrigger value="display">
-                        Display & Options
-                      </TabsTrigger>
-                      <TabsTrigger value="media">Media</TabsTrigger>
-                      <TabsTrigger value="variations" className="gap-2">
-                        <TabIndicator isComplete={areVariationsComplete} />
-                        Variations
-                      </TabsTrigger>
+                    <TabsList className="w-full justify-start rounded-none border-b px-6 py-2 h-auto bg-background sticky top-0 z-10">
+                      <div className="flex items-center gap-2">
+                          {tabsConfig.map((tab, index) => {
+                              const isActive = activeTab === tab.value;
+                              return (
+                                  <TabsTrigger
+                                      key={tab.value}
+                                      value={tab.value}
+                                      className={cn(
+                                          "flex items-center gap-3 p-2 rounded-lg",
+                                          isActive ? "bg-muted shadow-sm" : ""
+                                      )}
+                                  >
+                                      <div
+                                          className={cn(
+                                              'flex h-7 w-7 items-center justify-center rounded-md border text-sm font-bold',
+                                              'transition-colors',
+                                              isActive
+                                                  ? 'bg-primary text-primary-foreground border-primary'
+                                                  : 'bg-background text-muted-foreground',
+                                              !tab.isComplete && !isActive && 'border-destructive text-destructive'
+                                          )}
+                                      >
+                                          {index + 1}
+                                      </div>
+                                      <span className={cn(
+                                          'font-medium transition-colors',
+                                          isActive ? 'text-primary' : 'text-muted-foreground'
+                                      )}>
+                                          {tab.label}
+                                      </span>
+                                  </TabsTrigger>
+                              );
+                          })}
+                      </div>
                     </TabsList>
                     <div className="p-6 space-y-6 flex-grow">
                       <TabsContent value="basic-info" className="mt-0">
