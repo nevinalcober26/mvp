@@ -24,7 +24,7 @@ import Image from 'next/image';
 
 import { DashboardHeader } from '@/components/dashboard/header';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, MoreHorizontal, Trash, Edit, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { CategoriesPageSkeleton } from '@/components/dashboard/skeletons';
@@ -43,6 +43,12 @@ import { Item as ItemComponent } from '@/components/dashboard/dnd/Item';
 import { mockDataStore } from '@/lib/mock-data-store';
 import type { Item, Column } from './types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 // Helper functions for tree operations
 function findItemDeep(
@@ -62,11 +68,33 @@ function findItemDeep(
       }
       return null;
     };
-    const found = search(column.items);
-    if (found) return found;
+    const foundInItems = search(column.items);
+    if(foundInItems) return foundInItems;
   }
   return null;
 }
+
+function findContainer(columns: Column[], id: UniqueIdentifier): Item | Column | null {
+    for (const column of columns) {
+        if (column.id === id) {
+            return column;
+        }
+        const search = (items: Item[]): Item | null => {
+            for (const item of items) {
+                if (item.id === id) return item;
+                if (item.children) {
+                    const found = search(item.children);
+                    if (found) return found;
+                }
+            }
+            return null;
+        };
+        const found = search(column.items);
+        if (found) return found;
+    }
+    return null;
+}
+
 
 function findAndRemoveItem(board: Column[], id: UniqueIdentifier): Item | null {
     let removedItem: Item | null = null;
@@ -130,11 +158,33 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setBoard(mockDataStore.categories);
-      setIsLoading(false);
-    }, 1500);
+      try {
+        const storedBoard = localStorage.getItem('category-board');
+        if (storedBoard) {
+          setBoard(JSON.parse(storedBoard));
+        } else {
+          setBoard(mockDataStore.categories);
+        }
+      } catch (error) {
+        console.error("Could not load categories from localStorage", error);
+        setBoard(mockDataStore.categories);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 1000);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      try {
+        localStorage.setItem('category-board', JSON.stringify(board));
+      } catch (error) {
+        console.error("Could not save categories to localStorage", error);
+      }
+    }
+  }, [board, isLoading]);
+
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -145,42 +195,31 @@ export default function CategoriesPage() {
 
   const activeElement = useMemo(() => {
     if (!activeId) return null;
-
-    const column = board.find((c) => c.id === activeId);
-    if (column) {
-      return { type: 'container', data: column as Column };
-    }
+    const activeContainer = findContainer(board, activeId);
+    if (!activeContainer) return null;
     
-    const item = findItemDeep(board, activeId)?.item;
-    if (item) {
-      return { type: 'item', data: item as Item };
+    if ('items' in activeContainer) {
+      return { type: 'container', data: activeContainer as Column };
     }
-
-    return null;
+    return { type: 'item', data: activeContainer as Item };
   }, [activeId, board]);
 
   const columnIds = useMemo(() => board.map((c) => c.id), [board]);
 
-  const findColumnForItemId = useCallback((itemId: UniqueIdentifier): UniqueIdentifier | null => {
-      if (board.some(col => col.id === itemId)) {
-          return itemId;
+  const findColumnIdForDnd = useCallback(
+    (id: UniqueIdentifier) => {
+      if (columnIds.includes(id)) {
+        return id;
       }
       for (const column of board) {
-          const hasItem = (items: Item[]): boolean => {
-              for (const item of items) {
-                  if (item.id === itemId) return true;
-                  if (item.children && hasItem(item.children)) {
-                      return true;
-                  }
-              }
-              return false;
-          };
-          if (hasItem(column.items)) {
-              return column.id;
-          }
+        if (findItemDeep([column], id)) {
+          return column.id;
+        }
       }
       return null;
-  }, [board]);
+    },
+    [board, columnIds]
+  );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id);
@@ -191,63 +230,64 @@ export default function CategoriesPage() {
     setOverId(event.over?.id ?? null);
   }, []);
 
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      setActiveId(null);
+      setOverId(null);
+      const { active, over } = event;
+      if (!over) return;
   
-    setActiveId(null);
-    setOverId(null);
-  
-    if (!over || active.id === over.id) {
-      return;
-    }
-  
-    const isDraggingColumn = active.data.current?.type === 'container';
-  
-    // --- Scenario 1: Reordering Columns ---
-    if (isDraggingColumn) {
-      const activeColumnIndex = board.findIndex((col) => col.id === active.id);
-      const overColumnIndex = board.findIndex((col) => col.id === over.id);
-  
-      if (activeColumnIndex !== -1 && overColumnIndex !== -1) {
-        setBoard((board) => arrayMove(board, activeColumnIndex, overColumnIndex));
+      const isDraggingColumn = active.data.current?.type === 'container';
+      
+      if (isDraggingColumn) {
+        if (active.id !== over.id && columnIds.includes(over.id)) {
+          setBoard((board) => {
+            const oldIndex = board.findIndex((col) => col.id === active.id);
+            const newIndex = board.findIndex((col) => col.id === over.id);
+            return arrayMove(board, oldIndex, newIndex);
+          });
+        }
+        return;
       }
-      return;
-    }
-  
-    // --- Scenario 2: Moving an Item ---
-    setBoard((board) =>
-      produce(board, (draft) => {
-        const activeItem = findAndRemoveItem(draft, active.id);
-        if (!activeItem) return;
-  
-        const overIsContainerDropZone = over.data.current?.type === 'container-drop-zone';
-        if (overIsContainerDropZone) {
-          const overColumn = draft.find((c) => c.id === over.id);
-          overColumn?.items.push(activeItem);
-          return;
-        }
-  
-        const overIsItemDropZone = over.data.current?.type === 'item-drop-zone';
-        if (overIsItemDropZone) {
-          const parentItemData = findItemDeep(draft, over.id);
-          if (parentItemData) {
-            parentItemData.item.children = parentItemData.item.children ?? [];
-            parentItemData.item.children.unshift(activeItem);
-          }
-          return;
-        }
-  
-        const overItemData = findItemDeep(draft, over.id);
-        if (overItemData) {
-          const { container: overContainer } = overItemData;
-          const overIndex = overContainer.findIndex((item) => item.id === over.id);
-          if (overIndex !== -1) {
-            overContainer.splice(overIndex, 0, activeItem);
-          }
-        }
-      })
-    );
-  }, [board]);
+      
+      const isDraggingItem = active.data.current?.type === 'item';
+
+      if (isDraggingItem) {
+          const overIsContainer = over.data.current?.type === 'container-drop-zone';
+          const overIsItem = over.data.current?.type === 'item-drop-zone';
+          
+          setBoard(board => produce(board, draft => {
+              const activeItem = findAndRemoveItem(draft, active.id);
+              if (!activeItem) return;
+
+              if (overIsContainer) {
+                  const overColumn = draft.find(c => c.id === over.id);
+                  overColumn?.items.push(activeItem);
+                  return;
+              }
+
+              if (overIsItem) {
+                  const parentItemData = findItemDeep(draft, over.id);
+                  if (parentItemData) {
+                      parentItemData.item.children = parentItemData.item.children ?? [];
+                      parentItemData.item.children.unshift(activeItem);
+                  }
+                  return;
+              }
+
+              const overItemData = findItemDeep(draft, over.id);
+              if (overItemData) {
+                  const { container: overContainer } = overItemData;
+                  const overIndex = overContainer.findIndex((item) => item.id === over.id);
+                  if (overIndex !== -1) {
+                      overContainer.splice(overIndex, 0, activeItem);
+                  }
+              }
+          }));
+      }
+    },
+    [columnIds]
+  );
   
   const handleDragCancel = useCallback(() => {
     setActiveId(null);
@@ -271,9 +311,15 @@ export default function CategoriesPage() {
   }
 
   const handleAddCategory = (values: CategoryFormValues) => {
-    const { name, parentId } = values;
-    const newItemId = `item-${Date.now()}`;
-    const newCategory: Item = { id: newItemId, name, children: [] };
+    const { name, ...rest } = values;
+    const parentId = values.parentId;
+    
+    const newItem: Item = { 
+      id: `item-${Date.now()}`, 
+      name,
+      ...rest,
+      children: []
+    };
 
     setBoard(
       produce((draft) => {
@@ -281,16 +327,17 @@ export default function CategoriesPage() {
           draft.push({
             id: `col-${Date.now()}`,
             name,
+            ...rest,
             items: [],
           });
         } else {
           const isColumn = draft.some(col => col.id === parentId);
           if (isColumn) {
             const parentColumn = draft.find((col) => col.id === parentId);
-            parentColumn?.items.push(newCategory);
+            parentColumn?.items.push(newItem);
           } else {
             for (const column of draft) {
-                if (addItemToParent(column.items, parentId, newCategory)) {
+                if (addItemToParent(column.items, parentId, newItem)) {
                     break;
                 }
             }
@@ -305,37 +352,55 @@ export default function CategoriesPage() {
   };
 
   const handleUpdateCategory = (id: UniqueIdentifier, values: UpdateCategoryFormValues) => {
+    const { parentId, ...rest } = values;
     setBoard(
       produce((draft) => {
-        // Function to find and update an item recursively
-        const findAndUpdate = (items: Item[]) => {
-          for (const item of items) {
-            if (item.id === id) {
-              // Update item properties, but don't replace children array
-              Object.assign(item, values);
-              return true;
-            }
-            if (item.children && findAndUpdate(item.children)) {
-              return true;
-            }
-          }
-          return false;
-        };
+        
+        let currentItem = findAndRemoveItem(draft, id);
+        const columnIndex = draft.findIndex(c => c.id === id);
+        let currentColumn = columnIndex !== -1 ? draft[columnIndex] : null;
 
-        // Try to update as a column first
-        for (const column of draft) {
-          if (column.id === id) {
-            // Update column properties, but don't replace items array
-            Object.assign(column, values);
+        if (currentColumn) {
+             const updatedColumn = {
+                ...currentColumn,
+                ...rest
+             };
+             draft[columnIndex] = updatedColumn;
             return;
-          }
         }
         
-        // If not a column, search within items for each column
-        for (const column of draft) {
-          if (findAndUpdate(column.items)) {
-            return;
-          }
+        if (currentItem) {
+            Object.assign(currentItem, rest);
+
+            const isNewParentColumn = draft.some(c => c.id === parentId);
+
+            if (parentId === 'none') {
+                 draft.push({
+                    id: currentItem.id, // Keep the same ID
+                    name: currentItem.name,
+                    items: currentItem.children || [],
+                    ...rest
+                 });
+            } else if (isNewParentColumn) {
+                const targetColumn = draft.find(c => c.id === parentId);
+                targetColumn?.items.push(currentItem);
+            } else {
+                let parentFound = false;
+                for (const column of draft) {
+                    if(addItemToParent(column.items, parentId, currentItem)) {
+                        parentFound = true;
+                        break;
+                    }
+                }
+                if (!parentFound) { // Fallback if parent somehow not found
+                    const firstCol = draft[0];
+                    if (firstCol) {
+                        firstCol.items.push(currentItem);
+                    } else { // No columns exist
+                        draft.push({ id: `col-${Date.now()}`, name: currentItem.name, items: [currentItem] });
+                    }
+                }
+            }
         }
       })
     );
@@ -397,6 +462,10 @@ export default function CategoriesPage() {
 
     setDeleteTarget(null);
   };
+  
+  const handleEditClick = (itemOrColumn: Item | Column) => {
+    setSelectedCategory(itemOrColumn);
+  }
 
   if (isLoading) {
     return <CategoriesPageSkeleton view="gallery" />;
@@ -442,7 +511,7 @@ export default function CategoriesPage() {
                     id={column.id}
                     label={column.name}
                     items={column.items}
-                    onItemClick={setSelectedCategory}
+                    onItemClick={handleEditClick}
                     onAddItem={handleOpenAddSheet}
                     onDeleteItem={handleDeleteRequest}
                     activeId={activeId}
@@ -464,15 +533,41 @@ export default function CategoriesPage() {
             <DragOverlay>
               {activeElement?.type === 'container' ? (
                   <Card className="w-80 shadow-lg bg-card">
-                      <CardHeader className="flex-row items-center justify-between">
+                      <CardHeader className="flex-row items-center justify-between cursor-grab">
                           <CardTitle>{(activeElement.data as Column).name}</CardTitle>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem className="cursor-pointer" onSelect={() => {}}>
+                                    <Clock className="mr-2 h-4 w-4" />
+                                    Schedule
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="cursor-pointer" onSelect={() => handleEditClick(activeElement.data as Column)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive cursor-pointer" onSelect={() => handleDeleteRequest(activeElement.data.id, true)}>
+                                    <Trash className="mr-2 h-4 w-4" />
+                                    Delete Column
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                       </CardHeader>
                       <CardContent>
                           <p className="text-sm text-muted-foreground">{(activeElement.data as Column).items.length} top-level items</p>
                       </CardContent>
                   </Card>
               ) : activeElement?.type === 'item' ? (
-                <ItemComponent id={activeElement.data.id} name={(activeElement.data as Item).name} />
+                <ItemComponent 
+                    id={activeElement.data.id} 
+                    name={(activeElement.data as Item).name} 
+                    onClick={() => handleEditClick(activeElement.data as Item)}
+                    onDelete={() => handleDeleteRequest(activeElement.data.id, false)}
+                />
               ) : null}
             </DragOverlay>
           </DndContext>
