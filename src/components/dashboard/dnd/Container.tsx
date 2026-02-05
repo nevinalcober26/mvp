@@ -96,12 +96,12 @@ export function Container({ id, label, items, onItemClick, onAddItem, onDeleteIt
                 <CardTitle>{label}</CardTitle>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={(e) => e.stopPropagation()}>
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="cursor-pointer">
+                    <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
+                        <DropdownMenuItem className="cursor-pointer" onSelect={(e) => e.preventDefault()}>
                             <Clock className="mr-2 h-4 w-4" />
                             Schedule
                         </DropdownMenuItem>

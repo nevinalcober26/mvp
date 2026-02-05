@@ -52,8 +52,9 @@ export const Item = React.forwardRef<HTMLDivElement, ItemProps>(
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
+            onCloseAutoFocus={(e) => e.preventDefault()}
           >
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onSelect={(e) => e.preventDefault()}>
               <Clock className="mr-2 h-4 w-4" />
               Schedule
             </DropdownMenuItem>

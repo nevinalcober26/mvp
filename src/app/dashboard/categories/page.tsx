@@ -51,49 +51,27 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 // Helper functions for tree operations
-function findItemDeep(
-  columns: Column[],
-  itemId: UniqueIdentifier
-): { container: Item[] | Column['items']; item: Item } | null {
-  for (const column of columns) {
-    const search = (
-      items: Item[]
-    ): { container: Item[]; item: Item } | null => {
-      for (const item of items) {
-        if (item.id === itemId) return { container: items, item };
-        if (item.children) {
-          const found = search(item.children);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-    const foundInItems = search(column.items);
-    if(foundInItems) return foundInItems;
+const findItem = (items: Item[], itemId: UniqueIdentifier): Item | null => {
+  for (const item of items) {
+    if (item.id === itemId) return item;
+    if (item.children) {
+      const found = findItem(item.children, itemId);
+      if (found) return found;
+    }
   }
   return null;
-}
+};
 
-function findContainer(columns: Column[], id: UniqueIdentifier): Item | Column | null {
-    for (const column of columns) {
-        if (column.id === id) {
-            return column;
-        }
-        const search = (items: Item[]): Item | null => {
-            for (const item of items) {
-                if (item.id === id) return item;
-                if (item.children) {
-                    const found = search(item.children);
-                    if (found) return found;
-                }
-            }
-            return null;
-        };
-        const found = search(column.items);
-        if (found) return found;
-    }
-    return null;
-}
+const findContainer = (columns: Column[], id: UniqueIdentifier): Item | Column | null => {
+  if (columns.some(c => c.id === id)) {
+    return columns.find(c => c.id === id) || null;
+  }
+  for (const column of columns) {
+    const found = findItem(column.items, id);
+    if(found) return found;
+  }
+  return null;
+};
 
 
 function findAndRemoveItem(board: Column[], id: UniqueIdentifier): Item | null {
@@ -206,21 +184,6 @@ export default function CategoriesPage() {
 
   const columnIds = useMemo(() => board.map((c) => c.id), [board]);
 
-  const findColumnIdForDnd = useCallback(
-    (id: UniqueIdentifier) => {
-      if (columnIds.includes(id)) {
-        return id;
-      }
-      for (const column of board) {
-        if (findItemDeep([column], id)) {
-          return column.id;
-        }
-      }
-      return null;
-    },
-    [board, columnIds]
-  );
-
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id);
     setOverId(event.over?.id ?? null);
@@ -267,21 +230,39 @@ export default function CategoriesPage() {
               }
 
               if (overIsItem) {
-                  const parentItemData = findItemDeep(draft, over.id);
-                  if (parentItemData) {
-                      parentItemData.item.children = parentItemData.item.children ?? [];
-                      parentItemData.item.children.unshift(activeItem);
+                  const findParentAndPush = (items: Item[]): boolean => {
+                    for (const item of items) {
+                        if (item.id === over.id) {
+                            item.children = item.children ?? [];
+                            item.children.unshift(activeItem);
+                            return true;
+                        }
+                        if (item.children) {
+                            if (findParentAndPush(item.children)) return true;
+                        }
+                    }
+                    return false;
+                  }
+                  for (const column of draft) {
+                    if (findParentAndPush(column.items)) return;
                   }
                   return;
               }
 
-              const overItemData = findItemDeep(draft, over.id);
-              if (overItemData) {
-                  const { container: overContainer } = overItemData;
-                  const overIndex = overContainer.findIndex((item) => item.id === over.id);
-                  if (overIndex !== -1) {
-                      overContainer.splice(overIndex, 0, activeItem);
-                  }
+              const findOverAndInsert = (items: Item[]): boolean => {
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].id === over.id) {
+                        items.splice(i, 0, activeItem);
+                        return true;
+                    }
+                    if (items[i].children) {
+                        if (findOverAndInsert(items[i].children)) return true;
+                    }
+                }
+                return false;
+              }
+               for (const column of draft) {
+                if (findOverAndInsert(column.items)) return;
               }
           }));
       }
@@ -361,11 +342,7 @@ export default function CategoriesPage() {
         let currentColumn = columnIndex !== -1 ? draft[columnIndex] : null;
 
         if (currentColumn) {
-             const updatedColumn = {
-                ...currentColumn,
-                ...rest
-             };
-             draft[columnIndex] = updatedColumn;
+             Object.assign(currentColumn, rest);
             return;
         }
         
@@ -376,7 +353,7 @@ export default function CategoriesPage() {
 
             if (parentId === 'none') {
                  draft.push({
-                    id: currentItem.id, // Keep the same ID
+                    id: currentItem.id,
                     name: currentItem.name,
                     items: currentItem.children || [],
                     ...rest
@@ -541,8 +518,8 @@ export default function CategoriesPage() {
                                     <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem className="cursor-pointer" onSelect={() => {}}>
+                            <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
+                                <DropdownMenuItem className="cursor-pointer" onSelect={(e) => e.preventDefault()}>
                                     <Clock className="mr-2 h-4 w-4" />
                                     Schedule
                                 </DropdownMenuItem>
