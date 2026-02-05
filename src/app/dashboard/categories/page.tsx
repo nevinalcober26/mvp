@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   DndContext,
-  DragOverlay,
   closestCenter,
   MouseSensor,
   TouchSensor,
@@ -22,15 +21,13 @@ import {
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { produce } from 'immer';
-import Image from 'next/image';
 
 import { DashboardHeader } from '@/components/dashboard/header';
 import { Button } from '@/components/ui/button';
-import { Plus, MoreHorizontal, Trash, Edit, Clock, GripVertical } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
 import { CategoriesPageSkeleton } from '@/components/dashboard/skeletons';
-import { CategorySheet, type CategoryFormValues as UpdateCategoryFormValues } from './category-sheet';
+import { CategorySheet } from './category-sheet';
 import {
   Dialog,
   DialogContent,
@@ -41,42 +38,11 @@ import {
 } from '@/components/ui/dialog';
 import { AddCategorySheet, type CategoryFormValues } from './add-category-sheet';
 import { Container } from './dnd/Container';
-import { SortableItem } from './dnd/SortableItem';
 import { mockDataStore } from '@/lib/mock-data-store';
 import type { Item, Column } from './types';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 // Helper functions for tree operations
-const findItem = (items: Item[], itemId: UniqueIdentifier): Item | null => {
-  for (const item of items) {
-    if (item.id === itemId) return item;
-    if (item.children) {
-      const found = findItem(item.children, itemId);
-      if (found) return found;
-    }
-  }
-  return null;
-};
-
-const findContainer = (columns: Column[], id: UniqueIdentifier): Item | Column | null => {
-  if (columns.some(c => c.id === id)) {
-    return columns.find(c => c.id === id) || null;
-  }
-  for (const column of columns) {
-    const found = findItem(column.items, id);
-    if(found) return found;
-  }
-  return null;
-};
-
-
-function findAndRemoveItem(board: Column[], id: UniqueIdentifier): Item | null {
+const findAndRemoveItem = (board: Column[], id: UniqueIdentifier): Item | null => {
     let removedItem: Item | null = null;
 
     function findAndRemove(items: Item[], itemId: UniqueIdentifier): boolean {
@@ -182,17 +148,6 @@ export default function CategoriesPage() {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  const activeElement = useMemo(() => {
-    if (!activeId) return null;
-    const activeContainer = findContainer(board, activeId);
-    if (!activeContainer) return null;
-    
-    if ('items' in activeContainer) {
-      return { type: 'container', data: activeContainer as Column };
-    }
-    return { type: 'item', data: activeContainer as Item };
-  }, [activeId, board]);
 
   const columnIds = useMemo(() => board.map((c) => c.id), [board]);
 
@@ -304,8 +259,7 @@ export default function CategoriesPage() {
   }
 
   const handleAddCategory = (values: CategoryFormValues) => {
-    const { name, ...rest } = values;
-    const parentId = values.parentId;
+    const { name, parentId, ...rest } = values;
     
     const newItem: Item = { 
       id: `item-${Date.now()}`, 
@@ -344,7 +298,7 @@ export default function CategoriesPage() {
     });
   };
 
-  const handleUpdateCategory = (id: UniqueIdentifier, values: UpdateCategoryFormValues) => {
+  const handleUpdateCategory = (id: UniqueIdentifier, values: CategoryFormValues) => {
     const { parentId, ...rest } = values;
     setBoard(
       produce((draft) => {
@@ -461,6 +415,8 @@ export default function CategoriesPage() {
     setSelectedCategory(itemOrColumn);
   }
 
+  const activeElementType = activeId ? (columnIds.includes(activeId) ? 'container' : 'item') : undefined;
+
   if (isLoading) {
     return <CategoriesPageSkeleton view="gallery" />;
   }
@@ -510,7 +466,7 @@ export default function CategoriesPage() {
                     onDeleteItem={handleDeleteRequest}
                     activeId={activeId}
                     overId={overId}
-                    activeElementType={activeElement?.type}
+                    activeElementType={activeElementType}
                   />
                 ))}
                 <div className="w-80 flex-shrink-0">
@@ -524,30 +480,6 @@ export default function CategoriesPage() {
                 </div>
               </div>
             </SortableContext>
-            <DragOverlay>
-              {activeElement?.type === 'container' ? (
-                  <Card className="w-80 shadow-lg bg-card">
-                      <CardHeader className="flex-row items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <GripVertical className="h-5 w-5 text-muted-foreground" />
-                            <CardTitle>{(activeElement.data as Column).name}</CardTitle>
-                          </div>
-                          <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-                      </CardHeader>
-                      <CardContent>
-                          <p className="text-sm text-muted-foreground">{(activeElement.data as Column).items.length} top-level items</p>
-                      </CardContent>
-                  </Card>
-              ) : activeElement?.type === 'item' ? (
-                <Card className="p-3 flex items-center justify-between bg-card shadow-lg w-80">
-                    <div className="flex items-center gap-2">
-                        <GripVertical className="h-5 w-5 text-muted-foreground" />
-                        <p className="font-medium text-sm">{(activeElement.data as Item).name}</p>
-                    </div>
-                    <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-                </Card>
-              ) : null}
-            </DragOverlay>
           </DndContext>
         </div>
       </div>

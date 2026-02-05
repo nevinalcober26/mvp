@@ -14,6 +14,9 @@ export type CategoryBase = {
   enableSpecial?: boolean;
   specialType?: string;
   displaySeparate?: boolean;
+  viewFormat?: string;
+  promotions?: string;
+  sortOrder?: number;
 }
 
 export type Item = CategoryBase & {
