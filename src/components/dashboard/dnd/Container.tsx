@@ -25,6 +25,7 @@ type ContainerProps = {
   onDeleteItem: (id: UniqueIdentifier, isColumn?: boolean) => void;
   activeId: UniqueIdentifier | null;
   overId: UniqueIdentifier | null;
+  activeElementType?: 'container' | 'item';
 };
 
 const getDescendantIds = (items: Item[]): UniqueIdentifier[] => {
@@ -36,9 +37,22 @@ const getDescendantIds = (items: Item[]): UniqueIdentifier[] => {
         }
     }
     return ids;
-}
+};
 
-export function Container({ id, label, items, onItemClick, onAddItem, onDeleteItem, activeId, overId }: ContainerProps) {
+const isIdWithinContainer = (
+    containerItems: Item[],
+    targetId: UniqueIdentifier
+  ): boolean => {
+    for (const item of containerItems) {
+      if (item.id === targetId) return true;
+      if (item.children && isIdWithinContainer(item.children, targetId)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+export function Container({ id, label, items, onItemClick, onAddItem, onDeleteItem, activeId, overId, activeElementType }: ContainerProps) {
   const { setNodeRef: setSortableNodeRef, transform, transition, attributes, listeners } = useSortable({ id, data: { type: 'container' } });
   const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
     id: id,
@@ -56,13 +70,23 @@ export function Container({ id, label, items, onItemClick, onAddItem, onDeleteIt
   
   const allItemIds = useMemo(() => getDescendantIds(items), [items]);
 
-  const isOverContainer = isOver && activeId !== id;
+  const isDraggingItem = activeElementType === 'item';
+  const isDraggingColumn = activeElementType === 'container';
+
+  // Highlight when an item is dragged over this container's droppable area
+  const isOverForAnItem = isDraggingItem && isOver && activeId !== id;
+
+  // Highlight when a column is dragged over this container or any of its items
+  const overIsThisColumnOrChild = overId === id || (overId && isIdWithinContainer(items, overId));
+  const isOverForAColumn = isDraggingColumn && overIsThisColumnOrChild && activeId !== id;
+  
+  const shouldHighlight = isOverForAnItem || isOverForAColumn;
 
   return (
     <div ref={setSortableNodeRef} style={style} className="w-80 flex-shrink-0 flex flex-col">
         <Card
         ref={setDroppableNodeRef}
-        className={cn("flex-grow flex flex-col transition-shadow", isOverContainer && "shadow-lg ring-2 ring-primary")}
+        className={cn("flex-grow flex flex-col transition-shadow", shouldHighlight && "shadow-lg ring-2 ring-primary")}
         >
             <CardHeader 
               className="flex-row items-center justify-between cursor-grab"

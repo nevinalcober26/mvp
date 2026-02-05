@@ -515,6 +515,7 @@ export default function CategoriesPage() {
                     onDeleteItem={handleDeleteRequest}
                     activeId={activeId}
                     overId={overId}
+                    activeElementType={activeElement?.type}
                   />
                 ))}
                 <div className="w-80 flex-shrink-0">
