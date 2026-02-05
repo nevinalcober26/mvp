@@ -26,8 +26,8 @@ const generateMockProducts = (count: number): Product[] => {
         const status = productStatuses[i % productStatuses.length];
         const price = Math.floor(Math.random() * 30) + 5;
         const variations: Variation[] | undefined = i % 5 === 0 ? [
-            { id: `var_${i}_1`, value: 'Small', matrix: `S-${i}`, price: price * 0.8, visible: true, hidden: false, categoryPage: true, productPage: true },
-            { id: `var_${i}_2`, value: 'Large', matrix: `L-${i}`, price: price * 1.2, visible: true, hidden: false, categoryPage: true, productPage: true }
+            { id: `var_${i}_1`, value: 'Small', matrix: `S-${i}`, price: price * 0.8, hidden: false, categoryPage: true, productPage: true },
+            { id: `var_${i}_2`, value: 'Large', matrix: `L-${i}`, price: price * 1.2, hidden: false, categoryPage: true, productPage: true }
         ] : undefined;
 
         products.push({
@@ -254,18 +254,23 @@ class MockDataStore {
           {
             id: 'food',
             name: 'Food',
+            description: 'All of our delicious food items.',
             items: [
               {
                 id: 'appetizers',
                 name: 'Appetizers',
+                description: 'Start your meal with a tasty bite.',
+                cardShadow: false,
                 children: [
-                  { id: 'soups', name: 'Soups', children: [] },
-                  { id: 'salads', name: 'Salads', children: [] },
+                  { id: 'soups', name: 'Soups', children: [], description: 'Warm and comforting soups.' },
+                  { id: 'salads', name: 'Salads', children: [], description: 'Fresh and healthy salads.' },
                 ],
               },
               {
                 id: 'main-courses',
                 name: 'Main Courses',
+                description: 'The star of the show.',
+                displayFullwidth: true,
                 children: [
                   { id: 'pizza', name: 'Pizza', children: [] },
                   { id: 'pasta', name: 'Pasta', children: [] },
@@ -275,6 +280,7 @@ class MockDataStore {
               {
                 id: 'desserts',
                 name: 'Desserts',
+                description: 'Sweet treats to end your meal.',
                 children: [
                     { id: 'cakes', name: 'Cakes', children: [] },
                     { id: 'ice-cream', name: 'Ice Cream', children: [] },
@@ -285,6 +291,7 @@ class MockDataStore {
           {
             id: 'beverages',
             name: 'Beverages',
+            description: 'Quench your thirst.',
             items: [
               {
                 id: 'hot-drinks',
@@ -308,6 +315,7 @@ class MockDataStore {
           {
             id: 'specials',
             name: 'Special Offers',
+            description: 'Great deals for you.',
             items: [
                 { id: 'daily-specials', name: 'Daily Specials', children: [] },
                 { id: 'combo-meals', name: 'Combo Meals', children: [] },

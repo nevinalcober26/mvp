@@ -26,10 +26,9 @@ export const Item = React.forwardRef<HTMLDivElement, ItemProps>(
       <Card
         ref={ref}
         className={cn(
-          'p-3 flex items-center justify-between cursor-pointer bg-card transition-all',
+          'p-3 flex items-center justify-between bg-card transition-all',
           isOver && 'ring-2 ring-primary bg-primary/10'
         )}
-        onClick={onClick}
       >
         <div className="flex items-center gap-2">
           <div className="cursor-grab touch-none">
