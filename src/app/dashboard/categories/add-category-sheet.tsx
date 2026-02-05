@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, Image as ImageIcon, CheckCircle } from 'lucide-react';
+import { Upload, Image as ImageIcon, CheckCircle, ArrowRight } from 'lucide-react';
 import { UniqueIdentifier } from '@dnd-kit/core';
 import { getCategoryOptions } from './utils';
 import type { Column } from './types';
@@ -105,6 +105,7 @@ export function AddCategorySheet({
         enableSpecial: false,
         displaySeparate: false,
       });
+      setActiveTab('general');
     }
   }, [open, initialParentId, form]);
 
@@ -122,6 +123,15 @@ export function AddCategorySheet({
     { value: 'display', label: 'Display', isComplete: true },
     { value: 'advanced', label: 'Advanced', isComplete: true },
   ];
+  
+  const handleNext = () => {
+    const currentIndex = tabsConfig.findIndex(tab => tab.value === activeTab);
+    if (currentIndex < tabsConfig.length - 1) {
+        setActiveTab(tabsConfig[currentIndex + 1].value);
+    }
+  };
+
+  const isLastTab = activeTab === tabsConfig[tabsConfig.length - 1].value;
   
   const disableLink = form.watch('disableLink');
   const enableSpecial = form.watch('enableSpecial');
@@ -318,7 +328,13 @@ export function AddCategorySheet({
               <SheetClose asChild>
                 <Button variant="outline">Cancel</Button>
               </SheetClose>
-              <Button type="submit">Save Category</Button>
+              {isLastTab ? (
+                <Button type="submit">Save Category</Button>
+              ) : (
+                <Button type="button" onClick={handleNext}>
+                  Next <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
             </SheetFooter>
           </form>
         </Form>
