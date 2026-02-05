@@ -350,9 +350,14 @@ export default function CategoriesPage() {
       <div className="flex flex-col h-[calc(100vh-4rem)]">
         <div className="p-4 sm:p-6 lg:p-8 border-b bg-background z-10 sticky top-16">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold flex items-center gap-2">
-              Categories
-            </h1>
+            <div>
+              <h1 className="text-2xl font-bold">
+                Categories
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Organize your menu by creating and managing product categories.
+              </p>
+            </div>
             <div className="flex items-center gap-4">
               <Button onClick={() => handleOpenAddDialog('new-column')}>
                 <Plus className="mr-2 h-4 w-4" /> Add Category Column
