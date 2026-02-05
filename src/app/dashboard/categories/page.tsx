@@ -193,72 +193,61 @@ export default function CategoriesPage() {
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
-
+  
     setActiveId(null);
     setOverId(null);
-
+  
     if (!over || active.id === over.id) {
       return;
     }
-
+  
     const isDraggingColumn = active.data.current?.type === 'container';
-    const isDraggingItem = active.data.current?.type === 'item';
-
+  
     // --- Scenario 1: Reordering Columns ---
     if (isDraggingColumn) {
-        setBoard((board) => {
-            const activeColumnIndex = board.findIndex((col) => col.id === active.id);
-            const overColumnId = findColumnForItemId(over.id);
-            
-            if (!overColumnId) return board;
-            
-            const overColumnIndex = board.findIndex((col) => col.id === overColumnId);
-
-            if (activeColumnIndex !== -1 && overColumnIndex !== -1 && activeColumnIndex !== overColumnIndex) {
-              return arrayMove(board, activeColumnIndex, overColumnIndex);
-            }
-            
-            return board;
-        });
-        return;
+      const activeColumnIndex = board.findIndex((col) => col.id === active.id);
+      const overColumnIndex = board.findIndex((col) => col.id === over.id);
+  
+      if (activeColumnIndex !== -1 && overColumnIndex !== -1) {
+        setBoard((board) => arrayMove(board, activeColumnIndex, overColumnIndex));
+      }
+      return;
     }
-
+  
     // --- Scenario 2: Moving an Item ---
-    if (isDraggingItem) {
-        setBoard(board => produce(board, draft => {
-            const activeItem = findAndRemoveItem(draft, active.id);
-            if (!activeItem) return;
-
-            const overIsContainerDropZone = over.data.current?.type === 'container-drop-zone';
-            if (overIsContainerDropZone) {
-                const overColumn = draft.find(c => c.id === over.id);
-                overColumn?.items.push(activeItem);
-                return;
-            }
-            
-            const overIsItemDropZone = over.data.current?.type === 'item-drop-zone';
-            if (overIsItemDropZone) {
-                const parentItemData = findItemDeep(draft, over.id);
-                if (parentItemData) {
-                    parentItemData.item.children = parentItemData.item.children ?? [];
-                    parentItemData.item.children.unshift(activeItem);
-                }
-                return;
-            }
-
-            const overItemData = findItemDeep(draft, over.id);
-            if (overItemData) {
-                const { container: overContainer } = overItemData;
-                const overIndex = overContainer.findIndex(item => item.id === over.id);
-                
-                if (overIndex !== -1) {
-                    overContainer.splice(overIndex, 0, activeItem);
-                }
-                return;
-            }
-        }));
-    }
-  }, [board, findColumnForItemId]);
+    setBoard((board) =>
+      produce(board, (draft) => {
+        const activeItem = findAndRemoveItem(draft, active.id);
+        if (!activeItem) return;
+  
+        const overIsContainerDropZone = over.data.current?.type === 'container-drop-zone';
+        if (overIsContainerDropZone) {
+          const overColumn = draft.find((c) => c.id === over.id);
+          overColumn?.items.push(activeItem);
+          return;
+        }
+  
+        const overIsItemDropZone = over.data.current?.type === 'item-drop-zone';
+        if (overIsItemDropZone) {
+          const parentItemData = findItemDeep(draft, over.id);
+          if (parentItemData) {
+            parentItemData.item.children = parentItemData.item.children ?? [];
+            parentItemData.item.children.unshift(activeItem);
+          }
+          return;
+        }
+  
+        const overItemData = findItemDeep(draft, over.id);
+        if (overItemData) {
+          const { container: overContainer } = overItemData;
+          const overIndex = overContainer.findIndex((item) => item.id === over.id);
+          if (overIndex !== -1) {
+            overContainer.splice(overIndex, 0, activeItem);
+          }
+        }
+      })
+    );
+  }, [board]);
   
   const handleDragCancel = useCallback(() => {
     setActiveId(null);
@@ -316,12 +305,44 @@ export default function CategoriesPage() {
   };
 
   const handleUpdateCategory = (id: UniqueIdentifier, values: UpdateCategoryFormValues) => {
-    console.log('Updating category:', id, values);
-    // In a real app, you would find and update the item in the board state.
-    // This could involve moving it if the parentId changed.
+    setBoard(
+      produce((draft) => {
+        // Function to find and update an item recursively
+        const findAndUpdate = (items: Item[]) => {
+          for (const item of items) {
+            if (item.id === id) {
+              // Update item properties, but don't replace children array
+              Object.assign(item, values);
+              return true;
+            }
+            if (item.children && findAndUpdate(item.children)) {
+              return true;
+            }
+          }
+          return false;
+        };
+
+        // Try to update as a column first
+        for (const column of draft) {
+          if (column.id === id) {
+            // Update column properties, but don't replace items array
+            Object.assign(column, values);
+            return;
+          }
+        }
+        
+        // If not a column, search within items for each column
+        for (const column of draft) {
+          if (findAndUpdate(column.items)) {
+            return;
+          }
+        }
+      })
+    );
+
     toast({
       title: 'Category Updated',
-      description: `"${values.name}" has been successfully updated. (This is a demo, data is not persisted).`,
+      description: `"${values.name}" has been successfully updated.`,
     });
   };
 
