@@ -208,14 +208,38 @@ export default function CategoriesPage() {
       const isDraggingColumn = active.data.current?.type === 'container';
       
       if (isDraggingColumn) {
-        if (active.id !== over.id && board.find(c => c.id === over.id)) {
-            setBoard((board) => {
-                const oldIndex = board.findIndex((col) => col.id === active.id);
-                const newIndex = board.findIndex((col) => col.id === over.id || board.find(c => c.id === over.id)?.items.find(i => i.id === over.id));
-                if (newIndex === -1) return board;
-                return arrayMove(board, oldIndex, newIndex);
-            });
+        const { id: activeId } = active;
+        const { id: overId } = over;
+
+        if (activeId === overId) {
+            return;
         }
+
+        setBoard((currentBoard) => {
+            const activeColumnIndex = currentBoard.findIndex((col) => col.id === activeId);
+            
+            const isDescendant = (items: Item[], id: UniqueIdentifier): boolean => {
+                for (const item of items) {
+                    if (item.id === id) return true;
+                    if (item.children && isDescendant(item.children, id)) return true;
+                }
+                return false;
+            };
+
+            const overColumn = currentBoard.find(col => col.id === overId || isDescendant(col.items, overId));
+            
+            if (!overColumn) {
+                return currentBoard;
+            }
+
+            const overColumnIndex = currentBoard.findIndex((col) => col.id === overColumn.id);
+
+            if (activeColumnIndex !== -1 && overColumnIndex !== -1) {
+                return arrayMove(currentBoard, activeColumnIndex, overColumnIndex);
+            }
+
+            return currentBoard;
+        });
         return;
       }
       
