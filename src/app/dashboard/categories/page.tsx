@@ -43,7 +43,6 @@ import { AddCategorySheet, type CategoryFormValues } from './add-category-sheet'
 import { Container } from './dnd/Container';
 import { mockDataStore } from '@/lib/mock-data-store';
 import type { Item, Column, ScheduleRule } from './types';
-import { Item as ItemComponent } from '@/components/dashboard/dnd/Item';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { CategoryScheduleSheet } from './schedule-sheet';
 
@@ -562,17 +561,24 @@ export default function CategoriesPage() {
               </div>
             </SortableContext>
             <DragOverlay dropAnimation={dropAnimation}>
-                {activeItem && 'items' in activeItem ? (
-                     <Card className="w-80">
-                        <CardHeader className="flex-row items-center justify-between">
-                            <div className="flex items-center gap-2 flex-grow min-w-0">
+                {activeItem ? (
+                    'items' in activeItem ? (
+                        <Card className="w-80 shadow-lg opacity-75">
+                            <CardHeader className="flex-row items-center justify-between">
+                                <div className="flex items-center gap-2 flex-grow min-w-0">
+                                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                                    <CardTitle className="truncate">{activeItem.name}</CardTitle>
+                                </div>
+                            </CardHeader>
+                        </Card>
+                    ) : (
+                        <Card className="p-3 flex items-center justify-between w-[304px] shadow-lg bg-card opacity-75">
+                            <div className="flex items-center gap-2">
                                 <GripVertical className="h-5 w-5 text-muted-foreground" />
-                                <CardTitle className="truncate">{activeItem.name}</CardTitle>
+                                <p className="font-medium text-sm">{activeItem.name}</p>
                             </div>
-                        </CardHeader>
-                    </Card>
-                ) : activeItem ? (
-                    <ItemComponent id={activeItem.id} name={activeItem.name} attributes={{}} listeners={{}}/>
+                        </Card>
+                    )
                 ) : null}
             </DragOverlay>
           </DndContext>
