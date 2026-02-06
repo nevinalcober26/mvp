@@ -20,10 +20,11 @@ type SortableItemProps = {
   onDeleteItem: (itemId: UniqueIdentifier) => void;
   activeId: UniqueIdentifier | null;
   overId: UniqueIdentifier | null;
+  isAnyDrawerOpen: boolean;
   depth?: number;
 };
 
-export function SortableItem({ item, onEditClick, onScheduleClick, onAddItem, onDeleteItem, activeId, overId, depth = 0 }: SortableItemProps) {
+export function SortableItem({ item, onEditClick, onScheduleClick, onAddItem, onDeleteItem, activeId, overId, depth = 0, isAnyDrawerOpen }: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -75,7 +76,7 @@ export function SortableItem({ item, onEditClick, onScheduleClick, onAddItem, on
 
         {hasChildren && (
             <div className="pl-6 border-l-2 border-dashed ml-3 space-y-2">
-                <SortableContext items={itemChildrenIds} strategy={verticalListSortingStrategy}>
+                <SortableContext items={itemChildrenIds} strategy={verticalListSortingStrategy} disabled={isAnyDrawerOpen}>
                     {item.children.map(child => (
                         <SortableItem 
                             key={child.id} 
@@ -87,6 +88,7 @@ export function SortableItem({ item, onEditClick, onScheduleClick, onAddItem, on
                             activeId={activeId}
                             overId={overId}
                             depth={depth + 1} 
+                            isAnyDrawerOpen={isAnyDrawerOpen}
                         />
                     ))}
                 </SortableContext>

@@ -30,6 +30,7 @@ type ContainerProps = {
   activeId: UniqueIdentifier | null;
   overId: UniqueIdentifier | null;
   activeElementType?: 'container' | 'item';
+  isAnyDrawerOpen: boolean;
 };
 
 const getDescendantIds = (items: Item[]): UniqueIdentifier[] => {
@@ -56,7 +57,7 @@ const isIdWithinContainer = (
     return false;
   };
 
-export function Container({ id, label, items, columnData, onEditClick, onScheduleClick, onAddItem, onDeleteItem, onUpdateColumn, activeId, overId, activeElementType }: ContainerProps) {
+export function Container({ id, label, items, columnData, onEditClick, onScheduleClick, onAddItem, onDeleteItem, onUpdateColumn, activeId, overId, activeElementType, isAnyDrawerOpen }: ContainerProps) {
   const { setNodeRef: setSortableNodeRef, transform, transition, attributes, listeners } = useSortable({ id, data: { type: 'container', item: columnData } });
   const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
     id: id,
@@ -168,7 +169,7 @@ export function Container({ id, label, items, columnData, onEditClick, onSchedul
                 </DropdownMenu>
             </CardHeader>
             <CardContent className={cn("flex flex-col gap-2", items.length > 0 ? 'flex-grow' : 'p-0')}>
-                <SortableContext items={allItemIds} strategy={verticalListSortingStrategy}>
+                <SortableContext items={allItemIds} strategy={verticalListSortingStrategy} disabled={isAnyDrawerOpen}>
                 {items.map((item) => (
                     <SortableItem 
                     key={item.id} 
@@ -179,6 +180,7 @@ export function Container({ id, label, items, columnData, onEditClick, onSchedul
                     onDeleteItem={onDeleteItem}
                     activeId={activeId}
                     overId={overId}
+                    isAnyDrawerOpen={isAnyDrawerOpen}
                     />
                 ))}
                 </SortableContext>

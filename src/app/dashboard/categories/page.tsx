@@ -526,14 +526,14 @@ export default function CategoriesPage() {
 
         <div className="flex-grow p-4 sm:p-6 lg:p-8 overflow-x-auto">
           <DndContext
-            sensors={isAnyDrawerOpen ? [] : sensors}
+            sensors={sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
           >
-            <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
+            <SortableContext items={columnIds} strategy={horizontalListSortingStrategy} disabled={isAnyDrawerOpen}>
               <div className="flex items-start gap-6 pb-4">
                 {board.map((column) => (
                   <Container
@@ -550,6 +550,7 @@ export default function CategoriesPage() {
                     activeId={activeItem?.id ?? null}
                     overId={overId}
                     activeElementType={activeElementType}
+                    isAnyDrawerOpen={isAnyDrawerOpen}
                   />
                 ))}
                 <div className="w-80 flex-shrink-0">
