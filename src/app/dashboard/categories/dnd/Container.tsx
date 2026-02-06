@@ -21,7 +21,9 @@ type ContainerProps = {
   id: UniqueIdentifier;
   label: string;
   items: Item[];
-  onItemClick: (item: Item | Column) => void;
+  columnData: Column;
+  onEditClick: (item: Item | Column) => void;
+  onScheduleClick: (item: Item | Column) => void;
   onAddItem: (containerId: UniqueIdentifier) => void;
   onDeleteItem: (id: UniqueIdentifier, isColumn?: boolean) => void;
   onUpdateColumn: (id: UniqueIdentifier, name: string) => void;
@@ -54,8 +56,8 @@ const isIdWithinContainer = (
     return false;
   };
 
-export function Container({ id, label, items, onItemClick, onAddItem, onDeleteItem, onUpdateColumn, activeId, overId, activeElementType }: ContainerProps) {
-  const { setNodeRef: setSortableNodeRef, transform, transition, attributes, listeners } = useSortable({ id, data: { type: 'container' } });
+export function Container({ id, label, items, columnData, onEditClick, onScheduleClick, onAddItem, onDeleteItem, onUpdateColumn, activeId, overId, activeElementType }: ContainerProps) {
+  const { setNodeRef: setSortableNodeRef, transform, transition, attributes, listeners } = useSortable({ id, data: { type: 'container', item: columnData } });
   const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
     id: id,
     data: {
@@ -150,11 +152,11 @@ export function Container({ id, label, items, onItemClick, onAddItem, onDeleteIt
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="cursor-pointer">
+                        <DropdownMenuItem onSelect={() => onScheduleClick(columnData)} className="cursor-pointer">
                             <Clock className="mr-2 h-4 w-4" />
                             Schedule
                         </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => onItemClick({ id, name: label, items })} className="cursor-pointer">
+                        <DropdownMenuItem onSelect={() => onEditClick(columnData)} className="cursor-pointer">
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                         </DropdownMenuItem>
@@ -171,7 +173,8 @@ export function Container({ id, label, items, onItemClick, onAddItem, onDeleteIt
                     <SortableItem 
                     key={item.id} 
                     item={item} 
-                    onItemClick={onItemClick}
+                    onEditClick={onEditClick}
+                    onScheduleClick={onScheduleClick}
                     onAddItem={onAddItem}
                     onDeleteItem={onDeleteItem}
                     activeId={activeId}

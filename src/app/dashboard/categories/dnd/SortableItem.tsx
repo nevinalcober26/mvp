@@ -3,7 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { useDroppable, UniqueIdentifier } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Item as ItemComponent } from '@/components/dashboard/dnd/Item';
-import type { Item as ItemData } from '@/app/dashboard/categories/types';
+import type { Item as ItemData, Column } from '@/app/dashboard/categories/types';
 import React, { useMemo } from 'react';
 import {
   SortableContext,
@@ -14,7 +14,8 @@ import { cn } from '@/lib/utils';
 
 type SortableItemProps = {
   item: ItemData;
-  onItemClick: (item: ItemData) => void;
+  onEditClick: (item: ItemData) => void;
+  onScheduleClick: (item: ItemData) => void;
   onAddItem: (parentId: UniqueIdentifier) => void;
   onDeleteItem: (itemId: UniqueIdentifier) => void;
   activeId: UniqueIdentifier | null;
@@ -22,7 +23,7 @@ type SortableItemProps = {
   depth?: number;
 };
 
-export function SortableItem({ item, onItemClick, onAddItem, onDeleteItem, activeId, overId, depth = 0 }: SortableItemProps) {
+export function SortableItem({ item, onEditClick, onScheduleClick, onAddItem, onDeleteItem, activeId, overId, depth = 0 }: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -63,7 +64,8 @@ export function SortableItem({ item, onItemClick, onAddItem, onDeleteItem, activ
             <ItemComponent 
                 id={item.id} 
                 name={item.name} 
-                onClick={() => onItemClick(item)}
+                onClick={() => onEditClick(item)}
+                onSchedule={() => onScheduleClick(item)}
                 onDelete={() => onDeleteItem(item.id)}
                 isOver={isOverForNesting}
                 attributes={attributes}
@@ -78,7 +80,8 @@ export function SortableItem({ item, onItemClick, onAddItem, onDeleteItem, activ
                         <SortableItem 
                             key={child.id} 
                             item={child} 
-                            onItemClick={onItemClick}
+                            onEditClick={onEditClick}
+                            onScheduleClick={onScheduleClick}
                             onAddItem={onAddItem}
                             onDeleteItem={onDeleteItem}
                             activeId={activeId}

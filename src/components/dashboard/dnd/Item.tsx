@@ -18,13 +18,14 @@ type ItemProps = {
   name: string;
   onClick?: () => void;
   onDelete?: () => void;
+  onSchedule?: () => void;
   isOver?: boolean;
   attributes: any;
   listeners: any;
 };
 
 export const Item = React.forwardRef<HTMLDivElement, ItemProps>(
-  ({ id, name, onClick, onDelete, isOver, attributes, listeners }, ref) => {
+  ({ id, name, onClick, onDelete, onSchedule, isOver, attributes, listeners }, ref) => {
     return (
       <Card
         ref={ref}
@@ -59,7 +60,7 @@ export const Item = React.forwardRef<HTMLDivElement, ItemProps>(
           <DropdownMenuContent
             align="end"
           >
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem onSelect={onSchedule} className="cursor-pointer">
               <Clock className="mr-2 h-4 w-4" />
               Schedule
             </DropdownMenuItem>

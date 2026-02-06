@@ -13,6 +13,9 @@ import {
   DragEndEvent,
   UniqueIdentifier,
   KeyboardSensor,
+  DragOverlay,
+  DropAnimation,
+  defaultDropAnimationSideEffects,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -24,7 +27,7 @@ import { produce } from 'immer';
 
 import { DashboardHeader } from '@/components/dashboard/header';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, GripVertical } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CategoriesPageSkeleton } from '@/components/dashboard/skeletons';
 import { CategorySheet } from './category-sheet';
@@ -39,9 +42,30 @@ import {
 import { AddCategorySheet, type CategoryFormValues } from './add-category-sheet';
 import { Container } from './dnd/Container';
 import { mockDataStore } from '@/lib/mock-data-store';
-import type { Item, Column } from './types';
+import type { Item, Column, ScheduleRule } from './types';
+import { Item as ItemComponent } from '@/components/dashboard/dnd/Item';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { CategoryScheduleSheet } from './schedule-sheet';
 
 // Helper functions for tree operations
+const findItem = (board: Column[], id: UniqueIdentifier): Item | null => {
+    for (const column of board) {
+        const findInItems = (items: Item[]): Item | null => {
+            for (const item of items) {
+                if (item.id === id) return item;
+                if (item.children) {
+                    const found = findInItems(item.children);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+        const found = findInItems(column.items);
+        if (found) return found;
+    }
+    return null;
+};
+
 const findAndRemoveItem = (board: Column[], id: UniqueIdentifier): Item | null => {
     let removedItem: Item | null = null;
 
@@ -87,15 +111,25 @@ const DeleteConfirmationDialog = ({ open, onOpenChange, onConfirm, name, isColum
     );
 };
 
+const dropAnimation: DropAnimation = {
+  sideEffects: defaultDropAnimationSideEffects({
+    styles: {
+      active: {
+        opacity: '0.5',
+      },
+    },
+  }),
+};
+
 export default function CategoriesPage() {
   const [board, setBoard] = useState<Column[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const [activeItem, setActiveItem] = useState<Item | Column | null>(null);
   const [overId, setOverId] = useState<UniqueIdentifier | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<Column | Item | null>(
-    null
-  );
+  const [selectedCategory, setSelectedCategory] = useState<Column | Item | null>(null);
   const [isAddCategorySheetOpen, setIsAddCategorySheetOpen] = useState(false);
+  const [isScheduleSheetOpen, setIsScheduleSheetOpen] = useState(false);
+  const [schedulingCategory, setSchedulingCategory] = useState<Item | Column | null>(null);
   const [addCategoryParent, setAddCategoryParent] = useState<
     UniqueIdentifier | 'none' | 'new-column'
   >('none');
@@ -152,7 +186,7 @@ export default function CategoriesPage() {
   const columnIds = useMemo(() => board.map((c) => c.id), [board]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
-    setActiveId(event.active.id);
+    setActiveItem(event.active.data.current?.item as Item | Column | null);
     setOverId(event.over?.id ?? null);
   }, []);
   
@@ -162,7 +196,7 @@ export default function CategoriesPage() {
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
-      setActiveId(null);
+      setActiveItem(null);
       setOverId(null);
       const { active, over } = event;
       if (!over) return;
@@ -170,12 +204,13 @@ export default function CategoriesPage() {
       const isDraggingColumn = active.data.current?.type === 'container';
       
       if (isDraggingColumn) {
-        if (active.id !== over.id && columnIds.includes(over.id)) {
-          setBoard((board) => {
-            const oldIndex = board.findIndex((col) => col.id === active.id);
-            const newIndex = board.findIndex((col) => col.id === over.id);
-            return arrayMove(board, oldIndex, newIndex);
-          });
+        if (active.id !== over.id && board.find(c => c.id === over.id)) {
+            setBoard((board) => {
+                const oldIndex = board.findIndex((col) => col.id === active.id);
+                const newIndex = board.findIndex((col) => col.id === over.id || board.find(c => c.id === over.id)?.items.find(i => i.id === over.id));
+                if (newIndex === -1) return board;
+                return arrayMove(board, oldIndex, newIndex);
+            });
         }
         return;
       }
@@ -234,11 +269,11 @@ export default function CategoriesPage() {
           }));
       }
     },
-    [columnIds]
+    []
   );
   
   const handleDragCancel = useCallback(() => {
-    setActiveId(null);
+    setActiveItem(null);
     setOverId(null);
   }, []);
 
@@ -261,23 +296,24 @@ export default function CategoriesPage() {
   const handleAddCategory = (values: CategoryFormValues) => {
     const { name, parentId, ...rest } = values;
     
-    const newItem: Item = { 
-      id: `item-${Date.now()}`, 
-      name,
-      ...rest,
-      children: []
-    };
-
     setBoard(
       produce((draft) => {
         if (parentId === 'none' || parentId === 'new-column') {
-          draft.push({
-            id: `col-${Date.now()}`,
-            name,
-            ...rest,
-            items: [],
-          });
+          const newColumn: Column = {
+              id: `col-${Date.now()}`,
+              name,
+              items: [],
+              ...rest,
+              children: [], // to satisfy type, not used
+          };
+          draft.push(newColumn);
         } else {
+            const newItem: Item = { 
+                id: `item-${Date.now()}`, 
+                name,
+                ...rest,
+                children: []
+            };
           const isColumn = draft.some(col => col.id === parentId);
           if (isColumn) {
             const parentColumn = draft.find((col) => col.id === parentId);
@@ -430,7 +466,34 @@ export default function CategoriesPage() {
     setSelectedCategory(itemOrColumn);
   }
 
-  const activeElementType = activeId ? (columnIds.includes(activeId) ? 'container' : 'item') : undefined;
+  const handleOpenScheduleSheet = (category: Item | Column) => {
+    setSchedulingCategory(category);
+    setIsScheduleSheetOpen(true);
+  };
+
+  const handleSaveSchedule = (id: UniqueIdentifier, schedules: ScheduleRule[]) => {
+    setBoard(
+        produce((draft) => {
+            let category: Item | Column | null = null;
+            const colIndex = draft.findIndex(c => c.id === id);
+            if (colIndex !== -1) {
+                category = draft[colIndex];
+            } else {
+                category = findItem(draft, id);
+            }
+            
+            if (category) {
+                category.schedules = schedules;
+            }
+        })
+    );
+    toast({
+        title: "Schedule Saved",
+        description: "The display schedule has been updated.",
+    });
+  };
+
+  const activeElementType = activeItem ? (columnIds.includes(activeItem.id) ? 'container' : 'item') : undefined;
 
   if (isLoading) {
     return <CategoriesPageSkeleton view="gallery" />;
@@ -476,11 +539,13 @@ export default function CategoriesPage() {
                     id={column.id}
                     label={column.name}
                     items={column.items}
-                    onItemClick={handleEditClick}
+                    columnData={column}
+                    onEditClick={handleEditClick}
+                    onScheduleClick={handleOpenScheduleSheet}
                     onAddItem={handleOpenAddSheet}
                     onDeleteItem={handleDeleteRequest}
                     onUpdateColumn={handleUpdateColumn}
-                    activeId={activeId}
+                    activeId={activeItem?.id ?? null}
                     overId={overId}
                     activeElementType={activeElementType}
                   />
@@ -496,6 +561,20 @@ export default function CategoriesPage() {
                 </div>
               </div>
             </SortableContext>
+            <DragOverlay dropAnimation={dropAnimation}>
+                {activeItem && 'items' in activeItem ? (
+                     <Card className="w-80">
+                        <CardHeader className="flex-row items-center justify-between">
+                            <div className="flex items-center gap-2 flex-grow min-w-0">
+                                <GripVertical className="h-5 w-5 text-muted-foreground" />
+                                <CardTitle className="truncate">{activeItem.name}</CardTitle>
+                            </div>
+                        </CardHeader>
+                    </Card>
+                ) : activeItem ? (
+                    <ItemComponent id={activeItem.id} name={activeItem.name} attributes={{}} listeners={{}}/>
+                ) : null}
+            </DragOverlay>
           </DndContext>
         </div>
       </div>
@@ -516,6 +595,12 @@ export default function CategoriesPage() {
         onAddCategory={handleAddCategory}
         board={board}
         initialParentId={addCategoryParent}
+      />
+       <CategoryScheduleSheet
+        open={isScheduleSheetOpen}
+        onOpenChange={setIsScheduleSheetOpen}
+        category={schedulingCategory}
+        onSave={handleSaveSchedule}
       />
       <DeleteConfirmationDialog 
         open={!!deleteTarget}

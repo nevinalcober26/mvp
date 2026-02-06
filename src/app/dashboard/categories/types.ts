@@ -1,7 +1,17 @@
 import type { UniqueIdentifier } from '@dnd-kit/core';
 
+export type ScheduleRule = {
+  id: string;
+  weekday: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday' | 'Everyday';
+  allDay: boolean;
+  from?: string; // HH:mm
+  to?: string; // HH:mm
+  disableOrder: boolean;
+};
+
 export type CategoryBase = {
   description?: string;
+  schedules?: ScheduleRule[];
   // display
   displayFullwidth?: boolean;
   hiddenTitle?: boolean;
