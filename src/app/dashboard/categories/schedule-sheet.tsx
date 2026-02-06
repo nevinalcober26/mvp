@@ -12,9 +12,10 @@ import {
   SheetTitle,
   SheetFooter,
   SheetClose,
+  SheetDescription,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -25,12 +26,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { X } from 'lucide-react';
+import { XCircle, Ban, Trash2 } from 'lucide-react';
 import type { Column, Item, ScheduleRule } from './types';
 import { UniqueIdentifier } from '@dnd-kit/core';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 const scheduleSchema = z.object({
   weekday: z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Everyday']),
@@ -69,18 +71,8 @@ export function CategoryScheduleSheet({
   category,
   onSave,
 }: CategoryScheduleSheetProps) {
-  const [currentTime, setCurrentTime] = useState('');
   const [schedules, setSchedules] = useState<ScheduleRule[]>([]);
   const { toast } = useToast();
-
-  useEffect(() => {
-    if (open) {
-      const timer = setInterval(() => {
-        setCurrentTime(format(new Date(), 'EEEE, do MMMM yyyy h:mm a'));
-      }, 1000);
-      return () => clearInterval(timer);
-    }
-  }, [open]);
 
   useEffect(() => {
     if (category?.schedules) {
@@ -118,6 +110,11 @@ export function CategoryScheduleSheet({
   
   const handleDeleteRule = (id: string) => {
     setSchedules(prev => prev.filter(rule => rule.id !== id));
+     toast({
+        variant: "destructive",
+        title: "Rule Removed",
+        description: `The restriction has been removed.`
+    })
   };
   
   const handleSaveChanges = () => {
@@ -143,14 +140,14 @@ export function CategoryScheduleSheet({
                 <div className="flex justify-between items-center">
                     <div>
                         <SheetTitle className="text-xl mb-1">Schedule Category: {category?.name}</SheetTitle>
-                        <p className="text-sm text-muted-foreground">Currently: {currentTime}. <span className="font-semibold text-green-600">Displaying</span></p>
+                        <SheetDescription>Set days and times when this category is hidden or un-orderable.</SheetDescription>
                     </div>
                 </div>
             </SheetHeader>
             <div className="flex-grow overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 bg-muted/30">
                 <Card className="self-start shadow-sm">
                     <CardHeader>
-                        <CardTitle className="text-primary text-lg">Add Restrictions</CardTitle>
+                        <CardTitle className="text-primary text-lg">Add New Restriction</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={form.handleSubmit(handleAddHours)} className="space-y-6">
@@ -165,7 +162,7 @@ export function CategoryScheduleSheet({
                             </div>
                             <div className="flex items-center space-x-2 pt-2">
                                 <Checkbox id="allDay" checked={allDay} onCheckedChange={(checked) => form.setValue('allDay', !!checked)} />
-                                <Label htmlFor="allDay" className="font-normal cursor-pointer">All Day</Label>
+                                <Label htmlFor="allDay" className="font-normal cursor-pointer">Unavailable All Day</Label>
                             </div>
                             
                             <div className="grid grid-cols-2 gap-4">
@@ -196,6 +193,7 @@ export function CategoryScheduleSheet({
                 <Card className="shadow-sm">
                     <CardHeader>
                         <CardTitle className="text-primary text-lg">Menu - Display Hours</CardTitle>
+                        <CardDescription>A weekly overview of when this category will be available.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <TooltipProvider>
@@ -204,15 +202,15 @@ export function CategoryScheduleSheet({
                                     const allDayUnavailable = schedules.some(s => s.allDay);
                                     
                                     return (
-                                        <div key={day} className="space-y-2">
+                                        <div key={day} className="space-y-3 p-4 border rounded-lg bg-card">
                                             <div className="flex justify-between items-center">
-                                                <p className="font-semibold text-card-foreground">{day}</p>
+                                                <p className="font-semibold text-card-foreground text-lg">{day}</p>
                                                 {allDayUnavailable ? (
-                                                    <span className="text-xs font-medium text-red-600">Unavailable All Day</span>
+                                                    <Badge variant="destructive">Unavailable All Day</Badge>
                                                 ) : schedules.length === 0 ? (
-                                                    <span className="text-xs font-medium text-green-600">Available All Day</span>
+                                                    <Badge className="bg-green-100 text-green-700 border-none">Available All Day</Badge>
                                                 ) : (
-                                                     <span className="text-xs font-medium text-yellow-600">Partially Available</span>
+                                                     <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 border-none">Has Restrictions</Badge>
                                                 )}
                                             </div>
                                             <div className="relative w-full">
@@ -252,6 +250,32 @@ export function CategoryScheduleSheet({
                                                     <span>12am</span>
                                                 </div>
                                             </div>
+                                            {schedules.length > 0 && (
+                                                <div className="space-y-2 pt-3 border-t">
+                                                    <h4 className="text-sm font-medium text-muted-foreground">Active Restrictions:</h4>
+                                                    {schedules.map(rule => (
+                                                        <div key={rule.id} className="flex items-center justify-between text-sm p-3 rounded-md bg-muted/50">
+                                                            <div className="flex items-center gap-3">
+                                                                {rule.disableOrder ? 
+                                                                    <Ban className="h-5 w-5 text-yellow-600 flex-shrink-0" /> : 
+                                                                    <XCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                                                                }
+                                                                <div>
+                                                                    <p className="font-semibold">
+                                                                        {rule.allDay ? 'Unavailable: All Day' : `Unavailable: ${rule.from} - ${rule.to}`}
+                                                                    </p>
+                                                                    <p className="text-xs text-muted-foreground">
+                                                                        {rule.disableOrder ? 'During this time, customers can see this category but cannot place orders from it.' : 'During this time, this category will be completely hidden from the menu.'}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteRule(rule.id)}>
+                                                                <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                                                            </Button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })}
