@@ -353,25 +353,32 @@ export function AppSidebar() {
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative shrink-0">
-                      <div className="h-10 w-10 rounded-full bg-[#18B4A6]/20 p-0.5 border border-[#18B4A6]/30 flex items-center justify-center overflow-hidden">
-                        <Image
-                          src="https://picsum.photos/seed/brand/100/100"
-                          width={40}
-                          height={40}
-                          alt="Brand logo"
-                          className="rounded-full object-cover grayscale brightness-110"
-                        />
+                      {/* Gradient Border Container for Branch Logo */}
+                      <div 
+                        className="h-11 w-11 rounded-full p-[2px] flex items-center justify-center transition-transform hover:scale-105"
+                        style={{ background: 'conic-gradient(from 0deg, #18B4A6, #4ade80, #facc15, #fb923c, #18B4A6)' }}
+                      >
+                        <div className="h-full w-full rounded-full bg-[#142424] p-[1.5px] flex items-center justify-center overflow-hidden">
+                          <Image
+                            src="https://picsum.photos/seed/brand/100/100"
+                            width={40}
+                            height={40}
+                            alt="Brand logo"
+                            className="rounded-full object-cover grayscale brightness-110"
+                          />
+                        </div>
                       </div>
-                      <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+                      {/* Live Status Pulse */}
+                      <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 border-2 border-[#142424]"></span>
+                        <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-green-500 border-2 border-[#142424]"></span>
                       </span>
                     </div>
                     <div className="flex flex-col overflow-hidden">
-                      <span className="truncate text-[10px] font-black uppercase tracking-[0.15em] text-[#18B4A6]">
+                      <span className="truncate text-[11px] font-black uppercase tracking-[0.18em] text-[#18B4A6]">
                         Bloomsbury&apos;s
                       </span>
-                      <h4 className="truncate text-[15px] font-black text-white tracking-tight leading-tight">
+                      <h4 className="truncate text-[17px] font-black text-white tracking-tight leading-tight">
                         Ras Al Khaimah
                       </h4>
                     </div>
@@ -451,9 +458,11 @@ export function AppSidebar() {
                   </ScrollArea>
 
                   <div className="p-2 bg-gray-50/80 border-t">
-                    <DropdownMenuItem className="cursor-pointer focus:bg-white p-3 rounded-xl flex items-center gap-3 text-primary font-black text-sm border border-transparent hover:border-primary/20 transition-all">
-                      <PlusCircle className="h-5 w-5" />
-                      <span>Add New Branch</span>
+                    <DropdownMenuItem asChild className="cursor-pointer focus:bg-white p-3 rounded-xl flex items-center gap-3 text-primary font-black text-sm border border-transparent hover:border-primary/20 transition-all">
+                      <NextLink href="/dashboard/categories/new">
+                        <PlusCircle className="h-5 w-5" />
+                        <span>Add New Branch</span>
+                      </NextLink>
                     </DropdownMenuItem>
                   </div>
                 </DropdownMenuContent>
@@ -463,13 +472,20 @@ export function AppSidebar() {
           <div className="hidden group-data-[collapsible=icon]:block">
             <NextLink href="#">
               <div className="relative">
-                <Image
-                  src="https://picsum.photos/seed/brand/100/100"
-                  width={32}
-                  height={32}
-                  alt="Restaurant logo"
-                  className="rounded-full bg-white p-0.5"
-                />
+                <div 
+                  className="h-9 w-9 rounded-full p-[1.5px] flex items-center justify-center"
+                  style={{ background: 'conic-gradient(from 0deg, #18B4A6, #4ade80, #facc15, #fb923c, #18B4A6)' }}
+                >
+                  <div className="h-full w-full rounded-full bg-[#142424] flex items-center justify-center overflow-hidden">
+                    <Image
+                      src="https://picsum.photos/seed/brand/100/100"
+                      width={32}
+                      height={32}
+                      alt="Restaurant logo"
+                      className="rounded-full object-cover"
+                    />
+                  </div>
+                </div>
                 <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500 border border-gray-800"></span>
                 </span>
