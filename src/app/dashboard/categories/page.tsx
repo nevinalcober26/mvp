@@ -146,7 +146,7 @@ const StatCard = ({ title, value, icon: Icon, change, iconColor, bgIcon }: { tit
 const RestaurantCard = ({ restaurant }: { restaurant: Restaurant }) => (
   <Card className="overflow-hidden group hover:shadow-md transition-shadow">
     <div className="relative aspect-[16/9] w-full bg-muted">
-      {restaurant.image ? (
+      {restaurant.image && restaurant.image !== "" ? (
         <Image
           src={restaurant.image}
           alt={restaurant.name}

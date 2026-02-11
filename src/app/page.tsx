@@ -47,8 +47,21 @@ export default function LoginPage() {
     setError('');
     setIsSigningIn(true);
 
+    // Hardcoded check for demo credentials as requested: admin / password
+    if (email === 'admin' && password === 'password') {
+      localStorage.setItem('isLoggedIn', 'true');
+      toast({
+        title: 'Welcome back!',
+        description: 'Redirecting to your dashboard...',
+      });
+      router.push('/dashboard');
+      return;
+    }
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      // Internal convenience: treat "admin" as "admin@example.com" for Firebase if no domain provided
+      const loginEmail = email.includes('@') ? email : `${email}@example.com`;
+      await signInWithEmailAndPassword(auth, loginEmail, password);
       localStorage.setItem('isLoggedIn', 'true');
       toast({
         title: 'Welcome back!',
@@ -81,11 +94,11 @@ export default function LoginPage() {
         <form onSubmit={handleSignIn}>
           <CardContent className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email or Username</Label>
               <Input
                 id="email"
-                type="email"
-                placeholder="admin@example.com"
+                type="text"
+                placeholder="admin"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -96,7 +109,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
