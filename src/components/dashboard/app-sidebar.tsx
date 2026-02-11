@@ -12,6 +12,8 @@ import {
   Rocket,
   HelpCircle,
   ChevronDown,
+  Store,
+  MapPin,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -252,7 +254,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar variant="sidebar" collapsible="icon" className="border-r">
-      <SidebarHeader className="relative flex h-auto flex-col items-center justify-center gap-4 p-4">
+      <SidebarHeader className="relative flex h-auto flex-col items-center justify-center gap-4 p-4 pb-2">
         <div className="flex w-full items-center justify-center">
           <div className="group-data-[collapsible=icon]:hidden">
             <EMenuIcon />
@@ -261,6 +263,19 @@ export function AppSidebar() {
             <LayoutDashboard className="h-6 w-6" />
           </div>
         </div>
+
+        {/* PROMINENT BRANCH IDENTIFIER */}
+        <div className="w-full group-data-[collapsible=icon]:hidden">
+          <div className="flex flex-col gap-1 w-full bg-primary text-primary-foreground p-4 rounded-xl shadow-lg border border-primary/20">
+            <div className="flex items-center gap-2 mb-1">
+              <MapPin className="h-3.5 w-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-widest opacity-90">Current Location</span>
+            </div>
+            <p className="text-lg font-black tracking-tight leading-none">Ras Al Khaimah</p>
+            <p className="text-xs opacity-80 font-medium mt-1">Bloomsbury's Boutique Café</p>
+          </div>
+        </div>
+
         <div className="relative w-full group-data-[collapsible=icon]:hidden">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
