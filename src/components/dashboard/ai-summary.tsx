@@ -1,11 +1,10 @@
 'use client';
 
-import { Wand, RefreshCw, X, AlertTriangle } from 'lucide-react';
+import { Wand, RefreshCw, X } from 'lucide-react';
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { summarizeData } from '@/ai/flows/summarize-data-flow';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
 
 interface AiSummaryProps {
   data: any[];
@@ -14,70 +13,65 @@ interface AiSummaryProps {
 
 export function AiSummary({ data, context }: AiSummaryProps) {
   const [summary, setSummary] = useState('');
-  const [error, setError] = useState('');
-  const [status, setStatus] = useState<
-    'idle' | 'loading' | 'success' | 'error'
-  >('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [isVisible, setIsVisible] = useState(true);
-  const [isRateLimited, setIsRateLimited] = useState(false);
   const isLoadingRef = useRef(false);
+  const lastDataHashRef = useRef<string>('');
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const generateSummary = useCallback(() => {
+  const generateSummary = useCallback((force = false) => {
     if (isLoadingRef.current) return;
 
     if (data.length > 0) {
+      // Limit data items to prevent massive payloads and summarize significantly
+      const dataSample = data.slice(0, 20);
+      const dataString = JSON.stringify(dataSample);
+      
+      // Skip if data hasn't changed or isn't forced
+      if (!force && dataString === lastDataHashRef.current) {
+        return;
+      }
+
       isLoadingRef.current = true;
       setStatus('loading');
-      setError('');
       setSummary('');
-      // To prevent excessively large API requests, we'll slice the data.
-      // 50 records should be enough for a meaningful summary.
-      const dataString = JSON.stringify(data.slice(0, 50));
 
       summarizeData({ data: dataString, context })
         .then((result) => {
           setSummary(result.summary);
           setStatus('success');
-          setIsRateLimited(false);
+          lastDataHashRef.current = dataString;
         })
         .catch((err) => {
-          console.error('AI Summary Error:', err);
-          // For any error, fall back to a static summary
-          const staticSummary = `Key metrics: **${data.length} items** found for **${context}**.`;
-          setSummary(staticSummary);
+          console.error('AI Summary Component Error:', err);
+          // Fallback message
+          setSummary(`AI Insights are currently taking a breath. Found **${data.length} items** in **${context}**.`);
           setStatus('success');
-          setError('');
-
-          // If it's a rate limit error, prevent auto-retries.
-          if (
-            err.message &&
-            (err.message.includes('429') ||
-              err.message.includes('Too Many Requests'))
-          ) {
-            setIsRateLimited(true);
-          }
         })
         .finally(() => {
           isLoadingRef.current = false;
         });
     } else {
-      // If there's no data, reset to idle state.
       setStatus('idle');
       setSummary('');
-      setError('');
     }
   }, [data, context]);
 
-  // Trigger summary generation when data changes, but not if rate limited.
+  // Implement debouncing to prevent hitting AI limits during rapid filtering/typing
   useEffect(() => {
-    if (isRateLimited) return;
-    generateSummary();
-  }, [generateSummary, isRateLimited]);
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    
+    debounceTimerRef.current = setTimeout(() => {
+      generateSummary();
+    }, 1500); // 1.5s delay after last change
+
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, [generateSummary]);
 
   const handleRefresh = () => {
-    // Allow manual refresh to try again.
-    setIsRateLimited(false);
-    generateSummary();
+    generateSummary(true);
   };
 
   const renderSummaryWithBold = (text: string) => {
@@ -86,7 +80,7 @@ export function AiSummary({ data, context }: AiSummaryProps) {
     return parts.map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
         return (
-          <strong key={index} className="font-semibold text-gray-900">
+          <strong key={index} className="font-bold text-gray-900">
             {part.slice(2, -2)}
           </strong>
         );
@@ -95,62 +89,9 @@ export function AiSummary({ data, context }: AiSummaryProps) {
     });
   };
 
-  // Do not render the component if it's been closed or if there's no data to show.
   if (!isVisible || (status === 'idle' && data.length === 0)) {
     return null;
   }
-
-  const summaryParts = summary.split('\n');
-  const mainSummary = summaryParts[0] || '';
-  const secondarySummary = summaryParts[1] || '';
-
-  const renderContent = () => {
-    switch (status) {
-      case 'loading':
-        return (
-          <div className="flex-grow flex items-center gap-4">
-            <RefreshCw className="h-5 w-5 text-teal-600 animate-spin" />
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                AI is analyzing...
-              </p>
-              <p className="text-sm text-gray-700">
-                Please wait while we generate insights.
-              </p>
-            </div>
-          </div>
-        );
-      case 'error':
-      case 'success':
-        return (
-          <div className="flex-grow">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-              AI ANALYSIS
-            </p>
-            <p className="text-sm text-gray-700">
-              <span className="font-bold text-gray-900">Summary: </span>
-              {renderSummaryWithBold(mainSummary)}
-            </p>
-            {secondarySummary && (
-              <p className="text-xs text-gray-500 mt-2">
-                {secondarySummary}
-              </p>
-            )}
-          </div>
-        );
-      default:
-        return (
-          <div className="flex-grow">
-             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-              AI ANALYSIS
-            </p>
-            <p className="text-sm text-gray-700">
-              No data to analyze.
-            </p>
-          </div>
-        )
-    }
-  };
 
   return (
     <div className="animated-gradient-border relative rounded-lg bg-gradient-to-r from-teal-50/60 to-blue-100/60 p-6 shadow-sm">
@@ -160,26 +101,35 @@ export function AiSummary({ data, context }: AiSummaryProps) {
             <Wand className="h-6 w-6 text-teal-500" />
           </div>
         </div>
-        {renderContent()}
-        <div className="flex items-start gap-2">
+        <div className="flex-grow">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-teal-600 mb-1">
+            AI Operational Pulse
+          </p>
+          {status === 'loading' ? (
+            <div className="flex items-center gap-2 text-sm text-gray-600 animate-pulse">
+              <RefreshCw className="h-4 w-4 animate-spin text-teal-500" />
+              <span>Analyzing latest metrics...</span>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-700 leading-relaxed">
+              {renderSummaryWithBold(summary)}
+            </p>
+          )}
+        </div>
+        <div className="flex items-start gap-1">
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 shrink-0 rounded-full bg-white/50 hover:bg-white/80"
+            className="h-8 w-8 rounded-full hover:bg-white/50 transition-colors"
             onClick={handleRefresh}
             disabled={status === 'loading'}
           >
-            <RefreshCw
-              className={cn(
-                'h-4 w-4 text-muted-foreground',
-                status === 'loading' && 'animate-spin'
-              )}
-            />
+            <RefreshCw className={cn("h-4 w-4 text-muted-foreground", status === 'loading' && "animate-spin")} />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 shrink-0 rounded-full bg-white/50 hover:bg-white/80"
+            className="h-8 w-8 rounded-full hover:bg-white/50 transition-colors"
             onClick={() => setIsVisible(false)}
           >
             <X className="h-4 w-4 text-muted-foreground" />

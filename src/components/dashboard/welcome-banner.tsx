@@ -16,12 +16,9 @@ interface WelcomeBannerProps {
 export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [summary, setSummary] = useState('');
-  const [error, setError] = useState('');
-  const [status, setStatus] = useState<
-    'idle' | 'loading' | 'success' | 'error'
-  >('idle');
-  const [isRateLimited, setIsRateLimited] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const isLoadingRef = useRef(false);
+  const lastSummarizedRef = useRef<string>('');
 
   useEffect(() => {
     const timerId = setInterval(() => {
@@ -32,80 +29,50 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
-    if (hour < 12) {
-      return 'Good Morning';
-    } else if (hour < 18) {
-      return 'Good Afternoon';
-    } else {
-      return 'Good Evening';
-    }
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
   };
 
-  const generateSummary = useCallback(() => {
+  const generateSummary = useCallback((force = false) => {
     if (isLoadingRef.current) return;
 
-    const combinedData = {
-      stats: statCards,
-      sales: chartData,
-    };
+    const combinedData = { stats: statCards, sales: chartData };
+    const dataString = JSON.stringify(combinedData);
 
-    if (combinedData.stats.length > 0 && combinedData.sales.length > 0) {
+    if (!force && dataString === lastSummarizedRef.current) return;
+
+    if (statCards.length > 0 && chartData.length > 0) {
       isLoadingRef.current = true;
       setStatus('loading');
-      setError('');
       setSummary('');
-
-      const dataString = JSON.stringify(combinedData);
 
       summarizeData({ data: dataString, context: "today's restaurant status" })
         .then((result) => {
           setSummary(result.summary);
           setStatus('success');
-          setIsRateLimited(false);
+          lastSummarizedRef.current = dataString;
         })
         .catch((err) => {
-          console.error('AI Summary Error:', err);
-          // For any error (including rate limits), fall back to a static summary.
-          if (statCards && statCards.length >= 2) {
-            const staticSummary = `Today's key metrics: **${statCards[0].title}** is at **${statCards[0].value}** and **${statCards[1].title}** is **${statCards[1].value}**.`;
-            setSummary(staticSummary);
-          } else {
-            setSummary("Welcome back! Here's a look at your dashboard.");
-          }
-          setStatus('success'); // Set status to success to display the fallback
-          setError(''); // Clear any previous errors
-
-          // If it's a rate limit error, prevent auto-retries.
-          if (
-            err.message &&
-            (err.message.includes('429') ||
-              err.message.includes('Too Many Requests'))
-          ) {
-            setIsRateLimited(true);
-          }
+          console.error('AI Banner Summary Error:', err);
+          setSummary("Welcome back! Your dashboard is active and ready for management. Let's make today successful! 🚀");
+          setStatus('success');
         })
         .finally(() => {
           isLoadingRef.current = false;
         });
     } else {
       setStatus('idle');
-      setSummary('');
-      setError('');
     }
   }, [statCards, chartData]);
 
   useEffect(() => {
-    // Trigger summary generation only once on component mount.
-    generateSummary();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleRefresh = () => {
-    // Allow manual refresh to try again.
-    setIsRateLimited(false);
-    // Manually trigger generation since the effect might not run if data hasn't changed.
-    generateSummary();
-  };
+    // Initial load delay to avoid collision with other AI calls on mount
+    const timer = setTimeout(() => {
+      generateSummary();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [generateSummary]);
 
   const renderSummaryWithBold = (text: string) => {
     if (!text) return null;
@@ -113,7 +80,7 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
     return parts.map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
         return (
-          <strong key={index} className="font-semibold text-gray-800">
+          <strong key={index} className="font-bold text-gray-800">
             {part.slice(2, -2)}
           </strong>
         );
@@ -122,56 +89,35 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
     });
   };
 
-  const renderSummaryContent = () => {
-    switch (status) {
-      case 'loading':
-        return (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <RefreshCw className="h-4 w-4 animate-spin" />
-            <span>AI is analyzing your restaurant's status...</span>
-          </div>
-        );
-      case 'error':
-      case 'success':
-        return (
-          <p className="max-w-md text-gray-600">
-            {renderSummaryWithBold(summary)}
-          </p>
-        );
-      default:
-        return (
-          <p className="mt-1 max-w-md text-gray-600">
-            Welcome back to your dashboard. Today looks promising with clear
-            skies ahead!🚀
-          </p>
-        );
-    }
-  };
-
   return (
     <div className="animated-gradient-border relative rounded-lg bg-gradient-to-r from-teal-50/60 to-blue-100/60 p-6 shadow-sm">
       <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
-        {/* Left Section */}
         <div className="flex-grow">
           <h2 className="text-2xl font-bold text-gray-800">
             {getGreeting()}, Marice! 😊
           </h2>
           <div className="mt-2 text-sm flex items-start gap-3">
             <Wand className="h-4 w-4 text-teal-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-grow">{renderSummaryContent()}</div>
+            <div className="flex-grow">
+              {status === 'loading' ? (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <span>AI is syncing your outlet metrics...</span>
+                </div>
+              ) : (
+                <p className="max-w-md text-gray-600">
+                  {renderSummaryWithBold(summary || "Welcome back to your dashboard. Ready for another great shift?")}
+                </p>
+              )}
+            </div>
             <Button
               variant="ghost"
               size="icon"
               className="h-7 w-7 shrink-0 rounded-full bg-white/50 hover:bg-white/80"
-              onClick={handleRefresh}
+              onClick={() => generateSummary(true)}
               disabled={status === 'loading'}
             >
-              <RefreshCw
-                className={cn(
-                  'h-4 w-4 text-muted-foreground',
-                  status === 'loading' && 'animate-spin'
-                )}
-              />
+              <RefreshCw className={cn('h-4 w-4 text-muted-foreground', status === 'loading' && 'animate-spin')} />
             </Button>
           </div>
           <div className="mt-6 flex items-center">
@@ -187,7 +133,6 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
           </div>
         </div>
 
-        {/* Right Section */}
         <div className="flex-shrink-0 text-right">
           <div className="flex items-center justify-end">
             <Sun className="h-16 w-16 text-yellow-400" />
