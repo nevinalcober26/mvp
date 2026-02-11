@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +30,6 @@ import { cn } from '@/lib/utils';
 import { CategoriesPageSkeleton } from '@/components/dashboard/skeletons';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 import { QuickSettingsSheet } from './quick-settings-sheet';
-import { BranchConfigSheet } from './branch-config-sheet';
 
 type RestaurantStatus = 'Open' | 'Closed';
 
@@ -212,11 +212,11 @@ const RestaurantCard = ({
 );
 
 export default function ManageRestaurantPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedBranch, setSelectedBranch] = useState<Restaurant | null>(null);
   const [isQuickSettingsOpen, setIsQuickSettingsOpen] = useState(false);
-  const [isBranchConfigOpen, setIsBranchConfigOpen] = useState(false);
 
   const kpiCards: StatCardData[] = useMemo(() => [
     {
@@ -270,13 +270,11 @@ export default function ManageRestaurantPage() {
   };
 
   const handleEditBranch = (restaurant: Restaurant) => {
-    setSelectedBranch(restaurant);
-    setIsBranchConfigOpen(true);
+    router.push(`/dashboard/categories/edit/${restaurant.id}`);
   };
 
   const handleAddNewBranch = () => {
-    setSelectedBranch(null);
-    setIsBranchConfigOpen(true);
+    router.push('/dashboard/categories/new');
   };
 
   if (isLoading) {
@@ -367,12 +365,6 @@ export default function ManageRestaurantPage() {
         open={isQuickSettingsOpen} 
         onOpenChange={setIsQuickSettingsOpen}
         restaurant={selectedBranch}
-      />
-
-      <BranchConfigSheet
-        open={isBranchConfigOpen}
-        onOpenChange={setIsBranchConfigOpen}
-        branch={selectedBranch}
       />
     </>
   );
