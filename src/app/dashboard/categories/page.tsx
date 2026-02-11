@@ -187,10 +187,6 @@ const RestaurantCard = ({ restaurant }: { restaurant: Restaurant }) => (
         <Settings className="h-4 w-4" />
         Settings
       </Button>
-      <Button variant="outline" size="sm" className="flex-1 font-semibold gap-2">
-        <ClipboardList className="h-4 w-4" />
-        Reservations
-      </Button>
       <Button size="sm" className="flex-1 font-semibold gap-2 bg-primary hover:bg-primary/90">
         <Edit className="h-4 w-4" />
         Edit
