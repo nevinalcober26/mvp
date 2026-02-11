@@ -322,52 +322,49 @@ export function AppSidebar() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex h-auto w-full items-center justify-between gap-2 rounded-xl bg-white p-3 text-left text-gray-900 hover:bg-gray-50 border border-gray-200 transition-colors"
+                className="flex h-auto w-full items-center justify-between gap-2 rounded-xl bg-gray-800 p-3 text-left text-white hover:bg-gray-700 border border-white/10 transition-colors shadow-lg"
               >
                 <div className="flex items-center gap-3">
                   <div className="relative shrink-0">
-                    {restaurantLogo && (
-                      <Image
-                        src={restaurantLogo.imageUrl}
-                        width={40}
-                        height={40}
-                        alt="Restaurant logo"
-                        className="rounded-full bg-white p-0.5 border border-gray-200 h-10 w-10 object-cover"
-                        data-ai-hint={restaurantLogo.imageHint}
-                      />
-                    )}
+                    <Image
+                      src="https://picsum.photos/seed/RAK/100/100"
+                      width={40}
+                      height={40}
+                      alt="Restaurant logo"
+                      className="rounded-full bg-white p-0.5 border border-white/20 h-10 w-10 object-cover"
+                    />
                     <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 border-2 border-white"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 border-2 border-gray-800"></span>
                     </span>
                   </div>
                   <div className="flex flex-col overflow-hidden">
                     <span className="truncate text-sm font-bold tracking-tight">
                       Bloomsbury's
                     </span>
-                    <span className="truncate text-xs font-medium text-gray-500">
+                    <span className="truncate text-xs font-medium text-white/60">
                       Ras Al Khaimah
                     </span>
                   </div>
                 </div>
-                <ChevronDown className="h-4 w-4 text-gray-400" />
+                <ChevronDown className="h-4 w-4 text-white/40" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="start"
-              className="mb-2 w-[260px] border-gray-700 bg-gray-900 text-white p-0 overflow-hidden shadow-2xl"
+              className="mb-2 w-[260px] border-gray-200 bg-white text-gray-900 p-0 overflow-hidden shadow-2xl"
             >
               <div className="p-4">
                 <DropdownMenuLabel className="p-0 text-lg font-bold">Select a Branch</DropdownMenuLabel>
               </div>
-              <DropdownMenuSeparator className="bg-gray-700 m-0" />
+              <DropdownMenuSeparator className="m-0" />
               
               <ScrollArea className="h-[200px]">
                 <div className="p-1">
                   {branches.map((branch) => (
                     <DropdownMenuItem 
                       key={branch.id} 
-                      className="cursor-pointer focus:bg-gray-800 p-3 rounded-lg flex items-center gap-3 transition-colors"
+                      className="cursor-pointer focus:bg-gray-100 p-3 rounded-lg flex items-center gap-3 transition-colors"
                     >
                       <div className="shrink-0">
                         <Image
@@ -375,22 +372,22 @@ export function AppSidebar() {
                           width={40}
                           height={40}
                           alt={branch.name}
-                          className="rounded-full bg-white p-0.5 object-cover h-10 w-10"
+                          className="rounded-full border border-gray-200 object-cover h-10 w-10"
                         />
                       </div>
                       <div className="flex flex-col min-w-0">
-                        <span className="font-bold text-sm truncate">{branch.name}</span>
-                        <span className="text-xs text-gray-400 truncate">{branch.type}</span>
+                        <span className="font-bold text-sm text-gray-900 truncate">{branch.name}</span>
+                        <span className="text-xs text-gray-500 truncate">{branch.type}</span>
                       </div>
                     </DropdownMenuItem>
                   ))}
                 </div>
               </ScrollArea>
 
-              <DropdownMenuSeparator className="bg-gray-700 m-0" />
+              <DropdownMenuSeparator className="m-0" />
               <div className="p-1">
-                <DropdownMenuItem className="cursor-pointer focus:bg-gray-800 p-3 rounded-lg flex items-center gap-3 text-gray-300">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-800 border border-white/5">
+                <DropdownMenuItem className="cursor-pointer focus:bg-gray-100 p-3 rounded-lg flex items-center gap-3 text-gray-700">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 border border-gray-200">
                     <Plus className="h-5 w-5" />
                   </div>
                   <span className="font-bold text-sm">Add New Branch</span>
