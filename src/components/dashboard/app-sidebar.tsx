@@ -12,8 +12,6 @@ import {
   Rocket,
   HelpCircle,
   ChevronDown,
-  Store,
-  MapPin,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -37,7 +35,7 @@ import {
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import NextLink from 'next/link';
 import { cn } from '@/lib/utils';
 import { Input } from '../ui/input';
@@ -308,35 +306,41 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="flex flex-col gap-2 p-2 bg-gray-900 rounded-tl-[20px] rounded-tr-[20px]">
+      <SidebarFooter className="flex flex-col gap-2 p-4 bg-gray-900 rounded-tl-[24px] rounded-tr-[24px]">
         <div className="group-data-[collapsible=icon]:hidden">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex h-auto w-full items-center justify-between gap-2 rounded-md bg-gray-800 p-2 text-left text-white hover:bg-gray-700"
+                className="flex h-auto w-full items-center justify-between gap-2 rounded-xl bg-gray-800 p-3 text-left text-white hover:bg-gray-700/50 border border-white/5"
               >
                 <div className="flex items-center gap-3">
-                  {restaurantLogo && (
-                    <Image
-                      src={restaurantLogo.imageUrl}
-                      width={32}
-                      height={32}
-                      alt="Restaurant logo"
-                      className="rounded-full bg-white p-0.5"
-                      data-ai-hint={restaurantLogo.imageHint}
-                    />
-                  )}
+                  <div className="relative shrink-0">
+                    {restaurantLogo && (
+                      <Image
+                        src={restaurantLogo.imageUrl}
+                        width={40}
+                        height={40}
+                        alt="Restaurant logo"
+                        className="rounded-full bg-white p-0.5 border border-white/20 h-10 w-10 object-cover"
+                        data-ai-hint={restaurantLogo.imageHint}
+                      />
+                    )}
+                    <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 border-2 border-gray-800"></span>
+                    </span>
+                  </div>
                   <div className="flex flex-col overflow-hidden">
-                    <span className="truncate text-sm font-medium text-white">
+                    <span className="truncate text-sm font-bold text-white tracking-tight">
                       Bloomsbury's
                     </span>
-                    <span className="truncate text-xs text-gray-400">
+                    <span className="truncate text-xs font-medium text-gray-400">
                       Ras Al Khaimah
                     </span>
                   </div>
                 </div>
-                <ChevronDown className="h-4 w-4 text-gray-400" />
+                <ChevronDown className="h-4 w-4 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -348,7 +352,7 @@ export function AppSidebar() {
               <DropdownMenuItem className="cursor-pointer focus:bg-gray-700">
                 <div className="flex items-center gap-3">
                   <Image
-                    src={restaurantLogo.imageUrl}
+                    src={restaurantLogo?.imageUrl || ''}
                     width={24}
                     height={24}
                     alt="Restaurant logo"
@@ -373,30 +377,35 @@ export function AppSidebar() {
         </div>
         <div className="hidden group-data-[collapsible=icon]:block">
           <NextLink href="#">
-            {restaurantLogo && (
-              <Image
-                src={restaurantLogo.imageUrl}
-                width={32}
-                height={32}
-                alt="Restaurant logo"
-                className="rounded-full bg-white p-0.5"
-                data-ai-hint={restaurantLogo.imageHint}
-              />
-            )}
+            <div className="relative">
+              {restaurantLogo && (
+                <Image
+                  src={restaurantLogo.imageUrl}
+                  width={32}
+                  height={32}
+                  alt="Restaurant logo"
+                  className="rounded-full bg-white p-0.5"
+                  data-ai-hint={restaurantLogo.imageHint}
+                />
+              )}
+              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500 border border-gray-800"></span>
+              </span>
+            </div>
           </NextLink>
         </div>
 
-        <div className="group-data-[collapsible=icon]:hidden">
+        <div className="group-data-[collapsible=icon]:hidden mt-2">
           <SidebarMenu className="px-0">
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
                 tooltip="Quickstart"
                 size="sm"
-                className="h-8 justify-start text-white hover:bg-gray-800"
+                className="h-9 justify-start text-white hover:bg-gray-800 font-medium"
               >
                 <NextLink href="#">
-                  <Rocket className="h-4 w-4" />
+                  <Rocket className="h-4 w-4 text-gray-400" />
                   <span className="group-data-[collapsible=icon]:hidden">
                     Quickstart
                   </span>
@@ -408,10 +417,10 @@ export function AppSidebar() {
                 asChild
                 tooltip="Help"
                 size="sm"
-                className="h-8 justify-start text-white hover:bg-gray-800"
+                className="h-9 justify-start text-white hover:bg-gray-800 font-medium"
               >
                 <NextLink href="#">
-                  <HelpCircle className="h-4 w-4" />
+                  <HelpCircle className="h-4 w-4 text-gray-400" />
                   <span className="group-data-[collapsible=icon]:hidden">
                     Help
                   </span>

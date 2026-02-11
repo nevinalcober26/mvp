@@ -4,7 +4,6 @@ import { AppSidebar } from '@/components/dashboard/app-sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { OnboardingWizard } from '@/components/dashboard/onboarding-wizard';
-import { BranchIndicator } from '@/components/dashboard/branch-indicator';
 import React from 'react';
 
 function OnboardingWrapper({ children }: { children: React.ReactNode }) {
@@ -32,8 +31,6 @@ export default function DashboardLayout({
           <React.Suspense fallback={<div>Loading...</div>}>
             <OnboardingWrapper>{children}</OnboardingWrapper>
           </React.Suspense>
-          {/* Global innovative branch context identifier */}
-          <BranchIndicator />
         </SidebarInset>
       </ProtectedRoute>
     </SidebarProvider>
