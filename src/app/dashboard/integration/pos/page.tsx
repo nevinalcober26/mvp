@@ -35,7 +35,9 @@ import {
   Minimize2,
   X,
   ListFilter,
-  Tag
+  Tag,
+  Edit,
+  Save
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +56,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -131,7 +134,7 @@ const generateMockItems = () => {
           name: `${sub} ${cat === 'Beverages' ? 'Specialty' : 'Selection'} #${i + 1}`,
           category: cat,
           subCategory: sub,
-          price: `$${(Math.random() * 40 + 10).toFixed(2)}`,
+          price: (Math.random() * 40 + 10).toFixed(2),
           enabled: Math.random() > 0.1
         });
         id++;
@@ -149,10 +152,8 @@ export default function PosIntegrationPage() {
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   
-  // Only 1 connection allowed
-  const [connections, setConnections] = useState<PosConnection[]>([]);
-
   // Connection Flow States
+  const [connections, setConnections] = useState<PosConnection[]>([]);
   const [terminalLabel, setTerminalLabel] = useState('');
   const [locationValue, setLocationValue] = useState<string | null>(null);
   const [revenueCenterValue, setRevenueCenterValue] = useState<string | null>(null);
@@ -169,6 +170,7 @@ export default function PosIntegrationPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [selectedItemIds, setSelectedItems] = useState<Set<string>>(new Set());
   const [items, setItems] = useState(MOCK_ITEMS);
+  const [editingItem, setEditingItem] = useState<typeof MOCK_ITEMS[0] | null>(null);
 
   // Unique categories for filtering
   const uniqueCategories = useMemo(() => {
@@ -236,10 +238,17 @@ export default function PosIntegrationPage() {
     setSelectedItems(new Set());
   };
 
-  const resetFilters = () => {
-    setSearchQuery('');
-    setStatusFilter('all');
-    setCategoryFilter('all');
+  const handleSaveItemEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem) return;
+    
+    const updatedItems = items.map(item => item.id === editingItem.id ? editingItem : item);
+    setItems(updatedItems);
+    setEditingItem(null);
+    toast({
+      title: "Item Updated",
+      description: `${editingItem.name} has been updated successfully.`
+    });
   };
 
   const startSyncProcess = () => {
@@ -280,12 +289,10 @@ export default function PosIntegrationPage() {
       label: finalLabel,
       status: 'active',
       lastSync: 'just now',
-      terminalId: `${selectedProvider?.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`
+      terminalId: `${selectedProvider?.substring(0, 3).toUpperCase() || 'POS'}-${Math.floor(1000 + Math.random() * 9000)}`
     };
 
-    // Replace existing connection (Single POS limit)
     setConnections([newConnection]);
-
     setIsVerificationModalOpen(false);
     setShowSuccessDialog(true);
     resetWorkflow();
@@ -322,6 +329,12 @@ export default function PosIntegrationPage() {
     });
   };
 
+  const resetFilters = () => {
+    setSearchQuery('');
+    setStatusFilter('all');
+    setCategoryFilter('all');
+  };
+
   return (
     <>
       <DashboardHeader />
@@ -333,14 +346,6 @@ export default function PosIntegrationPage() {
               <h1 className="text-3xl font-bold tracking-tight text-foreground">POS Integration</h1>
               <p className="text-muted-foreground text-sm font-medium">Link your physical terminal to automate your digital menu.</p>
             </div>
-            {connections.length > 0 && (
-              <div className="flex items-center gap-3">
-                <Button variant="outline" className="gap-2 font-semibold shadow-sm" onClick={() => toast({ title: "Sync Initiated", description: "Global manual refresh started." })}>
-                  <RefreshCw className="h-4 w-4" />
-                  Sync All
-                </Button>
-              </div>
-            )}
           </div>
 
           {connections.length === 0 ? (
@@ -351,7 +356,7 @@ export default function PosIntegrationPage() {
                <div className="text-center space-y-3 max-w-md px-6">
                   <h3 className="text-2xl font-bold tracking-tight">No POS Connected</h3>
                   <p className="text-muted-foreground text-base font-medium leading-relaxed">
-                    Connect your physical store terminal to sync your menu and prices in real-time. This eliminates manual updates and ensures price accuracy across all digital channels.
+                    Your digital menu is currently static. Connect your physical terminal to unlock real-time pricing and automated stock management.
                   </p>
                </div>
                <Sheet open={isConnectDrawerOpen} onOpenChange={setIsConnectDrawerOpen}>
@@ -615,13 +620,26 @@ export default function PosIntegrationPage() {
                       <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground hover:text-foreground rounded-xl">
                         <Settings className="h-5 w-5" />
                       </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-10 w-10 text-muted-foreground hover:text-primary rounded-xl"
+                        onClick={() => toast({ title: "Manual Refresh", description: "Fetching latest data from terminal..." })}
+                      >
+                        <RefreshCw className="h-5 w-5" />
+                      </Button>
                       <Button variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-xl" onClick={() => handleDeleteConnection(conn.id)}>
                         <Trash2 className="h-5 w-5" />
                       </Button>
                     </div>
-                    <Button variant="outline" size="sm" className="h-10 text-[10px] font-bold uppercase tracking-widest px-6 gap-2 border-muted-foreground/20 rounded-xl bg-background hover:bg-muted" onClick={() => toast({ title: "Manual Refresh", description: `Updating ${conn.label} data...` })}>
-                      <RefreshCw className="h-4 w-4" />
-                      Manual Refresh
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-10 text-[10px] font-bold uppercase tracking-widest px-6 gap-2 border-primary/20 text-primary hover:bg-primary/5 rounded-xl bg-background shadow-sm" 
+                      onClick={() => setIsVerificationModalOpen(true)}
+                    >
+                      <Database className="h-4 w-4" />
+                      Manage Synced Menu
                     </Button>
                   </CardFooter>
                 </Card>
@@ -693,8 +711,8 @@ export default function PosIntegrationPage() {
             isExpanded ? "max-w-full w-[100vw] h-[100vh] rounded-none m-0" : "max-w-7xl w-[95vw] h-[90vh]"
           )}
         >
-          <DialogTitle className="sr-only">POS Menu Review</DialogTitle>
-          <DialogDescription className="sr-only">Verify and manage menu items imported from your connected POS machine.</DialogDescription>
+          <DialogTitle className="sr-only">POS Menu Review & Management</DialogTitle>
+          <DialogDescription className="sr-only">Verify and manage menu items imported from your connected POS machine. You can edit names, prices, and visibility.</DialogDescription>
 
           <div className="bg-white border-b p-6 shrink-0 flex items-center justify-between">
             <div className="flex items-center gap-5">
@@ -702,7 +720,7 @@ export default function PosIntegrationPage() {
                 <Database className="h-6 w-6 text-primary" />
               </div>
               <div className="space-y-0.5">
-                <h2 className="text-2xl font-bold tracking-tight text-foreground">Menu Review</h2>
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">Manage Synced Menu</h2>
                 <div className="flex items-center gap-2 text-muted-foreground font-medium text-xs">
                   <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest py-0.5">Machine Active</Badge>
                   <span>{SUPPORTED_POS.find(p => p.id === selectedProvider)?.name || 'Machine Connection'}</span>
@@ -730,9 +748,9 @@ export default function PosIntegrationPage() {
             <div className="flex items-center gap-4 flex-1 w-full sm:max-w-2xl">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
+                <input 
                   placeholder="Find a product by name or ID..." 
-                  className="pl-10 h-11 bg-white border-muted-foreground/20 shadow-sm rounded-xl font-medium"
+                  className="w-full pl-10 h-11 bg-white border border-muted-foreground/20 shadow-sm rounded-xl font-medium px-4 focus:outline-none focus:ring-2 focus:ring-primary/20"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -824,13 +842,14 @@ export default function PosIntegrationPage() {
                     <TableHead className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground py-4">Machine Identifier</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground text-right py-4">Base Price</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground text-right py-4 pr-10">Status</TableHead>
+                    <TableHead className="w-12"></TableHead>
                   </TableRow>
                 </TableHeader>
                 
                 {Object.entries(itemsByCategory).map(([category, subCats]) => (
                   <TableBody key={category} className="border-t-0">
                     <TableRow className="bg-[#f4fbf9] hover:bg-[#ebf7f5] border-y sticky top-[48px] z-30 transition-colors">
-                      <TableCell colSpan={5} className="py-4 px-6">
+                      <TableCell colSpan={6} className="py-4 px-6">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div className="h-9 w-9 rounded-xl bg-white border border-primary/20 flex items-center justify-center shadow-sm">
@@ -851,7 +870,7 @@ export default function PosIntegrationPage() {
                     {Object.entries(subCats).map(([subCat, subItems]) => (
                       <React.Fragment key={subCat}>
                         <TableRow className="bg-muted/10 hover:bg-muted/20 border-b border-muted/30">
-                          <TableCell colSpan={5} className="py-3 pl-16 pr-6">
+                          <TableCell colSpan={6} className="py-3 pl-16 pr-6">
                             <div className="flex items-center gap-3">
                               <div className="h-4 w-[2px] bg-primary/40 rounded-full" />
                               <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.15em]">{subCat}</span>
@@ -885,7 +904,7 @@ export default function PosIntegrationPage() {
                               </code>
                             </TableCell>
                             <TableCell className="text-right font-bold font-mono text-sm text-foreground">
-                              {item.price}
+                              ${item.price}
                             </TableCell>
                             <TableCell className="text-right pr-10">
                               <div className="flex justify-end items-center gap-4">
@@ -903,6 +922,19 @@ export default function PosIntegrationPage() {
                                   }} 
                                 />
                               </div>
+                            </TableCell>
+                            <TableCell className="pr-6">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-muted-foreground hover:text-primary rounded-lg"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingItem(item);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -944,6 +976,58 @@ export default function PosIntegrationPage() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Item Quick Edit Dialog */}
+      <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-white rounded-2xl border shadow-2xl">
+          <form onSubmit={handleSaveItemEdit}>
+            <div className="p-6 border-b bg-muted/10">
+              <DialogTitle className="text-xl font-bold">Edit Synced Item</DialogTitle>
+              <DialogDescription className="text-muted-foreground text-sm font-medium">Update the local display name or price for this product.</DialogDescription>
+            </div>
+            <div className="p-8 space-y-6">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Product Name</Label>
+                <Input 
+                  value={editingItem?.name || ""} 
+                  onChange={(e) => setEditingItem(prev => prev ? { ...prev, name: e.target.value } : null)}
+                  className="h-11 font-medium bg-background"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Base Price ($)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={editingItem?.price || ""} 
+                    onChange={(e) => setEditingItem(prev => prev ? { ...prev, price: e.target.value } : null)}
+                    className="h-11 font-mono font-bold bg-background"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">POS Identifier</Label>
+                  <div className="h-11 flex items-center px-4 rounded-md bg-muted/50 border border-dashed font-mono text-[10px] font-bold text-muted-foreground">
+                    {editingItem?.posId}
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 rounded-xl bg-orange-50 border border-orange-100 flex items-start gap-3">
+                <AlertCircle className="h-4 w-4 text-orange-600 shrink-0 mt-0.5" />
+                <p className="text-[10px] text-orange-800 font-medium leading-tight">
+                  Note: Changes made here only affect the digital menu. Your POS machine data will remain unchanged.
+                </p>
+              </div>
+            </div>
+            <DialogFooter className="p-6 bg-muted/10 border-t flex flex-row items-center justify-end gap-3">
+              <Button type="button" variant="ghost" className="font-bold" onClick={() => setEditingItem(null)}>Cancel</Button>
+              <Button type="submit" className="font-bold bg-primary text-primary-foreground px-8 shadow-md gap-2">
+                <Save className="h-4 w-4" /> Save Overrides
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
