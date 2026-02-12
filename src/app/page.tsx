@@ -13,7 +13,7 @@ import { EMenuIcon } from '@/components/dashboard/app-sidebar';
 import { AuthCardSkeleton } from '@/components/dashboard/skeletons';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
-import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import { signInWithEmailAndPassword, onAuthStateChanged, createUserWithEmailAndPassword } from 'firebase/auth';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -22,10 +22,14 @@ export default function LoginPage() {
   const auth = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const { toast } = useToast();
 
@@ -41,34 +45,56 @@ export default function LoginPage() {
     return () => unsubscribe();
   }, [auth, router]);
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleAuthAction = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsSigningIn(true);
+    setIsSubmitting(true);
 
-    if (email === 'admin' && password === 'admin') {
-      localStorage.setItem('isLoggedIn', 'true');
-      toast({
-        title: 'Welcome back!',
-        description: 'Redirecting to your dashboard...',
-      });
-      router.push('/dashboard');
-      return;
-    }
+    if (activeTab === 'login') {
+      if (email === 'admin' && password === 'admin') {
+        localStorage.setItem('isLoggedIn', 'true');
+        toast({
+          title: 'Welcome back!',
+          description: 'Redirecting to your dashboard...',
+        });
+        router.push('/dashboard');
+        return;
+      }
 
-    try {
-      const loginEmail = email.includes('@') ? email : `${email}@example.com`;
-      await signInWithEmailAndPassword(auth, loginEmail, password);
-      localStorage.setItem('isLoggedIn', 'true');
-      toast({
-        title: 'Welcome back!',
-        description: 'Redirecting to your dashboard...',
-      });
-      router.push('/dashboard');
-    } catch (e: any) {
-      console.error(e);
-      setError('Invalid email or password. Please try again.');
-      setIsSigningIn(false);
+      try {
+        const loginEmail = email.includes('@') ? email : `${email}@example.com`;
+        await signInWithEmailAndPassword(auth, loginEmail, password);
+        localStorage.setItem('isLoggedIn', 'true');
+        toast({
+          title: 'Welcome back!',
+          description: 'Redirecting to your dashboard...',
+        });
+        router.push('/dashboard');
+      } catch (e: any) {
+        console.error(e);
+        setError('Invalid email or password. Please try again.');
+        setIsSubmitting(false);
+      }
+    } else {
+      // Sign Up Logic
+      if (password !== confirmPassword) {
+        setError('Passwords do not match.');
+        setIsSubmitting(false);
+        return;
+      }
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        localStorage.setItem('isLoggedIn', 'true');
+        toast({
+          title: 'Account created!',
+          description: 'Welcome to eMenu Table.',
+        });
+        router.push('/dashboard');
+      } catch (e: any) {
+        console.error(e);
+        setError(e.message || 'Could not create account. Please try again.');
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -84,7 +110,7 @@ export default function LoginPage() {
       </header>
 
       <main className="relative flex-1 flex flex-col items-center justify-center p-4 overflow-hidden">
-        {/* Background Gradients */}
+        {/* Background Gradients - Mirrored 120000% */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#e6f7f6] blur-[120px] opacity-60" />
           <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#fffcf0] blur-[120px] opacity-60" />
@@ -92,8 +118,8 @@ export default function LoginPage() {
           <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#fff5f8] blur-[120px] opacity-60" />
         </div>
 
-        <div className="relative z-10 w-full max-w-[480px] py-12">
-          <Card className="border-0 shadow-[0_8px_40px_rgba(0,0,0,0.04)] rounded-[24px] overflow-hidden bg-white/80 backdrop-blur-xl">
+        <div className="relative z-10 w-full max-w-[520px] py-12">
+          <Card className="border-0 shadow-[0_20px_50px_rgba(0,0,0,0.06)] rounded-[24px] overflow-hidden bg-white/80 backdrop-blur-xl">
             {/* Tab Navigation */}
             <div className="flex w-full border-b border-gray-100">
               <button
@@ -122,24 +148,55 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <CardContent className="p-10 pt-12 space-y-8">
+            <CardContent className="p-8 sm:p-12 space-y-8">
               <div className="text-center space-y-2">
                 <h1 className="text-[28px] font-black tracking-tight text-[#142424]">
-                  Login to your Account
+                  {activeTab === 'login' ? 'Login to your Account' : 'Welcome to eMenu Table'}
                 </h1>
                 <p className="text-[13px] font-medium text-gray-400">
                   One Platform. Every Tool Your Restaurant Needs
                 </p>
               </div>
 
-              <form onSubmit={handleSignIn} className="space-y-6">
-                <div className="space-y-2.5">
+              <form onSubmit={handleAuthAction} className="space-y-6">
+                {activeTab === 'signup' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="text-[13px] font-bold text-[#142424]">
+                        First Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="firstName"
+                        placeholder="John"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        required
+                        className="h-12 bg-white border-gray-200 rounded-xl px-4 text-[14px]"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName" className="text-[13px] font-bold text-[#142424]">
+                        Last Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="lastName"
+                        placeholder="Smith"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        required
+                        className="h-12 bg-white border-gray-200 rounded-xl px-4 text-[14px]"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
                   <Label htmlFor="email" className="text-[13px] font-bold text-[#142424]">
                     Email Address <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="email"
-                    type="text"
+                    type="email"
                     placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -148,7 +205,7 @@ export default function LoginPage() {
                   />
                 </div>
 
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   <Label htmlFor="password" className="text-[13px] font-bold text-[#142424]">
                     Password <span className="text-red-500">*</span>
                   </Label>
@@ -167,47 +224,98 @@ export default function LoginPage() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#18B4A6] transition-colors"
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5" />
-                      ) : (
-                        <Eye className="h-5 w-5" />
-                      )}
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
+                  {activeTab === 'signup' && (
+                    <p className="text-[11px] text-gray-400 mt-1">
+                      Must be at least 8 characters with numbers and letters
+                    </p>
+                  )}
                 </div>
 
-                <div className="flex items-center justify-between pt-1">
-                  <div className="flex items-center space-x-2.5">
-                    <Checkbox 
-                      id="remember" 
-                      className="border-gray-300 rounded-md data-[state=checked]:bg-[#18B4A6] data-[state=checked]:border-[#18B4A6]" 
-                    />
-                    <label htmlFor="remember" className="text-[13px] font-medium text-gray-500 cursor-pointer">
-                      Remember me
-                    </label>
+                {activeTab === 'signup' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-[13px] font-bold text-[#142424]">
+                      Confirm Password <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        className="h-12 bg-white border-gray-200 rounded-xl px-4 pr-12 text-[14px]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#18B4A6] transition-colors"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
+                    </div>
                   </div>
-                  <button 
-                    type="button" 
-                    className="text-[13px] font-bold text-[#18B4A6] hover:underline transition-all"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
+                )}
+
+                {activeTab === 'login' ? (
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center space-x-2.5">
+                      <Checkbox 
+                        id="remember" 
+                        className="border-gray-300 rounded-md data-[state=checked]:bg-[#18B4A6] data-[state=checked]:border-[#18B4A6]" 
+                      />
+                      <label htmlFor="remember" className="text-[13px] font-medium text-gray-500 cursor-pointer">
+                        Remember me
+                      </label>
+                    </div>
+                    <button 
+                      type="button" 
+                      className="text-[13px] font-bold text-[#18B4A6] hover:underline transition-all"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-start space-x-3">
+                      <Checkbox 
+                        id="tos" 
+                        required
+                        className="mt-0.5 border-gray-300 rounded-md data-[state=checked]:bg-[#18B4A6] data-[state=checked]:border-[#18B4A6]" 
+                      />
+                      <label htmlFor="tos" className="text-[12px] font-medium text-gray-500 leading-tight">
+                        I agree to the <span className="text-[#18B4A6] font-bold cursor-pointer">Terms of Service</span> and <span className="text-[#18B4A6] font-bold cursor-pointer">Privacy Policy</span>
+                      </label>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <Checkbox 
+                        id="marketing" 
+                        className="mt-0.5 border-gray-300 rounded-md data-[state=checked]:bg-[#18B4A6] data-[state=checked]:border-[#18B4A6]" 
+                      />
+                      <label htmlFor="marketing" className="text-[12px] font-medium text-gray-500 leading-tight">
+                        Send me product updates and marketing emails
+                      </label>
+                    </div>
+                  </div>
+                )}
 
                 {error && <p className="text-destructive text-xs font-bold text-center animate-in fade-in slide-in-from-top-1">{error}</p>}
 
                 <Button 
                   className="w-full h-14 bg-[#18B4A6] hover:bg-[#149d94] text-white font-bold text-[15px] rounded-xl shadow-lg shadow-[#18B4A6]/20 transition-all active:scale-[0.98]" 
                   type="submit" 
-                  disabled={isSigningIn}
+                  disabled={isSubmitting}
                 >
-                  {isSigningIn ? (
+                  {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Authenticating...
+                      Please wait...
                     </>
                   ) : (
-                    'Log In'
+                    activeTab === 'login' ? 'Log In' : 'Create Account'
                   )}
                 </Button>
               </form>
