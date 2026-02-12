@@ -81,7 +81,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-x-hidden;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }

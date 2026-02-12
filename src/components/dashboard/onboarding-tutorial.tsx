@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -24,50 +25,50 @@ type Step = {
 const TUTORIAL_STEPS: Step[] = [
   {
     targetId: 'sidebar-nav',
-    title: 'Navigation Modules',
-    content: 'Explore all your management modules from Settings to Integrations right here.',
+    title: 'Navigation',
+    content: 'Manage your modules from Settings to Integrations.',
     placement: 'right',
   },
   {
     targetId: 'branch-switcher',
-    title: 'Multi-Outlet Control',
-    content: 'Switch between your different branches instantly using our premium switcher.',
+    title: 'Outlet Control',
+    content: 'Switch between your branches instantly.',
     placement: 'right',
   },
   {
     targetId: 'global-search',
-    title: 'Universal Search',
-    content: 'Find any order, customer, or menu item across your entire workspace in seconds.',
+    title: 'Quick Search',
+    content: 'Find orders or items across your workspace.',
     placement: 'bottom',
   },
   {
     targetId: 'header-actions',
-    title: 'Stay Updated',
-    content: 'Access real-time alerts, system notifications, and manage your account profile here.',
-    placement: 'bottom',
+    title: 'Alerts & Profile',
+    content: 'Manage notifications and account settings.',
+    placement: 'left',
   },
   {
     targetId: 'welcome-banner',
     title: 'AI Pulse',
-    content: 'Your AI assistant provides a daily summary of outlet performance and operational health.',
+    content: 'Daily automated summaries of your outlet health.',
     placement: 'bottom',
   },
   {
     targetId: 'stat-cards',
-    title: 'Metrics at a Glance',
-    content: 'Monitor your key performance indicators and sales trends in real-time.',
+    title: 'Live Metrics',
+    content: 'Monitor sales and key performance trends.',
     placement: 'top',
   },
   {
     targetId: 'popular-items',
-    title: 'Sales Performance',
-    content: 'See which menu items are driving the most revenue and popularity today.',
+    title: 'Best Sellers',
+    content: 'See which items are driving revenue today.',
     placement: 'left',
   },
   {
     targetId: 'recent-activity',
-    title: 'Live Operations',
-    content: 'Keep track of all recent orders and tickets currently in progress at your outlet.',
+    title: 'Operations',
+    content: 'Track live orders and tickets in progress.',
     placement: 'top',
   },
 ];
@@ -103,20 +104,25 @@ export function OnboardingTutorial() {
       const rect = element.getBoundingClientRect();
       const scrollY = window.scrollY;
       const scrollX = window.scrollX;
-      const popoverWidth = 288; // w-72 matches the CSS class
+      const popoverWidth = 256; // w-64
       const viewportWidth = window.innerWidth;
-      const padding = 24;
+      const padding = 16;
 
       let top = 0;
       let left = 0;
       let transform = '';
-      const offset = 16;
+      const offset = 12;
 
       switch (step.placement) {
         case 'right':
           top = rect.top + scrollY + rect.height / 2;
           left = rect.right + scrollX + offset;
           transform = 'translateY(-50%)';
+          // Bound check
+          if (left + popoverWidth > viewportWidth - padding) {
+            left = rect.left + scrollX - offset;
+            transform = 'translate(-100%, -50%)';
+          }
           break;
         case 'left':
           top = rect.top + scrollY + rect.height / 2;
@@ -128,11 +134,9 @@ export function OnboardingTutorial() {
           left = rect.left + scrollX + rect.width / 2;
           transform = 'translateX(-50%)';
           
-          // Safety check for right edge
           if (left + (popoverWidth / 2) > viewportWidth - padding) {
             left = viewportWidth - padding - (popoverWidth / 2);
           }
-          // Safety check for left edge
           if (left - (popoverWidth / 2) < padding) {
             left = padding + (popoverWidth / 2);
           }
@@ -142,11 +146,9 @@ export function OnboardingTutorial() {
           left = rect.left + scrollX + rect.width / 2;
           transform = 'translate(-50%, -100%)';
 
-          // Safety check for right edge
           if (left + (popoverWidth / 2) > viewportWidth - padding) {
             left = viewportWidth - padding - (popoverWidth / 2);
           }
-          // Safety check for left edge
           if (left - (popoverWidth / 2) < padding) {
             left = padding + (popoverWidth / 2);
           }
@@ -191,31 +193,31 @@ export function OnboardingTutorial() {
     <>
       {/* Welcome Dialog */}
       <Dialog open={isOpen && currentStep === -1} onOpenChange={handleSkip}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden border-0 shadow-2xl rounded-[32px] bg-white text-center">
-          <div className="bg-primary/5 p-10 flex flex-col items-center space-y-6">
-            <div className="h-20 w-20 rounded-[24px] bg-primary flex items-center justify-center shadow-lg transform rotate-3">
-              <Sparkles className="h-10 w-10 text-white" />
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden border-0 shadow-2xl rounded-[24px] bg-white text-center">
+          <div className="bg-primary/5 p-8 flex flex-col items-center space-y-4">
+            <div className="h-16 w-16 rounded-[20px] bg-primary flex items-center justify-center shadow-lg transform rotate-3">
+              <Sparkles className="h-8 w-8 text-white" />
             </div>
-            <div className="space-y-2">
-              <DialogTitle className="text-3xl font-black tracking-tight text-foreground leading-tight">
-                Welcome to eMenu Dashboard
+            <div className="space-y-1">
+              <DialogTitle className="text-2xl font-black tracking-tight text-foreground leading-tight">
+                Welcome to eMenu
               </DialogTitle>
               <p className="text-sm font-medium text-gray-400">
-                Let's take a quick 1-minute tour of your new workspace.
+                Quick 1-minute tour of your workspace.
               </p>
             </div>
           </div>
 
-          <div className="p-10 space-y-4">
+          <div className="p-8 space-y-3">
             <Button 
-              className="w-full h-14 font-black uppercase tracking-widest bg-primary text-white hover:bg-primary/90 shadow-xl rounded-2xl text-base group"
+              className="w-full h-12 font-black uppercase tracking-widest bg-primary text-white hover:bg-primary/90 shadow-xl rounded-xl text-sm group"
               onClick={() => setCurrentStep(0)}
             >
-              Start the Tour
-              <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              Start Tour
+              <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button variant="ghost" className="w-full font-bold text-muted-foreground" onClick={handleSkip}>
-              Skip, I'm an expert
+            <Button variant="ghost" className="w-full font-bold text-muted-foreground text-sm h-10" onClick={handleSkip}>
+              Skip Guide
             </Button>
           </div>
         </DialogContent>
@@ -224,47 +226,46 @@ export function OnboardingTutorial() {
       {/* Tutorial Popover */}
       {currentStep >= 0 && currentStep < TUTORIAL_STEPS.length && (
         <div style={popoverStyle} ref={popoverRef} className="animate-in fade-in zoom-in duration-300">
-          <div className="w-72 bg-[#142424] text-white p-6 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 relative">
-            {/* Arrow indicator */}
+          <div className="w-64 bg-[#142424] text-white p-4 rounded-[20px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 relative">
             <div className={cn(
-              "absolute w-4 h-4 bg-[#142424] rotate-45 border-white/10",
-              TUTORIAL_STEPS[currentStep].placement === 'right' && "-left-2 top-1/2 -translate-y-1/2 border-l border-b",
-              TUTORIAL_STEPS[currentStep].placement === 'left' && "-right-2 top-1/2 -translate-y-1/2 border-r border-t",
-              TUTORIAL_STEPS[currentStep].placement === 'bottom' && "-top-2 left-1/2 -translate-x-1/2 border-l border-t",
-              TUTORIAL_STEPS[currentStep].placement === 'top' && "-bottom-2 left-1/2 -translate-x-1/2 border-r border-b",
+              "absolute w-3 h-3 bg-[#142424] rotate-45 border-white/10",
+              TUTORIAL_STEPS[currentStep].placement === 'right' && "-left-1.5 top-1/2 -translate-y-1/2 border-l border-b",
+              TUTORIAL_STEPS[currentStep].placement === 'left' && "-right-1.5 top-1/2 -translate-y-1/2 border-r border-t",
+              TUTORIAL_STEPS[currentStep].placement === 'bottom' && "-top-1.5 left-1/2 -translate-x-1/2 border-l border-t",
+              TUTORIAL_STEPS[currentStep].placement === 'top' && "-bottom-1.5 left-1/2 -translate-x-1/2 border-r border-b",
             )} />
             
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#18B4A6]">
-                Step {currentStep + 1} of {TUTORIAL_STEPS.length}
+            <div className="flex justify-between items-start mb-3">
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#18B4A6]">
+                {currentStep + 1} / {TUTORIAL_STEPS.length}
               </span>
               <button onClick={handleSkip} className="text-white/40 hover:text-white transition-colors">
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            <h3 className="text-lg font-bold mb-2 tracking-tight">
+            <h3 className="text-base font-bold mb-1.5 tracking-tight">
               {TUTORIAL_STEPS[currentStep].title}
             </h3>
-            <p className="text-sm text-gray-400 font-medium leading-relaxed mb-6">
+            <p className="text-[13px] text-gray-400 font-medium leading-relaxed mb-5">
               {TUTORIAL_STEPS[currentStep].content}
             </p>
 
             <div className="flex items-center justify-between">
-              <div className="flex gap-1.5">
+              <div className="flex gap-1">
                 {TUTORIAL_STEPS.map((_, i) => (
                   <div 
                     key={i} 
                     className={cn(
-                      "h-1 rounded-full transition-all", 
-                      i === currentStep ? "w-4 bg-[#18B4A6]" : "w-1.5 bg-white/20"
+                      "h-0.5 rounded-full transition-all", 
+                      i === currentStep ? "w-3 bg-[#18B4A6]" : "w-1 bg-white/20"
                     )} 
                   />
                 ))}
               </div>
               <Button 
                 size="sm" 
-                className="bg-[#18B4A6] hover:bg-[#149d94] text-white font-bold rounded-xl px-4"
+                className="bg-[#18B4A6] hover:bg-[#149d94] text-white font-bold rounded-lg px-3 h-8 text-xs"
                 onClick={handleNext}
               >
                 {currentStep === TUTORIAL_STEPS.length - 1 ? 'Finish' : 'Next'}
@@ -276,7 +277,7 @@ export function OnboardingTutorial() {
 
       {/* Backdrop for tutorial */}
       {currentStep >= 0 && (
-        <div className="fixed inset-0 z-[90] bg-black/20 pointer-events-none" />
+        <div className="fixed inset-0 z-[90] bg-black/10 pointer-events-none" />
       )}
     </>
   );
