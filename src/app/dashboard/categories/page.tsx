@@ -86,7 +86,7 @@ const RestaurantCard = ({
 
       <div className="absolute top-3 left-3 flex gap-2 z-20">
         {isActive ? (
-          <Badge className="bg-[#FF75DF] text-white border-0 font-bold px-3 py-1 shadow-lg animate-in fade-in zoom-in duration-300">
+          <Badge className="bg-[#FF75DF] text-white border-0 font-bold px-4 py-1 rounded-full shadow-lg animate-in fade-in zoom-in duration-300">
             Actively Selected
           </Badge>
         ) : (
