@@ -52,6 +52,12 @@ import {
   DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 const branches = [
   { id: '1', name: "Ras Al Khaimah", type: 'Boutique Café' },
@@ -383,26 +389,35 @@ export function AppSidebar() {
                   className="flex h-auto w-full items-center justify-between gap-2 rounded-xl bg-[#142424] p-3 text-left text-white hover:bg-[#1a2e2e] border border-white/5 transition-all shadow-xl"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="relative shrink-0">
-                      <div 
-                        className="h-11 w-11 rounded-full p-[2px] flex items-center justify-center transition-transform hover:scale-105"
-                        style={{ background: 'conic-gradient(from 0deg, #18B4A6, #4ade80, #facc15, #fb923c, #18B4A6)' }}
-                      >
-                        <div className="h-full w-full rounded-full bg-[#142424] p-[1.5px] flex items-center justify-center overflow-hidden">
-                          <Image
-                            src="https://picsum.photos/seed/brand/100/100"
-                            width={40}
-                            height={40}
-                            alt="Brand logo"
-                            className="rounded-full object-cover grayscale brightness-110"
-                          />
-                        </div>
-                      </div>
-                      <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-green-500 border-2 border-[#142424]"></span>
-                      </span>
-                    </div>
+                    <TooltipProvider>
+                      <Tooltip delayDuration={100}>
+                        <TooltipTrigger asChild>
+                          <div className="relative shrink-0 cursor-pointer">
+                            <div 
+                              className="h-11 w-11 rounded-full p-[2px] flex items-center justify-center transition-transform hover:scale-105"
+                              style={{ background: 'conic-gradient(from 0deg, #18B4A6, #4ade80, #facc15, #fb923c, #18B4A6)' }}
+                            >
+                              <div className="h-full w-full rounded-full bg-[#142424] p-[1.5px] flex items-center justify-center overflow-hidden">
+                                <Image
+                                  src="https://picsum.photos/seed/brand/100/100"
+                                  width={40}
+                                  height={40}
+                                  alt="Brand logo"
+                                  className="rounded-full object-cover grayscale brightness-110"
+                                />
+                              </div>
+                            </div>
+                            <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-green-500 border-2 border-[#142424]"></span>
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="bg-[#18B4A6] text-white border-0 font-bold text-xs px-3 py-1.5 rounded-lg shadow-xl">
+                          Check the live menu
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <div className="flex flex-col overflow-hidden">
                       <span className="truncate text-[11px] font-black uppercase tracking-[0.18em] text-[#18B4A6]">
                         BLOOMSBURY&apos;S
