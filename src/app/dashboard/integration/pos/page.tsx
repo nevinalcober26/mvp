@@ -655,6 +655,10 @@ export default function PosIntegrationPage() {
             isExpanded ? "max-w-full w-[100vw] h-[100vh] rounded-none m-0" : "max-w-7xl w-[95vw] h-[90vh]"
           )}
         >
+          {/* Accessibility Requirements */}
+          <DialogTitle className="sr-only">POS Menu Review</DialogTitle>
+          <DialogDescription className="sr-only">Verify and manage menu items imported from your connected POS machine.</DialogDescription>
+
           {/* Custom Modern Header - LIGHT */}
           <div className="bg-white border-b p-6 shrink-0 flex items-center justify-between">
             <div className="flex items-center gap-5">

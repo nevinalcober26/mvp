@@ -366,6 +366,7 @@ export function OnboardingWizard() {
       default:
         return (
           <div className="text-center p-8">
+            <DialogTitle className="sr-only">Step {currentStep + 1}: {steps[currentStep]}</DialogTitle>
             <p className="text-lg">Step {currentStep + 1} ({steps[currentStep]}) placeholder.</p>
             <div className="flex justify-center gap-4 mt-4">
               {currentStep > 0 && (
@@ -426,5 +427,3 @@ export function OnboardingWizard() {
     </Dialog>
   );
 }
-
-    
