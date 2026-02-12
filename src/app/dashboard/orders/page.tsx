@@ -121,7 +121,7 @@ const PaymentStatusBadge = ({ status, splitType }: { status: Order['paymentState
             icon = <Hourglass className="mr-1.5 h-3 w-3" />;
             className = 'bg-yellow-100 text-yellow-700';
             if (splitType === 'byItem') text = 'Partial (by Item)';
-            if (splitType === 'equally' text = 'Partial (Equally)';
+            if (splitType === 'equally') text = 'Partial (Equally)';
             break;
         case 'Unpaid':
             icon = <X className="mr-1.5 h-3 w-3" />;
