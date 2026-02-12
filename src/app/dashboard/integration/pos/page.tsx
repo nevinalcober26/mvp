@@ -199,7 +199,7 @@ export default function PosIntegrationPage() {
     setItems(updatedItems);
     toast({
       title: "Batch Action Completed",
-      description: `${selectedItemIds.size} items have been ${action}d.`
+      description: `${selectedItemIds.size} items have been ${action === 'enable' ? 'activated' : 'locked'}.`
     });
     setSelectedItems(new Set());
   };
@@ -292,8 +292,8 @@ export default function PosIntegrationPage() {
                       <SheetTitle className="text-2xl font-bold text-foreground">Add POS Connection</SheetTitle>
                       <SheetDescription className="text-muted-foreground font-medium">
                         {currentStep === 1 
-                          ? "Select a provider and enter your technical handshake credentials." 
-                          : "Map your technical connection to your venue locations and centers."}
+                          ? "Select a provider and enter your terminal credentials." 
+                          : "Map your connection to your venue locations and centers."}
                       </SheetDescription>
                     </SheetHeader>
                     {selectedProvider === 'oracle-simphony' && (
@@ -517,7 +517,7 @@ export default function PosIntegrationPage() {
                     <div className="p-4 rounded-xl bg-destructive/5 border border-destructive/20 flex items-start gap-3 animate-in fade-in zoom-in duration-300">
                       <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
                       <div className="space-y-1">
-                        <p className="text-xs font-bold text-destructive">Handshake Failed</p>
+                        <p className="text-xs font-bold text-destructive">Connection Failed</p>
                         <p className="text-[10px] leading-tight text-destructive/80 font-medium">Credentials for this terminal have expired. Re-authentication is required to restore sync.</p>
                       </div>
                     </div>
@@ -578,12 +578,12 @@ export default function PosIntegrationPage() {
 
             <div className="space-y-2 w-full">
               <DialogTitle className="text-2xl font-bold text-foreground">
-                {isSyncComplete ? "Handshake Successful" : "Synchronizing with Simphony"}
+                {isSyncComplete ? "Successfully Connected" : "Connecting to Simphony"}
               </DialogTitle>
               <DialogDescription className="font-medium text-muted-foreground text-sm">
                 {isSyncComplete 
-                  ? `Technical verification complete. ${items.length} items found.` 
-                  : "We are establishing a secure connection and mapping your menu hierarchy."}
+                  ? `Machine verified. ${items.length} food items found.` 
+                  : "We are establishing a secure connection and reading your menu data."}
               </DialogDescription>
             </div>
 
@@ -591,7 +591,7 @@ export default function PosIntegrationPage() {
               <div className="w-full space-y-2">
                 <Progress value={syncProgress} className="h-2" />
                 <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  <span>Authenticating...</span>
+                  <span>Reading Data...</span>
                   <span>{syncProgress}%</span>
                 </div>
               </div>
@@ -625,9 +625,9 @@ export default function PosIntegrationPage() {
                 <Database className="h-6 w-6 text-primary" />
               </div>
               <div className="space-y-0.5">
-                <h2 className="text-2xl font-bold tracking-tight text-foreground">Menu Verification</h2>
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">Menu Review</h2>
                 <div className="flex items-center gap-2 text-muted-foreground font-medium text-xs">
-                  <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest py-0.5">Live Connection</Badge>
+                  <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest py-0.5">Machine Active</Badge>
                   <span>Oracle Micros Simphony • Main Outlet</span>
                 </div>
               </div>
@@ -644,7 +644,7 @@ export default function PosIntegrationPage() {
               </Button>
               <div className="h-8 w-px bg-border mx-2" />
               <Button variant="ghost" className="h-10 font-bold gap-2 text-muted-foreground hover:text-primary">
-                <RefreshCw className="h-4 w-4" /> Re-sync
+                <RefreshCw className="h-4 w-4" /> Refresh Data
               </Button>
             </div>
           </div>
@@ -654,7 +654,7 @@ export default function PosIntegrationPage() {
             <div className="relative w-full sm:max-w-lg">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
-                placeholder="Search products by name, ID or category..." 
+                placeholder="Find a product by name or ID..." 
                 className="pl-10 h-11 bg-white border-muted-foreground/20 shadow-sm rounded-xl font-medium"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -666,10 +666,10 @@ export default function PosIntegrationPage() {
                 <span className="text-xs font-bold text-primary uppercase tracking-widest">{selectedItemIds.size} Items Selected</span>
                 <div className="flex items-center gap-2 border-l border-primary/20 pl-4 ml-2">
                   <Button size="sm" className="h-8 text-[10px] font-bold bg-primary text-white uppercase rounded-lg px-4" onClick={() => handleBulkAction('enable')}>
-                    Activate
+                    Show on Menu
                   </Button>
                   <Button size="sm" variant="outline" className="h-8 text-[10px] font-bold text-destructive hover:bg-destructive/5 uppercase rounded-lg border-destructive/20 px-4" onClick={() => handleBulkAction('disable')}>
-                    Lock
+                    Hide on Menu
                   </Button>
                 </div>
               </div>
@@ -679,7 +679,7 @@ export default function PosIntegrationPage() {
                   <ListFilter className="h-4 w-4" /> Filter Status
                 </Button>
                 <Button variant="outline" className="h-10 gap-2 text-[10px] font-bold uppercase tracking-widest bg-white rounded-xl shadow-sm">
-                  <Layers className="h-4 w-4" /> Hierarchy
+                  <Layers className="h-4 w-4" /> Categories
                 </Button>
               </div>
             )}
@@ -698,7 +698,7 @@ export default function PosIntegrationPage() {
                       />
                     </TableHead>
                     <TableHead className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground py-4">Product Details</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground py-4">Source Identifier</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground py-4">Machine Identifier</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground text-right py-4">Base Price</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground text-right py-4 pr-10">Status</TableHead>
                   </TableRow>
@@ -755,7 +755,7 @@ export default function PosIntegrationPage() {
                                 <div className="flex flex-col py-2">
                                   <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
                                   <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight flex items-center gap-1.5 mt-0.5">
-                                    <Sparkles className="h-3 w-3 text-primary/40" /> Handshake verified
+                                    <CheckCircle2 className="h-3 w-3 text-green-500/60" /> Direct from your machine
                                   </span>
                                 </div>
                               </TableCell>
@@ -773,7 +773,7 @@ export default function PosIntegrationPage() {
                                     "text-[9px] font-bold uppercase tracking-widest",
                                     item.enabled ? "text-primary" : "text-muted-foreground"
                                   )}>
-                                    {item.enabled ? 'Active' : 'Locked'}
+                                    {item.enabled ? 'Visible' : 'Hidden'}
                                   </span>
                                   <Switch 
                                     checked={item.enabled} 
@@ -797,7 +797,7 @@ export default function PosIntegrationPage() {
                   <div className="h-20 w-20 rounded-2xl bg-muted/30 flex items-center justify-center mx-auto mb-5">
                     <Search className="h-10 w-10 text-muted-foreground opacity-30" />
                   </div>
-                  <p className="text-sm font-bold text-muted-foreground">No menu items found matching "{searchQuery}"</p>
+                  <p className="text-sm font-bold text-muted-foreground">No items found matching "{searchQuery}"</p>
                   <Button variant="link" className="mt-2 text-primary font-bold" onClick={() => setSearchQuery('')}>Clear all search filters</Button>
                 </div>
               )}
@@ -813,7 +813,7 @@ export default function PosIntegrationPage() {
               </div>
               <div className="h-10 w-px bg-border" />
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-primary/70 uppercase tracking-[0.15em] mb-1">Active Harmony</span>
+                <span className="text-[10px] font-bold text-primary/70 uppercase tracking-[0.15em] mb-1">Ready to Publish</span>
                 <span className="text-2xl font-bold text-primary tabular-nums">{items.filter(i => i.enabled).length}</span>
               </div>
             </div>
@@ -821,7 +821,7 @@ export default function PosIntegrationPage() {
             <div className="flex items-center gap-4">
               <Button variant="ghost" className="font-bold px-8 h-12 text-muted-foreground rounded-xl" onClick={() => setIsVerificationModalOpen(false)}>Review Later</Button>
               <Button className="font-bold bg-primary text-primary-foreground px-12 h-12 shadow-lg gap-2 rounded-xl border-b-4 border-primary-foreground/10 active:border-b-0 active:translate-y-1 transition-all" onClick={handleFinishSync}>
-                Finalize & Harmonize
+                Confirm & Finish
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
@@ -846,7 +846,7 @@ export default function PosIntegrationPage() {
                 Synchronization Accomplished!
               </DialogTitle>
               <DialogDescription className="text-muted-foreground text-base font-medium leading-relaxed max-w-[280px] mx-auto">
-                Your digital menu is now perfectly aligned with your Oracle environment. Real-time updates are monitoring your inventory.
+                Your digital menu is now connected to your POS machine. Prices and stock will now stay updated automatically.
               </DialogDescription>
             </div>
 
@@ -854,7 +854,7 @@ export default function PosIntegrationPage() {
               className="w-full h-12 font-bold uppercase tracking-widest bg-primary text-white hover:bg-primary/90 shadow-lg rounded-xl"
               onClick={() => setShowSuccessDialog(false)}
             >
-              Go to Dashboard
+              Back to Dashboard
             </Button>
           </div>
         </DialogContent>
