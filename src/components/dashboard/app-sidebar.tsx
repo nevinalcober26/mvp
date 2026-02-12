@@ -38,7 +38,7 @@ import {
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { usePathname } from 'next/navigation';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import NextLink from 'next/link';
 import { cn } from '@/lib/utils';
 import { Input } from '../ui/input';
@@ -184,14 +184,26 @@ const CONNECTIONS: SidebarItem[] = [
 export function AppSidebar() {
   const pathname = usePathname();
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeMenus, setActiveMenu] = useState<string[]>(['settings', 'operations']);
+  // Initialize with groups that should be open if we are currently on their path
+  const [activeMenus, setActiveMenu] = useState<string[]>([]);
   const [isBranchSwitcherOpen, setIsBranchSwitcherOpen] = useState(false);
   const [isBranchSearching, setIsBranchSearching] = useState(false);
   const [branchSearchQuery, setBranchSearchQuery] = useState('');
 
+  // Effect to automatically open the correct group based on the pathname
+  useEffect(() => {
+    const allGroups = [...MANAGEMENT];
+    const currentGroup = allGroups.find(group => 
+      group.items?.some(sub => pathname.startsWith(sub.path))
+    );
+    if (currentGroup) {
+      setActiveMenu([currentGroup.id]);
+    }
+  }, [pathname]);
+
   const handleMenuToggle = (menu: string) => {
     setActiveMenu((prev) => 
-      prev.includes(menu) ? prev.filter(m => m !== menu) : [...prev, menu]
+      prev.includes(menu) ? [] : [menu] // Accordion behavior: only one open at a time
     );
   };
 
