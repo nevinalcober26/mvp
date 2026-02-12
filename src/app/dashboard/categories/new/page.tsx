@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -22,7 +23,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Info,
   Image as ImageIcon,
@@ -31,12 +32,20 @@ import {
   ExternalLink,
   Save,
   Rocket,
-  ArrowLeft
+  ArrowLeft,
+  Copy,
+  RotateCcw,
+  Plus,
+  Trash2,
+  HelpCircle
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 const cuisines = ['Italian', 'Boutique Café', 'Signature Store', 'Japanese', 'Mexican', 'Indian', 'French'];
+
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 export default function AddNewBranchPage() {
   const router = useRouter();
@@ -133,11 +142,11 @@ export default function AddNewBranchPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-left">
                       <Label className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">Restaurant Name</Label>
                       <Input placeholder="e.g. Bella Cucina Italian" className="bg-background" />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-left">
                       <Label className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">Cuisine Type</Label>
                       <Select>
                         <SelectTrigger className="bg-background">
@@ -150,7 +159,7 @@ export default function AddNewBranchPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-left">
                     <Label className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">Description</Label>
                     <Textarea 
                       placeholder="Enter restaurant description..." 
@@ -160,20 +169,20 @@ export default function AddNewBranchPage() {
                 </section>
 
                 <section className="space-y-6">
-                  <h3 className="text-lg font-bold border-t pt-8">Address & Location</h3>
+                  <h3 className="text-lg font-bold border-t pt-8 text-left">Address & Location</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-left">
                       <Label className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">Street Address</Label>
                       <Input placeholder="e.g. 123 Main Street" className="bg-background" />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-left">
                       <Label className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">City</Label>
                       <Input placeholder="e.g. San Francisco" className="bg-background" />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-left">
                     <Label className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">Google Maps URL</Label>
                     <div className="relative">
                       <Input placeholder="https://maps.google.com/..." className="pr-10 bg-background" />
@@ -184,47 +193,185 @@ export default function AddNewBranchPage() {
                   <div className="flex items-center space-x-2">
                     <Checkbox id="show-maps" defaultChecked />
                     <label htmlFor="show-maps" className="text-sm font-medium leading-none cursor-pointer">
-                      Show Google Maps link on reservation page
+                      Show Google Maps link on menu page
                     </label>
                   </div>
                 </section>
               </TabsContent>
 
-              <TabsContent value="hours" className="p-8 space-y-6 focus-visible:ring-0 mt-0 bg-background">
+              <TabsContent value="hours" className="p-8 space-y-8 focus-visible:ring-0 mt-0 bg-background">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-bold">Standard Opening Hours</h3>
-                    <p className="text-sm text-muted-foreground">Set your weekly operating schedule</p>
+                  <div className="space-y-1 text-left">
+                    <h3 className="text-2xl font-bold flex items-center gap-2">
+                      Opening Hours <HelpCircle className="h-5 w-5 text-muted-foreground/50" />
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Set your restaurant&apos;s regular operating hours. These hours will be displayed to customers and determine when digital menu orders can be accepted.
+                    </p>
                   </div>
-                  <Button variant="outline" size="sm" className="bg-background">Apply to All Days</Button>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" className="gap-2 font-bold text-xs uppercase tracking-wider">
+                      <Copy className="h-3.5 w-3.5" /> Copy to All Days
+                    </Button>
+                    <Button variant="outline" size="sm" className="gap-2 font-bold text-xs uppercase tracking-wider">
+                      <RotateCcw className="h-3.5 w-3.5" /> Reset Hours
+                    </Button>
+                  </div>
                 </div>
 
-                <div className="space-y-3">
-                  {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
-                    <Card key={day} className="border shadow-none bg-background">
-                      <CardContent className="p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-4 min-w-[120px]">
-                          <Switch defaultChecked={!['Sunday'].includes(day)} />
-                          <span className="font-bold">{day}</span>
+                {/* Regular Hours Section */}
+                <Card className="border shadow-none overflow-hidden">
+                  <CardHeader className="bg-muted/30 border-b py-3 px-6 flex flex-row items-center justify-between space-y-0">
+                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Regular Hours</CardTitle>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold text-muted-foreground">24-hour format</span>
+                      <Switch className="scale-75" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0 divide-y">
+                    {DAYS.map((day) => (
+                      <div key={day} className="flex items-center gap-8 py-4 px-6 group hover:bg-muted/10 transition-colors">
+                        <div className="w-28 shrink-0">
+                          <span className="font-bold text-sm">{day}</span>
                         </div>
                         
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <Label className="text-[10px] uppercase text-muted-foreground font-bold">Open</Label>
-                            <Input type="time" defaultValue="09:00" className="w-32 h-9" />
+                        <div className="flex-1 flex flex-col gap-3">
+                          <div className="flex items-center gap-4">
+                            <Select defaultValue="11:00 AM">
+                              <SelectTrigger className="w-32 h-10">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="11:00 AM">11:00 AM</SelectItem>
+                                <SelectItem value="09:00 AM">09:00 AM</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <span className="text-xs font-bold text-muted-foreground uppercase">to</span>
+                            <Select defaultValue="10:00 PM">
+                              <SelectTrigger className="w-32 h-10">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="10:00 PM">10:00 PM</SelectItem>
+                                <SelectItem value="11:00 PM">11:00 PM</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            
+                            <Button variant="ghost" size="sm" className="text-primary hover:text-primary font-bold text-xs gap-1.5 ml-2">
+                              <Plus className="h-3.5 w-3.5" /> Add Shift
+                            </Button>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Label className="text-[10px] uppercase text-muted-foreground font-bold">Close</Label>
-                            <Input type="time" defaultValue="22:00" className="w-32 h-9" />
-                          </div>
+
+                          {/* Render an extra shift for Saturday as per reference */}
+                          {day === 'Saturday' && (
+                            <div className="flex items-center gap-4 animate-in slide-in-from-top-1 duration-200">
+                              <Select defaultValue="02:00 PM">
+                                <SelectTrigger className="w-32 h-10">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="02:00 PM">02:00 PM</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <span className="text-xs font-bold text-muted-foreground uppercase">to</span>
+                              <Select defaultValue="05:00 PM">
+                                <SelectTrigger className="w-32 h-10">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="05:00 PM">05:00 PM</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive ml-2">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
 
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" className="text-primary hover:text-primary font-semibold">Add Period</Button>
+                        <div className="flex items-center gap-6">
+                          <div className="flex items-center gap-2">
+                            <Checkbox id={`closed-${day}`} />
+                            <label htmlFor={`closed-${day}`} className="text-xs font-bold text-muted-foreground cursor-pointer">Closed</label>
+                          </div>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Copy className="h-4 w-4 text-muted-foreground" />
+                          </Button>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
+                {/* Special Hours Section */}
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-1 text-left">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                      Special Hours & Holidays <HelpCircle className="h-4 w-4 text-muted-foreground/50" />
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Set special operating hours for holidays or specific dates when your regular hours don&apos;t apply.
+                    </p>
+                  </div>
+
+                  <Card className="border shadow-none overflow-hidden">
+                    <CardHeader className="bg-muted/30 border-b py-3 px-6 flex flex-row items-center justify-between space-y-0">
+                      <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Special Dates</CardTitle>
+                      <Button size="sm" className="bg-primary text-primary-foreground font-bold h-8 px-4 rounded-lg text-xs">
+                        <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Special Hours
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="p-0 divide-y">
+                      {[
+                        { date: 'Jul 4, 2025', name: 'Independence Day', from: '11:00 AM', to: '10:00 PM' },
+                        { date: 'Dec 24, 2025', name: 'Christmas Eve', from: '11:00 AM', to: '10:00 PM' },
+                        { date: 'Dec 25, 2025', name: 'Christmas Day', closed: true }
+                      ].map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-8 py-4 px-6 group hover:bg-muted/10 transition-colors">
+                          <div className="w-40 shrink-0 text-left">
+                            <p className="font-bold text-sm">{item.date}</p>
+                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">{item.name}</p>
+                          </div>
+                          
+                          <div className="flex-1 flex items-center gap-4">
+                            {item.closed ? (
+                              <span className="text-sm font-medium text-muted-foreground italic">Closed all day</span>
+                            ) : (
+                              <>
+                                <Select defaultValue={item.from}>
+                                  <SelectTrigger className="w-32 h-10">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value={item.from}>{item.from}</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <span className="text-xs font-bold text-muted-foreground uppercase">to</span>
+                                <Select defaultValue={item.to}>
+                                  <SelectTrigger className="w-32 h-10">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value={item.to}>{item.to}</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-2">
+                              <Checkbox checked={item.closed} />
+                              <span className="text-xs font-bold text-muted-foreground">Closed</span>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
                 </div>
               </TabsContent>
             </Tabs>
