@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { Breadcrumbs } from '@/components/dashboard/breadcrumbs';
@@ -24,7 +24,8 @@ import {
   Printer,
   ChevronRight,
   FileText,
-  Upload
+  Upload,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -43,11 +44,35 @@ export default function QrCodePage() {
   const [isHighErrorCorrection, setIsHighErrorCorrection] = useState(false);
   const [isBrandingEnabled, setIsBrandingEnabled] = useState(true);
   const [coupon, setCoupon] = useState('none');
+  const [customLogo, setCustomLogo] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const breadcrumbItems = [
     { label: 'Operations' },
     { label: 'QR Studio' }
   ];
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCustomLogo(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerUpload = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    fileInputRef.current?.click();
+  };
+
+  const clearLogo = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCustomLogo(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   return (
     <>
@@ -197,21 +222,57 @@ export default function QrCodePage() {
 
                     <div 
                       className={cn(
-                        "flex items-center justify-between p-4 rounded-xl border-2 transition-all cursor-pointer",
+                        "flex flex-col gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer",
                         isBrandingEnabled ? "bg-primary/5 border-primary/20" : "bg-background border-border hover:border-muted-foreground/20"
                       )}
                       onClick={() => setIsBrandingEnabled(!isBrandingEnabled)}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className={cn("h-9 w-9 rounded-lg flex items-center justify-center transition-colors", isBrandingEnabled ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
-                          <FileText className="h-4 w-4" />
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-3">
+                          <div className={cn("h-9 w-9 rounded-lg flex items-center justify-center transition-colors", isBrandingEnabled ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
+                            <FileText className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold">Add Branding</p>
+                            <p className="text-[10px] text-muted-foreground font-medium uppercase">Overlay Logo</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-semibold">Add Branding</p>
-                          <p className="text-[10px] text-muted-foreground font-medium uppercase">Overlay Logo</p>
-                        </div>
+                        <Switch checked={isBrandingEnabled} />
                       </div>
-                      <Switch checked={isBrandingEnabled} />
+
+                      {isBrandingEnabled && (
+                        <div className="pt-3 border-t flex items-center justify-between animate-in slide-in-from-top-2 duration-300">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-md border bg-white flex items-center justify-center overflow-hidden">
+                              {customLogo ? (
+                                <Image src={customLogo} alt="Custom Logo" width={40} height={40} className="object-contain" />
+                              ) : (
+                                <Upload className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </div>
+                            <p className="text-xs font-bold text-foreground">
+                              {customLogo ? 'Custom Logo Loaded' : 'No custom logo set'}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="file" 
+                              ref={fileInputRef} 
+                              className="hidden" 
+                              accept="image/*" 
+                              onChange={handleLogoUpload} 
+                            />
+                            <Button variant="outline" size="sm" className="h-8 text-[10px] font-bold uppercase" onClick={triggerUpload}>
+                              {customLogo ? 'Change' : 'Upload Logo'}
+                            </Button>
+                            {customLogo && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={clearLogo}>
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -267,10 +328,10 @@ export default function QrCodePage() {
                           <div className="bg-white p-1 rounded-full shadow-sm border border-muted animate-in fade-in zoom-in duration-300">
                             <div className="h-12 w-12 rounded-full overflow-hidden relative">
                               <Image
-                                src="https://picsum.photos/seed/brand/100/100"
+                                src={customLogo || "https://picsum.photos/seed/brand/100/100"}
                                 fill
                                 alt="Brand logo"
-                                className="object-cover grayscale brightness-110"
+                                className={cn("object-cover", !customLogo && "grayscale brightness-110")}
                               />
                             </div>
                           </div>
