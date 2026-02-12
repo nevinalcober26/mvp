@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { Breadcrumbs } from '@/components/dashboard/breadcrumbs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -23,7 +24,7 @@ import {
   Printer,
   ChevronRight,
   FileText,
-  TicketPercent
+  Upload
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -40,6 +41,7 @@ export default function QrCodePage() {
   const [fileType, setFileType] = useState('PNG');
   const [qrType, setQrType] = useState('NORMAL QR');
   const [isHighErrorCorrection, setIsHighErrorCorrection] = useState(false);
+  const [isBrandingEnabled, setIsBrandingEnabled] = useState(true);
   const [coupon, setCoupon] = useState('none');
 
   const breadcrumbItems = [
@@ -193,9 +195,15 @@ export default function QrCodePage() {
                       <Switch checked={isHighErrorCorrection} />
                     </div>
 
-                    <div className="flex items-center justify-between p-4 rounded-xl border bg-muted/30 opacity-60 grayscale">
+                    <div 
+                      className={cn(
+                        "flex items-center justify-between p-4 rounded-xl border-2 transition-all cursor-pointer",
+                        isBrandingEnabled ? "bg-primary/5 border-primary/20" : "bg-background border-border hover:border-muted-foreground/20"
+                      )}
+                      onClick={() => setIsBrandingEnabled(!isBrandingEnabled)}
+                    >
                       <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+                        <div className={cn("h-9 w-9 rounded-lg flex items-center justify-center transition-colors", isBrandingEnabled ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
                           <FileText className="h-4 w-4" />
                         </div>
                         <div>
@@ -203,7 +211,7 @@ export default function QrCodePage() {
                           <p className="text-[10px] text-muted-foreground font-medium uppercase">Overlay Logo</p>
                         </div>
                       </div>
-                      <span className="text-[9px] font-bold bg-muted px-1.5 py-0.5 rounded text-muted-foreground">PRO</span>
+                      <Switch checked={isBrandingEnabled} />
                     </div>
                   </div>
                 </CardContent>
@@ -253,6 +261,21 @@ export default function QrCodePage() {
                         style={{ color: qrColor }}
                         strokeWidth={1.5}
                       />
+                      {/* Logo Branding Overlay */}
+                      {isBrandingEnabled && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="bg-white p-1 rounded-full shadow-sm border border-muted animate-in fade-in zoom-in duration-300">
+                            <div className="h-12 w-12 rounded-full overflow-hidden relative">
+                              <Image
+                                src="https://picsum.photos/seed/brand/100/100"
+                                fill
+                                alt="Brand logo"
+                                className="object-cover grayscale brightness-110"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="w-full space-y-3">
