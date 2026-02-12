@@ -244,12 +244,19 @@ export function AppSidebar() {
     );
   };
 
-  const filteredBranches = useMemo(() => {
-    return mockDataStore.branches.filter((branch) =>
+  const sortedAndFilteredBranches = useMemo(() => {
+    const filtered = mockDataStore.branches.filter((branch) =>
       branch.name.toLowerCase().includes(branchSearchQuery.toLowerCase()) ||
       branch.type.toLowerCase().includes(branchSearchQuery.toLowerCase())
     );
-  }, [branchSearchQuery]);
+    
+    // Sort so the currently selected branch is always first
+    return [...filtered].sort((a, b) => {
+      if (a.id === activeBranch.id) return -1;
+      if (b.id === activeBranch.id) return 1;
+      return 0;
+    });
+  }, [branchSearchQuery, activeBranch.id]);
 
   const renderSidebarItem = (item: SidebarItem) => {
     const isExpanded = activeMenus.includes(item.id);
@@ -508,8 +515,8 @@ export function AppSidebar() {
                   
                   <ScrollArea className="h-[220px]">
                     <div className="p-2">
-                      {filteredBranches.length > 0 ? (
-                        filteredBranches.map((branch) => (
+                      {sortedAndFilteredBranches.length > 0 ? (
+                        sortedAndFilteredBranches.map((branch) => (
                           <DropdownMenuItem 
                             key={branch.id} 
                             onClick={() => {
