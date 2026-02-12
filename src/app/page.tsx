@@ -37,7 +37,8 @@ export default function LoginPage() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         localStorage.setItem('isLoggedIn', 'true');
-        router.push('/dashboard');
+        // If the user just signed in, check if they need setup
+        // For this demo, we assume fresh signups go to setup
       } else {
         setIsLoading(false);
       }
@@ -89,7 +90,8 @@ export default function LoginPage() {
           title: 'Account created!',
           description: 'Welcome to eMenu Table.',
         });
-        router.push('/dashboard');
+        // Redirect to Business Profile Setup instead of Dashboard
+        router.push('/setup/business-profile');
       } catch (e: any) {
         console.error(e);
         setError(e.message || 'Could not create account. Please try again.');
