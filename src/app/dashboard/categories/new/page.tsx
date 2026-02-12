@@ -97,7 +97,7 @@ export default function AddNewBranchPage() {
 
           <Card className="shadow-smooth border-0 overflow-hidden">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full justify-start rounded-none border-b bg-background px-6 h-14 sticky top-0 z-20">
+              <TabsList className="w-full grid grid-cols-2 rounded-none border-b bg-background p-0 h-14 sticky top-0 z-20">
                 <TabsTrigger 
                   value="basic" 
                   className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none h-full gap-2 text-xs font-bold uppercase tracking-wider"
