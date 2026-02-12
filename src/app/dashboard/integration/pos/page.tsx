@@ -379,11 +379,11 @@ export default function PosIntegrationPage() {
           </div>
 
           {connections.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 bg-background rounded-3xl border-2 border-dashed border-muted-foreground/20 space-y-8 animate-in fade-in zoom-in duration-500">
+            <div className="flex flex-col items-start justify-start py-24 bg-background rounded-3xl border-2 border-dashed border-muted-foreground/20 space-y-8 animate-in fade-in zoom-in duration-500 w-full pl-12">
                <div className="h-24 w-24 rounded-[2rem] bg-muted/50 flex items-center justify-center">
                   <Monitor className="h-12 w-12 text-muted-foreground opacity-30" />
                </div>
-               <div className="text-center space-y-3 max-w-md px-6">
+               <div className="text-left space-y-3 max-w-md">
                   <h3 className="text-2xl font-bold tracking-tight">No POS Connected</h3>
                   <p className="text-muted-foreground text-base font-medium leading-relaxed">
                     Your digital menu is currently static. Connect your physical terminal to unlock real-time pricing and automated stock management.
@@ -396,27 +396,28 @@ export default function PosIntegrationPage() {
                     Connect Your POS
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="sm:max-w-xl p-0 overflow-hidden flex flex-col border-l shadow-2xl bg-white">
+                <SheetContent className="sm:max-w-xl p-0 overflow-hidden flex flex-col border-l shadow-2xl bg-white text-left">
                   <div className="bg-muted/30 p-8 border-b shrink-0">
                     <SheetHeader className="text-left space-y-2">
                       <SheetTitle className="text-2xl font-bold text-foreground">Add POS Connection</SheetTitle>
                       <SheetDescription className="text-muted-foreground font-medium">
-                        {currentStep === 1 
-                          ? "Select your provider to begin the connection process." 
-                          : "Configure your machine credentials and venue mapping."}
+                        {currentStep === 1 && "Step 1: Select your provider to begin."}
+                        {currentStep === 2 && "Step 2: Enter your machine credentials."}
+                        {currentStep === 3 && "Step 3: Map your terminal to your venue."}
                       </SheetDescription>
                     </SheetHeader>
                     {selectedProvider && (
                       <div className="mt-6 flex items-center gap-2">
                         <div className={cn("h-1 flex-1 rounded-full transition-colors", currentStep >= 1 ? "bg-primary" : "bg-muted")} />
                         <div className={cn("h-1 flex-1 rounded-full transition-colors", currentStep >= 2 ? "bg-primary" : "bg-muted")} />
+                        <div className={cn("h-1 flex-1 rounded-full transition-colors", currentStep >= 3 ? "bg-primary" : "bg-muted")} />
                       </div>
                     )}
                   </div>
                   
                   <ScrollArea className="flex-1">
                     <div className="p-8 space-y-8">
-                      {currentStep === 1 ? (
+                      {currentStep === 1 && (
                         <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
                           <div className="space-y-4">
                             <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground">Select Provider</Label>
@@ -452,9 +453,10 @@ export default function PosIntegrationPage() {
                             </div>
                           </div>
                         </div>
-                      ) : (
+                      )}
+
+                      {currentStep === 2 && (
                         <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-300">
-                          {/* Provider Specific Credentials Form */}
                           {selectedProvider === 'oracle-simphony' && (
                             <section className="space-y-6">
                               <div className="flex items-center gap-2">
@@ -484,13 +486,13 @@ export default function PosIntegrationPage() {
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                  <div className="space-y-2">
+                                  <div className="space-y-2 text-left">
                                     <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                                       <User className="h-3.5 w-3.5" /> Username
                                     </Label>
                                     <Input placeholder="KPTAC" className="h-11 font-medium bg-background border-muted-foreground/20" />
                                   </div>
-                                  <div className="space-y-2">
+                                  <div className="space-y-2 text-left">
                                     <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                                       <Lock className="h-3.5 w-3.5" /> Password
                                     </Label>
@@ -507,15 +509,18 @@ export default function PosIntegrationPage() {
                               </div>
                             </section>
                           )}
+                        </div>
+                      )}
 
-                          {/* Terminal Mapping Section */}
-                          <section className="space-y-6 pt-4 border-t border-muted">
+                      {currentStep === 3 && (
+                        <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-300">
+                          <section className="space-y-6">
                             <div className="flex items-center gap-2">
                               <div className="h-1.5 w-1.5 rounded-full bg-primary" />
                               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Terminal Mapping</h3>
                             </div>
                             <div className="grid grid-cols-1 gap-8">
-                              <div className="space-y-2">
+                              <div className="space-y-2 text-left">
                                 <Label className="text-sm font-bold flex items-center gap-2">
                                   <Tag className="h-3.5 w-3.5 text-muted-foreground" /> Terminal Label
                                 </Label>
@@ -528,7 +533,7 @@ export default function PosIntegrationPage() {
                                 <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">How this terminal appears on your integration grid.</p>
                               </div>
 
-                              <div className="space-y-2">
+                              <div className="space-y-2 text-left">
                                 <Label className="text-sm font-bold">Location</Label>
                                 <Select 
                                   value={locationValue || ""} 
@@ -547,7 +552,7 @@ export default function PosIntegrationPage() {
                                 </Select>
                               </div>
 
-                              <div className="space-y-2">
+                              <div className="space-y-2 text-left">
                                 <Label className={cn("text-sm font-bold transition-opacity", !locationValue && "opacity-50")}>Revenue Center</Label>
                                 <Select 
                                   disabled={!locationValue}
@@ -565,7 +570,7 @@ export default function PosIntegrationPage() {
                               </div>
 
                               <div className="grid grid-cols-2 gap-6">
-                                <div className="space-y-2">
+                                <div className="space-y-2 text-left">
                                   <Label className={cn("text-sm font-bold transition-opacity", !revenueCenterValue && "opacity-50")}>Tender Type</Label>
                                   <Select disabled={!revenueCenterValue}>
                                     <SelectTrigger className={cn("h-11 transition-colors font-medium", !revenueCenterValue ? "bg-muted cursor-not-allowed" : "bg-background")}>
@@ -578,7 +583,7 @@ export default function PosIntegrationPage() {
                                   </Select>
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="space-y-2 text-left">
                                   <Label className={cn("text-sm font-bold transition-opacity", !revenueCenterValue && "opacity-50")}>Employee ID</Label>
                                   <Input 
                                     disabled={!revenueCenterValue}
@@ -595,7 +600,7 @@ export default function PosIntegrationPage() {
                   </ScrollArea>
 
                   <SheetFooter className="p-6 bg-muted/30 border-t shrink-0 flex flex-row items-center justify-between gap-4">
-                    {currentStep === 1 ? (
+                    {currentStep === 1 && (
                       <>
                         <Button variant="ghost" className="font-bold px-8 h-11" onClick={() => setIsConnectDrawerOpen(false)}>Cancel</Button>
                         <Button 
@@ -606,9 +611,23 @@ export default function PosIntegrationPage() {
                           Next <ChevronRight className="h-4 w-4" />
                         </Button>
                       </>
-                    ) : (
+                    )}
+                    {currentStep === 2 && (
                       <>
                         <Button variant="outline" className="font-bold px-8 h-11 gap-2" onClick={() => setCurrentStep(1)}>
+                          <ArrowLeft className="h-4 w-4" /> Back
+                        </Button>
+                        <Button 
+                          className="font-bold bg-primary text-primary-foreground px-10 h-11 shadow-lg gap-2" 
+                          onClick={() => setCurrentStep(3)}
+                        >
+                          Next <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                    {currentStep === 3 && (
+                      <>
+                        <Button variant="outline" className="font-bold px-8 h-11 gap-2" onClick={() => setCurrentStep(2)}>
                           <ArrowLeft className="h-4 w-4" /> Back
                         </Button>
                         <Button 
@@ -697,7 +716,7 @@ export default function PosIntegrationPage() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="h-10 text-[10px] font-bold uppercase tracking-wide px-4 gap-2 border-primary/20 text-primary hover:bg-primary/5 rounded-xl bg-background shadow-sm flex-shrink-0" 
+                      className="h-10 text-xs font-bold uppercase tracking-wide px-4 gap-2 border-primary/20 text-primary hover:bg-primary/5 rounded-xl bg-background shadow-sm flex-shrink-0" 
                       onClick={() => setIsVerificationModalOpen(true)}
                     >
                       <Database className="h-4 w-4" />
@@ -734,7 +753,7 @@ export default function PosIntegrationPage() {
                   <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Identity & Label</h3>
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-2 text-left">
                   <Label className="text-sm font-bold flex items-center gap-2">
                     <Tag className="h-3.5 w-3.5 text-muted-foreground" /> Terminal Label
                   </Label>
@@ -911,7 +930,7 @@ export default function PosIntegrationPage() {
                 <Database className="h-6 w-6 text-primary" />
               </div>
               <div className="space-y-0.5">
-                <h2 className="text-2xl font-bold tracking-tight text-foreground">Manage Sync Menu</h2>
+                <DialogTitle className="text-2xl font-bold tracking-tight text-foreground">Manage Sync Menu</DialogTitle>
                 <div className="flex items-center gap-2 text-muted-foreground font-medium text-xs">
                   <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest py-0.5">Machine Active</Badge>
                   <span>{SUPPORTED_POS.find(p => p.id === selectedProvider)?.name || 'Machine Connection'}</span>
@@ -1122,7 +1141,7 @@ export default function PosIntegrationPage() {
                 ))}
               </Table>
               {filteredItems.length === 0 && (
-                <div className="py-32 text-center text-left">
+                <div className="py-32 text-center">
                   <div className="h-20 w-20 rounded-2xl bg-muted/30 flex items-center justify-center mx-auto mb-5">
                     <Search className="h-10 w-10 text-muted-foreground opacity-30" />
                   </div>
@@ -1162,7 +1181,7 @@ export default function PosIntegrationPage() {
         <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-white rounded-2xl border shadow-2xl text-left">
           <form onSubmit={handleSaveItemEdit}>
             <div className="p-6 border-b bg-muted/10">
-              <DialogTitle className="text-xl font-bold">Edit Synced Item</DialogTitle>
+              <DialogTitle className="text-xl font-bold text-foreground">Edit Synced Item</DialogTitle>
               <DialogDescription className="text-muted-foreground text-sm font-medium">Update the local display name or price for this product.</DialogDescription>
             </div>
             <div className="p-8 space-y-6">
@@ -1224,7 +1243,7 @@ export default function PosIntegrationPage() {
               <DialogTitle className="text-3xl font-bold tracking-tight text-foreground leading-tight">
                 Synchronization Accomplished!
               </DialogTitle>
-              <DialogDescription className="text-muted-foreground text-base font-medium leading-relaxed max-w-[280px] mx-auto">
+              <DialogDescription className="text-muted-foreground text-base font-medium leading-relaxed max-w-[280px] mx-auto text-center">
                 Your digital menu is now connected to your machine. Prices and stock will now stay updated automatically.
               </DialogDescription>
             </div>
