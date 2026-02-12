@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { Check, X, Building2, Crown, Sprout, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { Check, X, Building2, Crown, Sprout, ArrowLeft, Loader2, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -42,23 +42,29 @@ export default function ChoosePlanPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPreloading, setIsPreloading] = useState(false);
+  const [selectedPlanName, setSelectedPlanName] = useState('');
 
   const handleSelectPlan = async (plan: string) => {
-    setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    setSelectedPlanName(plan);
+    setIsPreloading(true);
     
-    localStorage.setItem('selectedPlan', JSON.stringify({ plan, cycle: billingCycle }));
+    // Simulate activation/preprocessing delay
+    await new Promise((resolve) => setTimeout(resolve, 1500));
     
-    toast({
-      title: 'Plan Selected',
-      description: `You have selected the ${plan} plan.`,
-    });
+    const planData = { 
+      plan, 
+      cycle: billingCycle,
+      price: plan === 'Pro' ? (billingCycle === 'monthly' ? 49 : 39) : 0,
+      timestamp: Date.now()
+    };
+    
+    localStorage.setItem('selectedPlan', JSON.stringify(planData));
 
     if (plan === 'Free') {
-        router.push('/dashboard');
+        router.push('/setup/confirmation');
     } else {
-        router.push('/dashboard'); // In a real app, go to /setup/payment
+        router.push('/setup/payment');
     }
   };
 
@@ -72,6 +78,26 @@ export default function ChoosePlanPage() {
     }
     return <span className="text-[13px] font-medium text-gray-600">{value}</span>;
   };
+
+  if (isPreloading) {
+    return (
+      <div className="relative flex flex-col min-h-screen items-center justify-center bg-[#fafbfc]">
+        <div className="absolute inset-0 z-0 pointer-events-none fixed">
+          <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#e6f7f6] blur-[120px] opacity-60" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#fffcf0] blur-[120px] opacity-60" />
+        </div>
+        <div className="relative z-10 flex flex-col items-center space-y-6 animate-in fade-in zoom-in duration-500">
+          <div className="h-20 w-20 rounded-3xl bg-white shadow-xl flex items-center justify-center">
+            <RefreshCw className="h-10 w-10 text-[#18B4A6] animate-spin" />
+          </div>
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl font-black text-[#142424]">Activating {selectedPlanName} Plan</h2>
+            <p className="text-sm font-medium text-gray-400">Preparing your eMenu Digital Hub license...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex flex-col min-h-screen bg-[#fafbfc]">
@@ -207,7 +233,6 @@ export default function ChoosePlanPage() {
                 <Button 
                   variant="outline"
                   onClick={() => handleSelectPlan('Free')}
-                  disabled={isSubmitting}
                   className="w-full h-12 rounded-xl border-[#18B4A6] text-[#18B4A6] font-bold text-[14px] hover:bg-[#18B4A6]/5 transition-all"
                 >
                   Select Free Plan
@@ -257,7 +282,6 @@ export default function ChoosePlanPage() {
                 </ul>
                 <Button 
                   onClick={() => handleSelectPlan('Pro')}
-                  disabled={isSubmitting}
                   className="w-full h-12 rounded-xl bg-[#18B4A6] text-white font-bold text-[14px] hover:bg-[#149d94] shadow-lg shadow-[#18B4A6]/30 transition-all active:scale-[0.98]"
                 >
                   Select Pro Plan
@@ -302,7 +326,6 @@ export default function ChoosePlanPage() {
                 <Button 
                   variant="outline"
                   onClick={() => handleSelectPlan('Enterprise')}
-                  disabled={isSubmitting}
                   className="w-full h-12 rounded-xl border-[#18B4A6] text-[#18B4A6] font-bold text-[14px] hover:bg-[#18B4A6]/5 transition-all"
                 >
                   Contact Sales
