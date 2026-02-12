@@ -8,7 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { CreditCard, Lock, ShieldCheck, Check, ArrowRight, Loader2, RefreshCw, Crown, AlertCircle } from 'lucide-react';
+import { 
+  CreditCard, 
+  Lock, 
+  ShieldCheck, 
+  Loader2, 
+  Crown, 
+  ChevronLeft,
+  CheckCircle2
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -46,20 +54,20 @@ export default function PaymentGatewayPage() {
     return (
       <div className="relative flex flex-col min-h-screen items-center justify-center bg-[#fafbfc]">
         <div className="absolute inset-0 z-0 pointer-events-none fixed">
-          <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#fef3eb] blur-[120px] opacity-60" />
+          <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#f0f7ff] blur-[120px] opacity-60" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#f0f7ff] blur-[120px] opacity-60" />
         </div>
-        <div className="relative z-10 flex flex-col items-center space-y-8 animate-in fade-in zoom-in duration-500">
+        <div className="relative z-10 flex flex-col items-center space-y-8 animate-in fade-in zoom-in duration-500 text-center">
           <div className="relative">
-            <div className="h-24 w-24 rounded-full border-4 border-[#EE7623]/20 flex items-center justify-center animate-pulse">
-              <ShieldCheck className="h-12 w-12 text-[#EE7623]" />
+            <div className="h-24 w-24 rounded-full border-4 border-[#0069B1]/10 flex items-center justify-center">
+              <ShieldCheck className="h-12 w-12 text-[#0069B1] animate-pulse" />
             </div>
-            <div className="absolute inset-0 h-24 w-24 rounded-full border-t-4 border-[#EE7623] animate-spin" />
+            <div className="absolute inset-0 h-24 w-24 rounded-full border-t-4 border-[#0069B1] animate-spin" />
           </div>
-          <div className="text-center space-y-3">
-            <h2 className="text-3xl font-black text-[#142424]">Securing Transaction</h2>
-            <p className="text-[15px] font-medium text-gray-400 max-w-[300px]">
-              Processing through Network International secure servers...
+          <div className="space-y-3">
+            <h2 className="text-3xl font-black text-[#142424] tracking-tight">Securing Transaction</h2>
+            <p className="text-[15px] font-medium text-gray-400 max-w-[340px] leading-relaxed">
+              We are verifying your payment details with <span className="font-bold text-[#142424]">Network International</span> secure servers...
             </p>
           </div>
         </div>
@@ -69,147 +77,200 @@ export default function PaymentGatewayPage() {
 
   return (
     <div className="relative flex flex-col min-h-screen bg-[#fafbfc]">
-      <header className="relative z-20 w-full bg-white border-b border-gray-100 py-4 px-8 flex justify-between items-center shrink-0">
-        <EMenuIcon />
-        <div className="flex items-center gap-3">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Powered by</span>
-            <div className="flex items-center gap-1.5">
-                <div className="h-6 w-6 rounded-md bg-[#EE7623] flex items-center justify-center text-white font-black text-[10px]">NI</div>
-                <span className="text-sm font-black text-[#142424] tracking-tight">Network International</span>
+      {/* Refined Corporate Header */}
+      <header className="relative z-20 w-full bg-white border-b border-gray-100 py-5 px-8 flex justify-between items-center shrink-0 shadow-sm">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => router.back()}
+            className="p-2 hover:bg-gray-50 rounded-full transition-colors group"
+          >
+            <ChevronLeft className="h-5 w-5 text-gray-400 group-hover:text-[#0069B1]" />
+          </button>
+          <div className="h-8 w-px bg-gray-100 mx-2 hidden sm:block" />
+          <EMenuIcon />
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="flex flex-col items-end hidden sm:flex">
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Payment Provider</span>
+            <div className="flex items-center gap-2">
+              <div className="h-5 w-5 rounded bg-[#EE7623] flex items-center justify-center text-white font-black text-[8px]">NI</div>
+              <span className="text-xs font-black text-[#142424] tracking-tight">Network International</span>
             </div>
+          </div>
+          <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center border">
+            <Lock className="h-4 w-4 text-gray-400" />
+          </div>
         </div>
       </header>
 
       <main className="relative flex-1 flex flex-col items-center p-4 pt-12 overflow-auto">
+        {/* Professional Mesh Gradient */}
         <div className="absolute inset-0 z-0 pointer-events-none fixed">
-          <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#fef3eb] blur-[120px] opacity-60" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#fffcf0] blur-[120px] opacity-60" />
+          <div className="absolute top-[-5%] left-[-5%] w-[50%] h-[50%] rounded-full bg-[#eef6ff] blur-[100px] opacity-70" />
+          <div className="absolute bottom-[-5%] right-[-5%] w-[50%] h-[50%] rounded-full bg-[#f0fdfa] blur-[100px] opacity-70" />
         </div>
 
-        <div className="relative z-10 w-full max-w-[900px] grid grid-cols-1 lg:grid-cols-12 gap-8 mb-24">
+        <div className="relative z-10 w-full max-w-[960px] grid grid-cols-1 lg:grid-cols-12 gap-10 mb-24">
+          
+          {/* Payment Details Column */}
           <div className="lg:col-span-7 space-y-8 animate-in fade-in slide-in-from-left-4 duration-700">
             <div className="space-y-2">
-              <h1 className="text-[32px] font-black tracking-tight text-[#142424]">Complete Your Purchase</h1>
-              <p className="text-[15px] font-medium text-gray-400">Secure hosted checkout for your Pro license activation</p>
+              <h1 className="text-[32px] font-black tracking-tight text-[#142424]">Secure Checkout</h1>
+              <p className="text-[15px] font-medium text-gray-400">Complete your activation by providing payment information</p>
             </div>
 
-            <Card className="border-0 shadow-[0_20px_50px_rgba(0,0,0,0.06)] rounded-[24px] overflow-hidden bg-white/90 backdrop-blur-xl">
-              <CardContent className="p-8 space-y-8">
-                {/* Prototype Disclaimer Badge */}
-                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-start gap-3">
-                  <ShieldCheck className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+            <Card className="border-0 shadow-2xl shadow-blue-900/5 rounded-[32px] overflow-hidden bg-white/95 backdrop-blur-xl">
+              <CardContent className="p-8 sm:p-10 space-y-8">
+                
+                {/* Demo Disclaimer Badge - Professional Style */}
+                <div className="p-5 rounded-[20px] bg-blue-50/50 border border-blue-100 flex items-start gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center shadow-sm shrink-0">
+                    <ShieldCheck className="h-5 w-5 text-[#0069B1]" />
+                  </div>
                   <div className="space-y-1">
-                    <p className="text-[11px] font-black uppercase tracking-[0.1em] text-amber-900">Prototype Demo Environment</p>
-                    <p className="text-[13px] font-medium text-amber-800 leading-relaxed">
-                      This payment gateway is for prototype demonstration purposes only. No actual credit card will be charged.
+                    <p className="text-[11px] font-black uppercase tracking-[0.12em] text-[#0069B1]">Prototype Environment</p>
+                    <p className="text-[13px] font-medium text-gray-600 leading-relaxed">
+                      This interface is for <span className="font-bold text-[#142424]">prototype demonstration purposes only</span>. No real credit card processing or charges will occur.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-[#EE7623]/10 flex items-center justify-center">
-                      <CreditCard className="h-5 w-5 text-[#EE7623]" />
+                {/* Card Selection Visual */}
+                <div className="flex items-center justify-between p-5 bg-gray-50/80 rounded-2xl border border-gray-100/50">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-white shadow-sm border flex items-center justify-center">
+                      <CreditCard className="h-6 w-6 text-gray-400" />
                     </div>
                     <div>
-                      <p className="text-[14px] font-bold text-[#142424]">Credit Card</p>
-                      <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Visa, Mastercard, Amex</p>
+                      <p className="text-[14px] font-bold text-[#142424]">Credit or Debit Card</p>
+                      <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Accepting Visa, Mastercard, AMEX</p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <div className="h-6 w-10 bg-white rounded border border-gray-200" />
-                    <div className="h-6 w-10 bg-white rounded border border-gray-200" />
+                  <div className="flex gap-1.5 opacity-60 grayscale hover:grayscale-0 transition-all cursor-default">
+                    <div className="h-6 w-10 bg-[#1A1F71] rounded flex items-center justify-center text-[8px] text-white font-bold italic">VISA</div>
+                    <div className="h-6 w-10 bg-[#EB001B] rounded flex items-center justify-center text-[8px] text-white font-bold">MC</div>
                   </div>
                 </div>
 
                 <form onSubmit={handleProcessPayment} className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label className="text-[12px] font-bold text-[#142424]">Cardholder Name</Label>
-                      <Input defaultValue="John Smith" className="h-12 bg-white border-gray-200 rounded-xl px-4 font-bold text-[#142424]" />
+                  <div className="space-y-5">
+                    <div className="space-y-2">
+                      <Label className="text-[12px] font-black uppercase tracking-widest text-gray-400">Cardholder Name</Label>
+                      <Input 
+                        defaultValue="John Smith" 
+                        className="h-14 bg-white border-gray-200 rounded-2xl px-5 font-bold text-[#142424] text-base focus:ring-[#0069B1] focus:border-[#0069B1] transition-all" 
+                      />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-[12px] font-bold text-[#142424]">Card Number</Label>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-[12px] font-black uppercase tracking-widest text-gray-400">Card Number</Label>
                       <div className="relative">
-                        <Input defaultValue="4242 4242 4242 4242" className="h-12 bg-white border-gray-200 rounded-xl px-4 font-bold tracking-widest text-[#142424]" />
-                        <CreditCard className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
+                        <Input 
+                          defaultValue="4242 4242 4242 4242" 
+                          className="h-14 bg-white border-gray-200 rounded-2xl px-5 font-bold tracking-[0.2em] text-[#142424] text-base focus:ring-[#0069B1] focus:border-[#0069B1] transition-all" 
+                        />
+                        <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                           <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-[12px] font-bold text-[#142424]">Expiry Date</Label>
-                        <Input defaultValue="12/26" className="h-12 bg-white border-gray-200 rounded-xl px-4 font-bold text-[#142424]" />
+
+                    <div className="grid grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label className="text-[12px] font-black uppercase tracking-widest text-gray-400">Expiration Date</Label>
+                        <Input 
+                          defaultValue="12/26" 
+                          className="h-14 bg-white border-gray-200 rounded-2xl px-5 font-bold text-[#142424] text-base focus:ring-[#0069B1] focus:border-[#0069B1] transition-all" 
+                        />
                       </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-[12px] font-bold text-[#142424]">CVV</Label>
+                      <div className="space-y-2">
+                        <Label className="text-[12px] font-black uppercase tracking-widest text-gray-400">CVV / CVC</Label>
                         <div className="relative">
-                          <Input defaultValue="***" type="password" className="h-12 bg-white border-gray-200 rounded-xl px-4 font-bold text-[#142424]" />
-                          <Lock className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
+                          <Input 
+                            defaultValue="***" 
+                            type="password" 
+                            className="h-14 bg-white border-gray-200 rounded-2xl px-5 font-bold text-[#142424] text-base focus:ring-[#0069B1] focus:border-[#0069B1] transition-all" 
+                          />
+                          <Lock className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
                         </div>
                       </div>
                     </div>
                   </div>
 
                   <Button 
-                    className="w-full h-14 bg-[#EE7623] hover:bg-[#d6651d] text-white font-black uppercase tracking-widest text-[15px] rounded-xl shadow-xl shadow-[#EE7623]/20 transition-all active:scale-[0.98]"
+                    className="w-full h-16 bg-[#0069B1] hover:bg-[#005a96] text-white font-black uppercase tracking-[0.15em] text-[15px] rounded-2xl shadow-xl shadow-[#0069B1]/20 transition-all active:scale-[0.98] mt-4"
                     type="submit"
                   >
-                    Pay ${planData?.price || 0}.00 Now
+                    Authorize Payment — ${planData?.price || 0}.00
                   </Button>
 
-                  <div className="flex items-center justify-center gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
-                    <Lock className="h-3 w-3" />
-                    Secure Encrypted Transaction via NI
+                  <div className="flex items-center justify-center gap-3 text-[11px] font-bold text-gray-400 uppercase tracking-[0.15em]">
+                    <div className="flex items-center gap-1 text-green-600">
+                      <Lock className="h-3 w-3" /> Secure
+                    </div>
+                    <span className="h-1 w-1 rounded-full bg-gray-200" />
+                    Encrypted via Network International
                   </div>
                 </form>
               </CardContent>
             </Card>
           </div>
 
+          {/* Order Summary Column */}
           <div className="lg:col-span-5 space-y-6 animate-in fade-in slide-in-from-right-4 duration-700">
-            <h3 className="text-[18px] font-black text-[#142424] pt-4 text-left">Order Summary</h3>
-            <Card className="border-0 shadow-lg rounded-[24px] bg-white text-[#142424] overflow-hidden">
-              <CardContent className="p-8 space-y-6">
-                <div className="flex items-center justify-between border-b border-gray-100 pb-6">
-                  <div className="space-y-1 text-left">
-                    <Badge className="bg-[#EE7623]/10 text-[#EE7623] font-black text-[9px] uppercase px-2 py-0.5 border-0 shadow-none">PRO PLAN</Badge>
-                    <h4 className="text-xl font-black">eMenu Digital Hub</h4>
+            <h3 className="text-[18px] font-black text-[#142424] pt-4 px-2">Order Summary</h3>
+            <Card className="border-0 shadow-lg rounded-[32px] bg-white text-[#142424] overflow-hidden">
+              <CardContent className="p-8 space-y-8">
+                <div className="flex items-center justify-between border-b border-gray-50 pb-8">
+                  <div className="space-y-1">
+                    <Badge className="bg-[#0069B1]/10 text-[#0069B1] font-black text-[10px] uppercase px-3 py-1 border-0 shadow-none tracking-widest mb-1">
+                      {planData?.plan || 'PRO'} PLAN
+                    </Badge>
+                    <h4 className="text-2xl font-black tracking-tight">eMenu Digital Hub</h4>
                   </div>
-                  <Crown className="h-8 w-8 text-[#EE7623]" />
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 font-bold">Billing Cycle</span>
-                    <span className="font-black capitalize">{planData?.cycle}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 font-bold">Platform Fee</span>
-                    <span className="font-black">${planData?.price || 0}.00</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 font-bold">Setup Fee</span>
-                    <span className="text-[#EE7623] font-black uppercase tracking-wider">WAIVED</span>
+                  <div className="h-14 w-14 rounded-2xl bg-gray-50 flex items-center justify-center border border-gray-100">
+                    <Crown className="h-7 w-7 text-[#0069B1]" />
                   </div>
                 </div>
 
-                <div className="border-t border-gray-100 pt-6 flex justify-between items-center">
-                  <span className="text-lg font-black tracking-tight">Total Amount</span>
-                  <span className="text-3xl font-black text-[#EE7623] tabular-nums">${planData?.price || 0}.00</span>
+                <div className="space-y-5">
+                  <div className="flex justify-between items-center text-sm font-bold">
+                    <span className="text-gray-400 uppercase tracking-widest text-[11px]">Billing Cycle</span>
+                    <span className="text-[#142424] capitalize">{planData?.cycle || 'Monthly'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm font-bold">
+                    <span className="text-gray-400 uppercase tracking-widest text-[11px]">Subtotal (License)</span>
+                    <span className="text-[#142424] tabular-nums">${planData?.price || 0}.00</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm font-bold">
+                    <span className="text-gray-400 uppercase tracking-widest text-[11px]">Tax / VAT</span>
+                    <span className="text-[#142424] tabular-nums">$0.00</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm font-bold">
+                    <span className="text-gray-400 uppercase tracking-widest text-[11px]">Setup Fee</span>
+                    <span className="text-green-600 font-black uppercase tracking-widest text-xs bg-green-50 px-2 py-0.5 rounded">Waived</span>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 pt-8 flex justify-between items-center">
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 leading-none mb-1">Total Due</span>
+                    <span className="text-sm font-bold text-[#0069B1]">USD / Monthly</span>
+                  </div>
+                  <span className="text-4xl font-black text-[#142424] tracking-tighter tabular-nums">
+                    ${planData?.price || 0}.00
+                  </span>
                 </div>
               </CardContent>
             </Card>
 
-            <div className="p-6 bg-white rounded-[24px] border border-gray-100 shadow-sm space-y-4 text-left">
-              <h4 className="text-[13px] font-black text-[#142424] uppercase tracking-wider">Plan Highlights</h4>
-              <ul className="space-y-3">
-                {['Up to 5 locations', 'Priority 24/7 Support', 'Advanced Analytics'].map(item => (
-                  <li key={item} className="flex items-center gap-2 text-[12px] font-bold text-gray-500">
-                    <Check className="h-4 w-4 text-[#EE7623]" strokeWidth={3} />
-                    {item}
-                  </li>
-                ))}
-              </ul>
+            {/* Support Hint */}
+            <div className="p-6 bg-blue-50/30 rounded-[24px] border border-blue-100/50 space-y-2">
+              <p className="text-[13px] font-bold text-gray-700">Need help with your purchase?</p>
+              <p className="text-[12px] font-medium text-gray-500 leading-relaxed">
+                Contact our accounts team at <span className="text-[#0069B1] font-bold cursor-pointer">billing@emenutable.com</span> for any subscription inquiries.
+              </p>
             </div>
           </div>
         </div>
