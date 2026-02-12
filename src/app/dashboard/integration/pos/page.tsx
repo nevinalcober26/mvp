@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { DashboardHeader } from "@/components/dashboard/header";
 import { 
   Card, 
@@ -31,7 +31,14 @@ import {
   Loader2,
   Check,
   Edit3,
-  PartyPopper
+  PartyPopper,
+  Search,
+  CheckSquare,
+  Square,
+  Filter,
+  MoreVertical,
+  XCircle,
+  Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -66,6 +73,15 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 type PosStatus = 'active' | 'error' | 'syncing' | 'disconnected';
 
@@ -86,13 +102,42 @@ const SUPPORTED_POS = [
   { id: 'clover', name: 'Clover', description: 'Integrated merchant services' },
 ];
 
-const MOCK_IMPORTED_ITEMS = [
-  { id: '1', name: 'Wagyu Beef Burger', price: '$24.00', enabled: true },
-  { id: '2', name: 'Truffle Mac & Cheese', price: '$18.50', enabled: true },
-  { id: '3', name: 'Roasted Salmon', price: '$28.00', enabled: true },
-  { id: '4', name: 'Caesar Salad', price: '$14.00', enabled: false },
-  { id: '5', name: 'Chocolate Fondant', price: '$12.00', enabled: true },
-];
+// Generate 500 mock items across categories for the high-volume demo
+const generateMockItems = () => {
+  const categories = ['Main Courses', 'Appetizers', 'Beverages', 'Sides', 'Desserts', 'Breakfast'];
+  const subCategories: Record<string, string[]> = {
+    'Main Courses': ['Steaks', 'Pastas', 'Seafood', 'Burgers'],
+    'Appetizers': ['Cold Starters', 'Hot Bites', 'Soups'],
+    'Beverages': ['Signature Cocktails', 'Wines', 'Draft Beer', 'Soft Drinks', 'Coffee'],
+    'Sides': ['Fries', 'Vegetables', 'Salads'],
+    'Desserts': ['Cakes', 'Pastries', 'Ice Cream'],
+    'Breakfast': ['Eggs', 'Bowls', 'Griddle']
+  };
+
+  const items = [];
+  let id = 1;
+
+  for (const cat of categories) {
+    for (const sub of subCategories[cat]) {
+      const numItems = Math.floor(Math.random() * 15) + 10; // 10-25 items per subcat
+      for (let i = 0; i < numItems; i++) {
+        items.push({
+          id: `item-${id}`,
+          posId: `SIM-${1000 + id}`,
+          name: `${sub} ${cat === 'Beverages' ? 'Specialty' : 'Selection'} #${i + 1}`,
+          category: cat,
+          subCategory: sub,
+          price: `$${(Math.random() * 40 + 10).toFixed(2)}`,
+          enabled: Math.random() > 0.1
+        });
+        id++;
+      }
+    }
+  }
+  return items;
+};
+
+const MOCK_ITEMS = generateMockItems();
 
 export default function PosIntegrationPage() {
   const { toast } = useToast();
@@ -109,6 +154,74 @@ export default function PosIntegrationPage() {
   const [showVerification, setShowVerification] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   
+  // Verification List States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedItemIds, setSelectedItems] = useState<Set<string>>(new Set());
+  const [items, setItems] = useState(MOCK_ITEMS);
+
+  const filteredItems = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return items.filter(item => 
+      item.name.toLowerCase().includes(query) || 
+      item.category.toLowerCase().includes(query) ||
+      item.subCategory.toLowerCase().includes(query) ||
+      item.posId.toLowerCase().includes(query)
+    );
+  }, [items, searchQuery]);
+
+  const itemsByCategory = useMemo(() => {
+    const groups: Record<string, Record<string, typeof items>> = {};
+    filteredItems.forEach(item => {
+      if (!groups[item.category]) groups[item.category] = {};
+      if (!groups[item.category][item.subCategory]) groups[item.category][item.subCategory] = [];
+      groups[item.category][item.subCategory].push(item);
+    });
+    return groups;
+  }, [filteredItems]);
+
+  useEffect(() => {
+    if (!isConnectDrawerOpen) {
+      setCurrentStep(1);
+      setSelectedProvider(null);
+      setLocationValue(null);
+      setRevenueCenterValue(null);
+      setShowVerification(false);
+      setIsSyncComplete(false);
+      setSyncProgress(0);
+      setSelectedItems(new Set());
+    }
+  }, [isConnectDrawerOpen]);
+
+  const toggleItemSelection = (id: string) => {
+    const newSelection = new Set(selectedItemIds);
+    if (newSelection.has(id)) newSelection.delete(id);
+    else newSelection.add(id);
+    setSelectedItems(newSelection);
+  };
+
+  const toggleAllVisible = () => {
+    if (selectedItemIds.size === filteredItems.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(filteredItems.map(i => i.id)));
+    }
+  };
+
+  const handleBulkAction = (action: 'enable' | 'disable') => {
+    const updatedItems = items.map(item => {
+      if (selectedItemIds.has(item.id)) {
+        return { ...item, enabled: action === 'enable' };
+      }
+      return item;
+    });
+    setItems(updatedItems);
+    toast({
+      title: "Batch Action Completed",
+      description: `${selectedItemIds.size} items have been ${action}d.`
+    });
+    setSelectedItems(new Set());
+  };
+
   const [connections, setConnections] = useState<PosConnection[]>([
     { 
       id: '1', 
@@ -127,41 +240,6 @@ export default function PosIntegrationPage() {
       terminalId: 'SQ-BAR-99'
     },
   ]);
-
-  useEffect(() => {
-    if (!isConnectDrawerOpen) {
-      setCurrentStep(1);
-      setSelectedProvider(null);
-      setLocationValue(null);
-      setRevenueCenterValue(null);
-      setShowVerification(false);
-      setIsSyncComplete(false);
-      setSyncProgress(0);
-    }
-  }, [isConnectDrawerOpen]);
-
-  const handleSyncAll = () => {
-    toast({
-      title: "Global Sync Initiated",
-      description: "Refreshing data from all connected POS systems.",
-    });
-  };
-
-  const handleRemoveConnection = (id: string) => {
-    setConnections(prev => prev.filter(c => c.id !== id));
-    toast({
-      title: "Connection Removed",
-      description: "The POS system has been successfully disconnected.",
-    });
-  };
-
-  const handleNextStep = () => {
-    setCurrentStep(prev => prev + 1);
-  };
-
-  const handlePreviousStep = () => {
-    setCurrentStep(prev => prev - 1);
-  };
 
   const startSyncProcess = () => {
     setIsSyncing(true);
@@ -210,11 +288,11 @@ export default function PosIntegrationPage() {
           
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
-              <h1 className="text-3xl font-bold tracking-tight">POS Integration</h1>
-              <p className="text-muted-foreground">Manage your venue terminals and real-time menu synchronization.</p>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">POS Integration</h1>
+              <p className="text-muted-foreground text-sm">Manage your venue terminals and real-time menu synchronization.</p>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" className="gap-2 font-semibold shadow-sm" onClick={handleSyncAll}>
+              <Button variant="outline" className="gap-2 font-semibold shadow-sm" onClick={() => toast({ title: "Sync Initiated" })}>
                 <RefreshCw className="h-4 w-4" />
                 Sync All
               </Button>
@@ -225,230 +303,318 @@ export default function PosIntegrationPage() {
                     Connect New POS
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="sm:max-w-xl p-0 overflow-hidden flex flex-col border-l shadow-2xl">
-                  <div className="bg-primary p-8 text-primary-foreground shrink-0 relative">
+                <SheetContent className="sm:max-w-4xl p-0 overflow-hidden flex flex-col border-l shadow-2xl">
+                  <div className="bg-[#142424] p-8 text-white shrink-0 relative">
                     <SheetHeader className="text-left space-y-2">
                       <SheetTitle className="text-2xl font-bold text-white">
-                        {showVerification ? "Menu Verification" : "Add POS Connection"}
+                        {showVerification ? "POS Menu Verification" : "Add POS Connection"}
                       </SheetTitle>
-                      <SheetDescription className="text-primary-foreground/80 font-medium">
+                      <SheetDescription className="text-white/60 font-medium">
                         {showVerification 
-                          ? "Review items imported from Simphony. You can enable/disable items before finishing." 
+                          ? `Reviewing ${items.length} items imported from Oracle Simphony. Grouped by category.` 
                           : currentStep === 1 
-                            ? "Select a provider and enter your credentials." 
-                            : "Complete your POS configuration to enable syncing."}
+                            ? "Select a provider and enter your technical handshake credentials." 
+                            : "Map your technical connection to your venue locations and centers."}
                       </SheetDescription>
                     </SheetHeader>
                     {!showVerification && selectedProvider === 'oracle-simphony' && (
                       <div className="mt-6 flex items-center gap-2">
-                        <div className={cn("h-1.5 flex-1 rounded-full transition-colors", currentStep >= 1 ? "bg-white" : "bg-white/20")} />
-                        <div className={cn("h-1.5 flex-1 rounded-full transition-colors", currentStep >= 2 ? "bg-white" : "bg-white/20")} />
+                        <div className={cn("h-1 flex-1 rounded-full transition-colors", currentStep >= 1 ? "bg-primary" : "bg-white/10")} />
+                        <div className={cn("h-1 flex-1 rounded-full transition-colors", currentStep >= 2 ? "bg-primary" : "bg-white/10")} />
                       </div>
                     )}
                   </div>
                   
-                  <ScrollArea className="flex-1">
-                    <div className="p-8 space-y-8">
-                      {!showVerification ? (
-                        <>
-                          {currentStep === 1 && (
-                            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-                              <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground">Select Provider</Label>
-                                <Select value={selectedProvider || ""} onValueChange={setSelectedProvider}>
-                                  <SelectTrigger className="h-12 text-base font-semibold">
-                                    <SelectValue placeholder="Choose POS brand" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {SUPPORTED_POS.map(pos => (
-                                      <SelectItem key={pos.id} value={pos.id}>
-                                        <div className="flex flex-col py-1">
-                                          <span className="font-bold">{pos.name}</span>
-                                          <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{pos.description}</span>
-                                        </div>
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-
-                              {selectedProvider === 'oracle-simphony' && (
-                                <div className="space-y-6">
-                                  <div className="flex items-center gap-2 mb-4">
-                                    <div className="h-px flex-1 bg-border" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-2 whitespace-nowrap">Step 1: Simphony Credentials</span>
-                                    <div className="h-px flex-1 bg-border" />
-                                  </div>
-                                  
-                                  <div className="grid gap-6">
-                                    <div className="space-y-2">
-                                      <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                        <Globe className="h-3.5 w-3.5" /> OIDC URL
-                                      </Label>
-                                      <Input placeholder="https://act-omra-idm.oracleindustry.com" className="h-11 font-medium bg-muted/30 border-muted-foreground/20" />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                      <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                        <Globe className="h-3.5 w-3.5" /> STS URL
-                                      </Label>
-                                      <Input placeholder="https://act-sts.oraclecloud.com" className="h-11 font-medium bg-muted/30 border-muted-foreground/20" />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                      <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                        <Lock className="h-3.5 w-3.5" /> Client ID
-                                      </Label>
-                                      <Input placeholder="Enter your Client ID..." className="h-11 font-mono text-sm bg-muted/30 border-muted-foreground/20" />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                      <div className="space-y-2">
-                                        <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                          <User className="h-3.5 w-3.5" /> Username
-                                        </Label>
-                                        <Input placeholder="KPTAC" className="h-11 font-medium bg-muted/30 border-muted-foreground/20" />
-                                      </div>
-                                      <div className="space-y-2">
-                                        <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                          <Lock className="h-3.5 w-3.5" /> Password
-                                        </Label>
-                                        <Input type="password" placeholder="••••••••••••" className="h-11 font-medium bg-muted/30 border-muted-foreground/20" />
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                      <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                        <Hash className="h-3.5 w-3.5" /> Org Short Name
-                                      </Label>
-                                      <Input placeholder="ACT" className="h-11 font-medium bg-muted/30 border-muted-foreground/20" />
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-
-                              {!selectedProvider && (
-                                <div className="py-20 text-center space-y-4 bg-muted/20 rounded-2xl border-2 border-dashed border-muted-foreground/10">
-                                  <Monitor className="h-12 w-12 text-muted-foreground mx-auto opacity-20" />
-                                  <p className="text-sm text-muted-foreground font-semibold px-12 leading-relaxed">Please select a POS provider from the list above to configure your connection.</p>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {currentStep === 2 && selectedProvider === 'oracle-simphony' && (
-                            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-                              <div className="text-center space-y-2">
-                                <h3 className="text-2xl font-bold tracking-tight">Venue Configuration</h3>
-                                <p className="text-sm text-muted-foreground">Map your technical credentials to your physical layout.</p>
-                              </div>
-
-                              <div className="rounded-2xl border border-muted-foreground/10 bg-card p-8 shadow-sm space-y-8">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                  <div className="space-y-2">
-                                    <Label className="text-sm font-semibold">Location</Label>
-                                    <Select 
-                                      value={locationValue || ""} 
-                                      onValueChange={(val) => {
-                                        setLocationValue(val);
-                                        setRevenueCenterValue(null);
-                                      }}
-                                    >
-                                      <SelectTrigger className="h-11 bg-muted/20 border-muted-foreground/10">
-                                        <SelectValue placeholder="Select a location" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="main">Main Outlet</SelectItem>
-                                        <SelectItem value="annex">Annex Lounge</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-
-                                  <div className="space-y-2">
-                                    <Label className={cn("text-sm font-semibold transition-opacity", !locationValue && "opacity-50")}>Revenue Center</Label>
-                                    <Select 
-                                      disabled={!locationValue}
-                                      value={revenueCenterValue || ""}
-                                      onValueChange={setRevenueCenterValue}
-                                    >
-                                      <SelectTrigger className={cn("h-11 border-muted-foreground/10 transition-colors", !locationValue ? "bg-muted cursor-not-allowed" : "bg-muted/20")}>
-                                        <SelectValue placeholder={!locationValue ? "Select location first" : "Select Revenue Center"} />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="food">Dine-in Food</SelectItem>
-                                        <SelectItem value="bar">Bar Revenue</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                  <div className="space-y-2">
-                                    <Label className={cn("text-sm font-semibold transition-opacity", !revenueCenterValue && "opacity-50")}>Tender</Label>
-                                    <Select disabled={!revenueCenterValue}>
-                                      <SelectTrigger className={cn("h-11 border-muted-foreground/10 transition-colors", !revenueCenterValue ? "bg-muted cursor-not-allowed" : "bg-muted/20")}>
-                                        <SelectValue placeholder={!revenueCenterValue ? "Select center first" : "Select Tender"} />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="visa">Visa/Mastercard</SelectItem>
-                                        <SelectItem value="cash">Cash Tender</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-
-                                  <div className="space-y-2">
-                                    <Label className={cn("text-sm font-semibold transition-opacity", !revenueCenterValue && "opacity-50")}>Employee ID</Label>
-                                    <Input 
-                                      disabled={!revenueCenterValue}
-                                      placeholder="Enter Employee's ID" 
-                                      className={cn("h-11 border-muted-foreground/10 transition-colors", !revenueCenterValue ? "bg-muted cursor-not-allowed" : "bg-muted/20")} 
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-bold">Imported Food Menu</h3>
-                            <Button variant="outline" size="sm" className="gap-2 font-semibold">
-                              <Edit3 className="h-3.5 w-3.5" />
-                              Enable Editing
-                            </Button>
+                  {showVerification ? (
+                    <div className="flex-1 flex flex-col overflow-hidden bg-background">
+                      {/* Search and Bulk Action Bar */}
+                      <div className="p-4 border-b space-y-4 bg-muted/10">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                              placeholder="Search item name, category or POS ID..." 
+                              className="pl-10 h-11 bg-background border-muted-foreground/20"
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                           </div>
-                          <div className="space-y-3">
-                            {MOCK_IMPORTED_ITEMS.map((item) => (
-                              <Card key={item.id} className="border-2 hover:border-primary/20 transition-colors group">
-                                <CardContent className="p-4 flex items-center justify-between">
-                                  <div className="flex items-center gap-4">
-                                    <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center font-bold text-muted-foreground text-xs">
-                                      POS
-                                    </div>
-                                    <div>
-                                      <p className="font-bold text-sm group-hover:text-primary transition-colors">{item.name}</p>
-                                      <p className="text-xs text-muted-foreground font-medium">{item.price}</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-3">
-                                    <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Active?</span>
-                                    <Switch defaultChecked={item.enabled} />
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                          <div className="p-4 rounded-xl bg-orange-50 border border-orange-100 flex items-start gap-3">
-                            <Info className="h-4 w-4 text-orange-600 shrink-0 mt-0.5" />
-                            <p className="text-[11px] text-orange-900 leading-relaxed font-medium italic">
-                              These items are synced directly from Oracle Simphony. Any changes made here will be updated in your digital hub once you click "Finish".
-                            </p>
-                          </div>
+                          <Button variant="outline" className="gap-2 font-semibold border-muted-foreground/20">
+                            <Edit3 className="h-4 w-4" />
+                            Enable Editing
+                          </Button>
                         </div>
-                      )}
+
+                        {selectedItemIds.size > 0 && (
+                          <div className="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/20 animate-in slide-in-from-top-2">
+                            <div className="flex items-center gap-3">
+                              <Badge className="bg-primary text-primary-foreground font-black px-2 py-0.5 rounded-md">
+                                {selectedItemIds.size}
+                              </Badge>
+                              <span className="text-sm font-bold text-primary">Items Selected</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button size="sm" variant="outline" className="gap-2 font-bold text-xs uppercase" onClick={() => handleBulkAction('enable')}>
+                                <CheckSquare className="h-3.5 w-3.5" />
+                                Activate
+                              </Button>
+                              <Button size="sm" variant="outline" className="gap-2 font-bold text-xs uppercase text-destructive" onClick={() => handleBulkAction('disable')}>
+                                <XCircle className="h-3.5 w-3.5" />
+                                Deactivate
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Hierarchical Table */}
+                      <ScrollArea className="flex-1">
+                        <Table className="relative">
+                          <TableHeader className="sticky top-0 z-20 bg-background shadow-sm">
+                            <TableRow>
+                              <TableHead className="w-12">
+                                <Checkbox 
+                                  checked={selectedItemIds.size === filteredItems.length && filteredItems.length > 0}
+                                  onCheckedChange={toggleAllVisible}
+                                />
+                              </TableHead>
+                              <TableHead className="text-[10px] font-black uppercase tracking-widest">Imported Item Name</TableHead>
+                              <TableHead className="text-[10px] font-black uppercase tracking-widest">POS Source ID</TableHead>
+                              <TableHead className="text-[10px] font-black uppercase tracking-widest text-right">Base Price</TableHead>
+                              <TableHead className="text-[10px] font-black uppercase tracking-widest text-right">Import Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {Object.entries(itemsByCategory).map(([category, subCats]) => (
+                              <React.Fragment key={category}>
+                                {/* Category Header */}
+                                <TableRow className="bg-muted/30 hover:bg-muted/30">
+                                  <TableCell colSpan={5} className="py-2 px-4">
+                                    <div className="flex items-center gap-2">
+                                      <div className="h-6 w-1 bg-primary rounded-full" />
+                                      <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">{category}</span>
+                                      <Badge variant="outline" className="text-[9px] font-bold opacity-60">
+                                        {Object.values(subCats).flat().length} Total
+                                      </Badge>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+
+                                {Object.entries(subCats).map(([subCat, subItems]) => (
+                                  <React.Fragment key={subCat}>
+                                    {/* Subcategory Subheader */}
+                                    <TableRow className="hover:bg-transparent">
+                                      <TableCell colSpan={5} className="py-1 px-8">
+                                        <div className="flex items-center gap-2 border-b border-muted py-1">
+                                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{subCat}</span>
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+
+                                    {/* Item Rows */}
+                                    {subItems.map((item) => (
+                                      <TableRow key={item.id} className={cn(
+                                        "group transition-colors",
+                                        selectedItemIds.has(item.id) ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-muted/20",
+                                        !item.enabled && "opacity-50 grayscale"
+                                      )}>
+                                        <TableCell className="px-4">
+                                          <Checkbox 
+                                            checked={selectedItemIds.has(item.id)}
+                                            onCheckedChange={() => toggleItemSelection(item.id)}
+                                          />
+                                        </TableCell>
+                                        <TableCell>
+                                          <div className="flex flex-col">
+                                            <span className="font-bold text-sm text-foreground">{item.name}</span>
+                                            <span className="text-[10px] text-muted-foreground font-medium">{item.category} / {item.subCategory}</span>
+                                          </div>
+                                        </TableCell>
+                                        <TableCell className="font-mono text-[11px] font-bold text-muted-foreground">
+                                          {item.posId}
+                                        </TableCell>
+                                        <TableCell className="text-right font-bold font-mono text-sm">
+                                          {item.price}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                          <div className="flex justify-end items-center gap-3">
+                                            <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
+                                              {item.enabled ? 'ACTIVE' : 'LOCKED'}
+                                            </span>
+                                            <Switch 
+                                              checked={item.enabled} 
+                                              onCheckedChange={(checked) => {
+                                                const newItems = items.map(i => i.id === item.id ? { ...i, enabled: checked } : i);
+                                                setItems(newItems);
+                                              }} 
+                                            />
+                                          </div>
+                                        </TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </React.Fragment>
+                                ))}
+                              </React.Fragment>
+                            ))}
+                          </TableBody>
+                        </Table>
+                        {filteredItems.length === 0 && (
+                          <div className="py-20 text-center">
+                            <XCircle className="h-12 w-12 text-muted-foreground/20 mx-auto mb-4" />
+                            <p className="text-sm font-bold text-muted-foreground">No menu items found matching your search.</p>
+                          </div>
+                        )}
+                      </ScrollArea>
                     </div>
-                  </ScrollArea>
+                  ) : (
+                    <ScrollArea className="flex-1">
+                      <div className="p-8 space-y-8">
+                        {currentStep === 1 ? (
+                          <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                            <div className="space-y-2">
+                              <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground">Select Provider</Label>
+                              <Select value={selectedProvider || ""} onValueChange={setSelectedProvider}>
+                                <SelectTrigger className="h-12 text-base font-bold bg-background">
+                                  <SelectValue placeholder="Choose POS brand" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {SUPPORTED_POS.map(pos => (
+                                    <SelectItem key={pos.id} value={pos.id}>
+                                      <div className="flex flex-col py-1">
+                                        <span className="font-bold">{pos.name}</span>
+                                        <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{pos.description}</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {selectedProvider === 'oracle-simphony' && (
+                              <div className="space-y-6">
+                                <div className="flex items-center gap-2 mb-4">
+                                  <div className="h-px flex-1 bg-border" />
+                                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-2 whitespace-nowrap">Enterprise Credentials</span>
+                                  <div className="h-px flex-1 bg-border" />
+                                </div>
+                                
+                                <div className="grid gap-6">
+                                  <div className="space-y-2">
+                                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                      <Globe className="h-3.5 w-3.5" /> OIDC URL
+                                    </Label>
+                                    <Input placeholder="https://act-omra-idm.oracleindustry.com" className="h-11 font-medium bg-background border-muted-foreground/20" />
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                      <Globe className="h-3.5 w-3.5" /> STS URL
+                                    </Label>
+                                    <Input placeholder="https://act-sts.oraclecloud.com" className="h-11 font-medium bg-background border-muted-foreground/20" />
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                      <Lock className="h-3.5 w-3.5" /> Client ID
+                                    </Label>
+                                    <Input placeholder="Enter your Client ID..." className="h-11 font-mono text-sm bg-background border-muted-foreground/20" />
+                                  </div>
+
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                      <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                        <User className="h-3.5 w-3.5" /> Username
+                                      </Label>
+                                      <Input placeholder="KPTAC" className="h-11 font-medium bg-background border-muted-foreground/20" />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                        <Lock className="h-3.5 w-3.5" /> Password
+                                      </Label>
+                                      <Input type="password" placeholder="••••••••••••" className="h-11 font-medium bg-background border-muted-foreground/20" />
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                      <Hash className="h-3.5 w-3.5" /> Org Short Name
+                                    </Label>
+                                    <Input placeholder="ACT" className="h-11 font-medium bg-background border-muted-foreground/20" />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                            <div className="rounded-2xl border border-muted-foreground/10 bg-card p-8 shadow-sm space-y-8">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-bold">Location</Label>
+                                  <Select 
+                                    value={locationValue || ""} 
+                                    onValueChange={(val) => {
+                                      setLocationValue(val);
+                                      setRevenueCenterValue(null);
+                                    }}
+                                  >
+                                    <SelectTrigger className="h-11 bg-background">
+                                      <SelectValue placeholder="Select a location" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="main">Main Outlet</SelectItem>
+                                      <SelectItem value="annex">Annex Lounge</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label className={cn("text-sm font-bold transition-opacity", !locationValue && "opacity-50")}>Revenue Center</Label>
+                                  <Select 
+                                    disabled={!locationValue}
+                                    value={revenueCenterValue || ""}
+                                    onValueChange={setRevenueCenterValue}
+                                  >
+                                    <SelectTrigger className={cn("h-11 transition-colors", !locationValue ? "bg-muted cursor-not-allowed" : "bg-background")}>
+                                      <SelectValue placeholder={!locationValue ? "Select location first" : "Select Revenue Center"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="food">Dine-in Food</SelectItem>
+                                      <SelectItem value="bar">Bar Revenue</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                  <Label className={cn("text-sm font-bold transition-opacity", !revenueCenterValue && "opacity-50")}>Tender</Label>
+                                  <Select disabled={!revenueCenterValue}>
+                                    <SelectTrigger className={cn("h-11 transition-colors", !revenueCenterValue ? "bg-muted cursor-not-allowed" : "bg-background")}>
+                                      <SelectValue placeholder={!revenueCenterValue ? "Select center first" : "Select Tender"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="visa">Visa/Mastercard</SelectItem>
+                                      <SelectItem value="cash">Cash Tender</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label className={cn("text-sm font-bold transition-opacity", !revenueCenterValue && "opacity-50")}>Employee ID</Label>
+                                  <Input 
+                                    disabled={!revenueCenterValue}
+                                    placeholder="Enter Employee's ID" 
+                                    className={cn("h-11 transition-colors", !revenueCenterValue ? "bg-muted cursor-not-allowed" : "bg-background")} 
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </ScrollArea>
+                  )}
 
                   <SheetFooter className="p-6 bg-muted/30 border-t shrink-0 flex flex-row items-center justify-between gap-4">
                     {showVerification ? (
@@ -464,16 +630,14 @@ export default function PosIntegrationPage() {
                         <Button 
                           className="font-bold bg-primary text-primary-foreground px-10 h-11 shadow-lg gap-2" 
                           disabled={!selectedProvider}
-                          onClick={selectedProvider === 'oracle-simphony' ? handleNextStep : handleFinishSync}
+                          onClick={() => setCurrentStep(2)}
                         >
-                          {selectedProvider === 'oracle-simphony' ? (
-                            <>Next <ChevronRight className="h-4 w-4" /></>
-                          ) : "Verify & Connect"}
+                          Next <ChevronRight className="h-4 w-4" />
                         </Button>
                       </>
                     ) : (
                       <>
-                        <Button variant="outline" className="font-bold px-8 h-11 gap-2" onClick={handlePreviousStep}>
+                        <Button variant="outline" className="font-bold px-8 h-11 gap-2" onClick={() => setCurrentStep(1)}>
                           <ArrowLeft className="h-4 w-4" /> Back
                         </Button>
                         <Button 
@@ -543,7 +707,7 @@ export default function PosIntegrationPage() {
                     <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground rounded-lg">
                       <Settings className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive hover:bg-destructive/10 rounded-lg" onClick={() => handleRemoveConnection(conn.id)}>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive hover:bg-destructive/10 rounded-lg" onClick={() => toast({ title: "Removed" })}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -595,9 +759,9 @@ export default function PosIntegrationPage() {
               <DialogTitle className="text-2xl font-bold">
                 {isSyncComplete ? "Handshake Successful" : "Synchronizing with Simphony"}
               </DialogTitle>
-              <DialogDescription className="font-medium text-muted-foreground">
+              <DialogDescription className="font-medium text-muted-foreground text-sm">
                 {isSyncComplete 
-                  ? "Technical verification complete. Your menu data is ready for review." 
+                  ? `Technical verification complete. ${items.length} items found.` 
                   : "We are establishing a secure connection and mapping your menu hierarchy."}
               </DialogDescription>
             </div>
@@ -627,21 +791,21 @@ export default function PosIntegrationPage() {
 
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="sm:max-w-md p-10 border-0 shadow-2xl overflow-hidden bg-primary text-primary-foreground">
+        <DialogContent className="sm:max-w-md p-10 border-0 shadow-2xl overflow-hidden bg-[#142424] text-white">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <PartyPopper className="h-32 w-32 rotate-12" />
           </div>
           
           <div className="relative z-10 flex flex-col items-center text-center space-y-6">
-            <div className="h-20 w-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-inner">
-              <CheckCircle2 className="h-10 w-10 text-white" />
+            <div className="h-20 w-20 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center shadow-inner">
+              <CheckCircle2 className="h-10 w-10 text-primary" />
             </div>
             
             <div className="space-y-3">
-              <DialogTitle className="text-3xl font-black tracking-tight text-white leading-tight">
-                Synchronization Accomplished!
+              <DialogTitle className="text-3xl font-black tracking-tight text-white leading-tight uppercase">
+                Sync Accomplished!
               </DialogTitle>
-              <DialogDescription className="text-primary-foreground/90 text-base font-medium leading-relaxed">
+              <DialogDescription className="text-white/70 text-base font-medium leading-relaxed">
                 Your digital menu is now perfectly aligned with your Oracle Micros Simphony environment. Real-time updates are active and monitoring your inventory.
               </DialogDescription>
             </div>
