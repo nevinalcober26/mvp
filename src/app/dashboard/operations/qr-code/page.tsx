@@ -91,15 +91,16 @@ export default function QrCodePage() {
                 <CardContent className="space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">QR Category</Label>
+                      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">QR Type</Label>
                       <Select value={qrType} onValueChange={setQrType}>
                         <SelectTrigger className="h-11">
-                          <SelectValue placeholder="Select purpose" />
+                          <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="NORMAL QR">General Menu Link</SelectItem>
-                          <SelectItem value="TABLE QR">Table Specific Scan</SelectItem>
-                          <SelectItem value="MENU QR">Digital Menu Only</SelectItem>
+                          <SelectItem value="NORMAL QR">Normal QR</SelectItem>
+                          <SelectItem value="TABLE QR">Table QR</SelectItem>
+                          <SelectItem value="ROOM QR">Room QR</SelectItem>
+                          <SelectItem value="ALPHANUMERIC QR">Alphanumeric QR</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
