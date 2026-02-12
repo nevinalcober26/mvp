@@ -549,7 +549,7 @@ export function AppSidebar() {
                   className="h-9 justify-start text-white/70 hover:text-white hover:bg-white/5 font-medium transition-colors"
                 >
                   <NextLink href="#">
-                    <Rocket className="h-4 w-4 mr-3 text-primary" />
+                    <Rocket className="h-4 w-4 mr-3 !text-[#18B4A6]" />
                     <span className="group-data-[collapsible=icon]:hidden">
                       Quickstart
                     </span>
@@ -564,7 +564,7 @@ export function AppSidebar() {
                   className="h-9 justify-start text-white/70 hover:text-white hover:bg-white/5 font-medium transition-colors"
                 >
                   <NextLink href="#">
-                    <CircleHelp className="h-4 w-4 mr-3 text-primary" />
+                    <CircleHelp className="h-4 w-4 mr-3 !text-[#18B4A6]" />
                     <span className="group-data-[collapsible=icon]:hidden">
                       Help Center
                     </span>
