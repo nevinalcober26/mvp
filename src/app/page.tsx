@@ -96,7 +96,7 @@ export default function LoginPage() {
 
       toast({
         title: 'Account created!',
-        description: 'Welcome to eMenu Table.',
+        description: 'Welcome to Digital eMenu.',
       });
       
       router.push('/setup/business-profile');
@@ -157,7 +157,7 @@ export default function LoginPage() {
               >
                 <div className="text-center space-y-1">
                   <h1 className="text-[24px] font-black tracking-tight text-[#142424]">
-                    {activeTab === 'login' ? 'Login to your Account' : 'Welcome to eMenu Table'}
+                    {activeTab === 'login' ? 'Login to your Account' : 'Welcome to Digital eMenu'}
                   </h1>
                   <p className="text-[12px] font-medium text-gray-400">
                     One Platform. Every Tool Your Restaurant Needs
