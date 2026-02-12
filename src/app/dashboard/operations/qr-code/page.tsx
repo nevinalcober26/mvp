@@ -16,6 +16,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { 
   QrCode, 
   Download, 
@@ -25,9 +33,13 @@ import {
   ChevronRight,
   FileText,
   Upload,
-  X
+  X,
+  FileImage,
+  Layers,
+  FileCode
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const BRAND_COLORS = [
   { name: 'Black', value: '#000000' },
@@ -38,13 +50,14 @@ const BRAND_COLORS = [
 ];
 
 export default function QrCodePage() {
+  const { toast } = useToast();
   const [qrColor, setQrColor] = useState('#000000');
-  const [fileType, setFileType] = useState('PNG');
   const [qrType, setQrType] = useState('NORMAL QR');
   const [isHighErrorCorrection, setIsHighErrorCorrection] = useState(false);
   const [isBrandingEnabled, setIsBrandingEnabled] = useState(true);
   const [coupon, setCoupon] = useState('none');
   const [customLogo, setCustomLogo] = useState<string | null>(null);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const breadcrumbItems = [
@@ -72,6 +85,14 @@ export default function QrCodePage() {
     e.stopPropagation();
     setCustomLogo(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleDownload = (format: string) => {
+    setIsDownloadModalOpen(false);
+    toast({
+      title: "Exporting QR Code",
+      description: `Your QR code is being prepared in ${format} format.`,
+    });
   };
 
   return (
@@ -230,7 +251,7 @@ export default function QrCodePage() {
                       <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-3">
                           <div className={cn("h-9 w-9 rounded-lg flex items-center justify-center transition-colors", isBrandingEnabled ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
-                            <FileText className="h-4 w-4" />
+                            <FileImage className="h-4 w-4" />
                           </div>
                           <div>
                             <p className="text-sm font-semibold">Add Branding</p>
@@ -280,24 +301,13 @@ export default function QrCodePage() {
 
               {/* Action */}
               <div className="flex flex-col sm:flex-row items-center gap-4">
-                <Button className="h-12 px-8 rounded-xl font-bold transition-all shadow-md flex-1 w-full sm:w-auto">
+                <Button 
+                  onClick={() => setIsDownloadModalOpen(true)}
+                  className="h-12 px-8 rounded-xl font-bold transition-all shadow-md flex-1 w-full sm:w-auto"
+                >
                   <Download className="mr-2 h-4 w-4" />
                   Download QR Code
                 </Button>
-                
-                <div className="bg-background px-3 py-1.5 rounded-xl border shadow-sm flex items-center gap-3 w-full sm:w-auto h-12">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Format</span>
-                  <Select value={fileType} onValueChange={setFileType}>
-                    <SelectTrigger className="w-24 h-8 border-0 bg-muted/50 rounded-lg shadow-none focus:ring-0 text-xs font-bold">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="PNG">PNG</SelectItem>
-                      <SelectItem value="SVG">SVG</SelectItem>
-                      <SelectItem value="PDF">PDF</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
 
             </div>
@@ -309,8 +319,6 @@ export default function QrCodePage() {
                   <div className="bg-muted/30 p-4 border-b flex items-center justify-between">
                     <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Live Preview</span>
                     <div className="flex items-center gap-1">
-                      <span className="text-[10px] font-medium text-muted-foreground">{fileType}</span>
-                      <ChevronRight className="h-3 w-3 text-muted-foreground" />
                       <span className="text-[10px] font-bold text-primary">{isHighErrorCorrection ? '300 DPI' : '72 DPI'}</span>
                     </div>
                   </div>
@@ -370,6 +378,74 @@ export default function QrCodePage() {
           </div>
         </div>
       </main>
+
+      {/* Download Format Modal */}
+      <Dialog open={isDownloadModalOpen} onOpenChange={setIsDownloadModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Download QR Code</DialogTitle>
+            <DialogDescription>
+              Choose your preferred high-resolution format for menu integration or physical printing.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 gap-3 py-4">
+            <button 
+              onClick={() => handleDownload('PNG')}
+              className="flex items-center justify-between p-4 rounded-xl border-2 border-transparent bg-muted/30 hover:bg-primary/5 hover:border-primary/20 transition-all group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 rounded-lg bg-background flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+                  <FileImage className="h-5 w-5" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold">Standard Image (PNG)</p>
+                  <p className="text-xs text-muted-foreground">Best for website and social media usage.</p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </button>
+
+            <button 
+              onClick={() => handleDownload('SVG')}
+              className="flex items-center justify-between p-4 rounded-xl border-2 border-transparent bg-muted/30 hover:bg-primary/5 hover:border-primary/20 transition-all group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 rounded-lg bg-background flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+                  <Layers className="h-5 w-5" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold">Vector Graphic (SVG)</p>
+                  <p className="text-xs text-muted-foreground">Scalable to any size without losing quality.</p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </button>
+
+            <button 
+              onClick={() => handleDownload('PDF')}
+              className="flex items-center justify-between p-4 rounded-xl border-2 border-transparent bg-muted/30 hover:bg-primary/5 hover:border-primary/20 transition-all group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 rounded-lg bg-background flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold">Print Document (PDF)</p>
+                  <p className="text-xs text-muted-foreground">Ready for professional printing and signage.</p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" className="w-full" onClick={() => setIsDownloadModalOpen(false)}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
