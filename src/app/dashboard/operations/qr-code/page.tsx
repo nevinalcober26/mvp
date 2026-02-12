@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { Breadcrumbs } from '@/components/dashboard/breadcrumbs';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,30 +18,21 @@ import {
 import { 
   QrCode, 
   Download, 
-  Settings2, 
   ExternalLink, 
-  Palette, 
-  Info,
   Link as LinkIcon,
   CheckCircle2,
-  Sparkles,
-  MousePointer2,
-  Printer
+  Printer,
+  ChevronRight,
+  FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 const BRAND_COLORS = [
-  { name: 'Pitch Black', value: '#000000' },
-  { name: 'Bloomsbury Teal', value: '#18B4A6' },
+  { name: 'Black', value: '#000000' },
+  { name: 'Teal', value: '#18B4A6' },
   { name: 'Deep Forest', value: '#142424' },
-  { name: 'Autumn Orange', value: '#fb923c' },
-  { name: 'Royal Purple', value: '#9333ea' },
+  { name: 'Orange', value: '#fb923c' },
+  { name: 'Purple', value: '#9333ea' },
 ];
 
 export default function QrCodePage() {
@@ -59,73 +50,74 @@ export default function QrCodePage() {
   return (
     <>
       <DashboardHeader />
-      <main className="flex-1 p-4 sm:p-6 lg:p-10 bg-[#F8FAFB] min-h-[calc(100vh-4rem)]">
-        <div className="max-w-7xl mx-auto space-y-10">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/20 min-h-[calc(100vh-4rem)]">
+        <div className="max-w-6xl mx-auto space-y-8">
           
-          {/* Header Section */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="space-y-2">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
               <Breadcrumbs items={breadcrumbItems} />
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
-                  <QrCode className="h-7 w-7" />
-                </div>
-                <h1 className="text-4xl font-black tracking-tight text-[#142424]">QR Studio</h1>
-              </div>
-              <p className="text-lg text-muted-foreground font-medium max-w-xl">
-                Create beautiful, high-resolution QR codes for your restaurant menu in seconds.
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">QR Studio</h1>
+              <p className="text-muted-foreground">
+                Generate high-resolution QR codes for tables and menus.
               </p>
             </div>
-            <div className="flex items-center gap-3 bg-white p-2 rounded-2xl border shadow-sm">
-               <div className="px-4 py-2 bg-green-50 rounded-xl border border-green-100 flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-xs font-black text-green-700 uppercase tracking-widest">Live Sync Active</span>
-               </div>
+            <div className="flex items-center gap-2 bg-background px-3 py-1.5 rounded-full border shadow-sm">
+              <span className="h-2 w-2 rounded-full bg-green-500" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Live Preview Active
+              </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            {/* Control Panel */}
-            <div className="lg:col-span-7 space-y-8">
+            {/* Controls */}
+            <div className="lg:col-span-7 space-y-6">
               
               {/* Step 1: Destination */}
-              <Card className="border-0 shadow-smooth overflow-hidden bg-white rounded-[2rem]">
-                <CardContent className="p-8 space-y-8">
-                  <div className="flex items-center gap-4">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#142424] text-white font-black text-sm">1</span>
-                    <h2 className="text-xl font-black text-[#142424]">Where should it lead?</h2>
+              <Card className="shadow-sm border">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold text-sm">
+                      1
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Destination</CardTitle>
+                      <CardDescription>Where should customers be directed?</CardDescription>
+                    </div>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">QR Category</Label>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">QR Category</Label>
                       <Select value={qrType} onValueChange={setQrType}>
-                        <SelectTrigger className="h-14 rounded-2xl border-2 bg-gray-50/50 hover:bg-white hover:border-primary/30 transition-all font-bold text-base">
+                        <SelectTrigger className="h-11">
                           <SelectValue placeholder="Select purpose" />
                         </SelectTrigger>
-                        <SelectContent className="rounded-2xl border-2">
-                          <SelectItem value="NORMAL QR" className="font-bold py-3">General Menu Link</SelectItem>
-                          <SelectItem value="TABLE QR" className="font-bold py-3">Table Specific Scan</SelectItem>
-                          <SelectItem value="MENU QR" className="font-bold py-3">Digital Menu Only</SelectItem>
+                        <SelectContent>
+                          <SelectItem value="NORMAL QR">General Menu Link</SelectItem>
+                          <SelectItem value="TABLE QR">Table Specific Scan</SelectItem>
+                          <SelectItem value="MENU QR">Digital Menu Only</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Custom Endpoint</Label>
+                        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Custom URL</Label>
                         <Switch 
                           checked={isCustomUrl}
                           onCheckedChange={setIsCustomUrl}
                         />
                       </div>
-                      <div className={cn("relative transition-all duration-300", !isCustomUrl && "opacity-40 pointer-events-none")}>
+                      <div className={cn("relative", !isCustomUrl && "opacity-40 pointer-events-none")}>
                         <Input 
-                          placeholder="https://menu.bloomsburys.com/..." 
-                          className="h-14 rounded-2xl border-2 bg-gray-50/50 font-mono text-sm pl-12"
+                          placeholder="https://your-site.com" 
+                          className="h-11 pl-10"
                         />
-                        <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <LinkIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       </div>
                     </div>
                   </div>
@@ -133,37 +125,40 @@ export default function QrCodePage() {
               </Card>
 
               {/* Step 2: Styling */}
-              <Card className="border-0 shadow-smooth overflow-hidden bg-white rounded-[2rem]">
-                <CardContent className="p-8 space-y-8">
-                  <div className="flex items-center gap-4">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#142424] text-white font-black text-sm">2</span>
-                    <h2 className="text-xl font-black text-[#142424]">Choose your look</h2>
+              <Card className="shadow-sm border">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold text-sm">
+                      2
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Style & Quality</CardTitle>
+                      <CardDescription>Customize the appearance and resolution.</CardDescription>
+                    </div>
                   </div>
-
-                  <div className="space-y-6">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Brand Palette</Label>
-                    <div className="flex flex-wrap items-center gap-4">
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  <div className="space-y-3">
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Brand Palette</Label>
+                    <div className="flex flex-wrap items-center gap-3">
                       {BRAND_COLORS.map((color) => (
                         <button
                           key={color.value}
                           onClick={() => setQrColor(color.value)}
                           className={cn(
-                            "group relative flex items-center justify-center h-14 w-14 rounded-2xl transition-all duration-300 hover:scale-110",
-                            qrColor === color.value ? "ring-4 ring-primary ring-offset-4" : "hover:ring-2 hover:ring-gray-200"
+                            "group relative flex items-center justify-center h-10 w-10 rounded-full transition-all border-2",
+                            qrColor === color.value ? "border-primary scale-110 shadow-md" : "border-transparent hover:border-muted-foreground/30"
                           )}
                           style={{ backgroundColor: color.value }}
                         >
-                          {qrColor === color.value && <CheckCircle2 className="h-6 w-6 text-white" />}
-                          <span className="absolute -bottom-8 opacity-0 group-hover:opacity-100 transition-opacity text-[9px] font-black uppercase tracking-widest text-[#142424] whitespace-nowrap">
-                            {color.name}
-                          </span>
+                          {qrColor === color.value && <CheckCircle2 className="h-4 w-4 text-white" />}
                         </button>
                       ))}
                       
-                      <div className="h-10 w-[2px] bg-gray-100 mx-2" />
+                      <div className="h-6 w-px bg-border mx-1" />
                       
-                      <div className="flex items-center gap-3 bg-gray-50 p-2 pr-5 rounded-2xl border-2 group hover:border-primary/30 transition-all">
-                        <div className="relative h-10 w-10 rounded-xl overflow-hidden border-2 border-white shadow-sm">
+                      <div className="flex items-center gap-2 bg-muted/50 pl-2 pr-3 py-1 rounded-full border transition-all">
+                        <div className="relative h-6 w-6 rounded-full overflow-hidden border shadow-sm">
                           <input 
                             type="color" 
                             value={qrColor}
@@ -171,63 +166,64 @@ export default function QrCodePage() {
                             className="absolute inset-[-50%] h-[200%] w-[200%] cursor-pointer bg-transparent"
                           />
                         </div>
-                        <span className="font-mono text-xs font-black text-[#142424] uppercase">{qrColor}</span>
+                        <span className="font-mono text-[10px] font-bold uppercase">{qrColor}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div 
                       className={cn(
-                        "flex items-center justify-between p-5 rounded-[1.5rem] border-2 transition-all cursor-pointer",
-                        isHighErrorCorrection ? "bg-primary/5 border-primary/20" : "bg-white border-gray-100 hover:border-gray-200"
+                        "flex items-center justify-between p-4 rounded-xl border-2 transition-all cursor-pointer",
+                        isHighErrorCorrection ? "bg-primary/5 border-primary/20" : "bg-background border-border hover:border-muted-foreground/20"
                       )}
                       onClick={() => setIsHighErrorCorrection(!isHighErrorCorrection)}
                     >
-                      <div className="flex items-center gap-4">
-                        <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center transition-colors", isHighErrorCorrection ? "bg-primary text-white" : "bg-gray-100 text-gray-400")}>
-                          <Printer className="h-5 w-5" />
+                      <div className="flex items-center gap-3">
+                        <div className={cn("h-9 w-9 rounded-lg flex items-center justify-center transition-colors", isHighErrorCorrection ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
+                          <Printer className="h-4 w-4" />
                         </div>
                         <div>
-                          <p className="text-sm font-black text-[#142424]">Print Quality</p>
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">Best for menus & stands</p>
+                          <p className="text-sm font-semibold">Print Quality</p>
+                          <p className="text-[10px] text-muted-foreground font-medium uppercase">300 DPI Rendering</p>
                         </div>
                       </div>
                       <Switch checked={isHighErrorCorrection} />
                     </div>
 
-                    <div className="flex items-center justify-between p-5 rounded-[1.5rem] border-2 bg-white border-gray-100 opacity-50 cursor-not-allowed">
-                      <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
-                          <Sparkles className="h-5 w-5" />
+                    <div className="flex items-center justify-between p-4 rounded-xl border bg-muted/30 opacity-60 grayscale">
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+                          <FileText className="h-4 w-4" />
                         </div>
                         <div>
-                          <p className="text-sm font-black text-[#142424]">Add Logo</p>
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">Coming Soon</p>
+                          <p className="text-sm font-semibold">Add Branding</p>
+                          <p className="text-[10px] text-muted-foreground font-medium uppercase">Overlay Logo</p>
                         </div>
                       </div>
+                      <span className="text-[9px] font-bold bg-muted px-1.5 py-0.5 rounded text-muted-foreground">PRO</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Download Section */}
+              {/* Action */}
               <div className="flex flex-col sm:flex-row items-center gap-4">
-                <Button className="h-16 px-12 rounded-[1.5rem] bg-primary hover:bg-primary/90 text-white font-black text-lg uppercase tracking-widest shadow-2xl shadow-primary/30 transition-all active:scale-95 group flex-1 w-full sm:w-auto">
-                  <Download className="mr-3 h-6 w-6 transition-transform group-hover:-translate-y-1" />
-                  Export QR Code
+                <Button className="h-12 px-8 rounded-xl font-bold transition-all shadow-md flex-1 w-full sm:w-auto">
+                  <Download className="mr-2 h-4 w-4" />
+                  Download QR Code
                 </Button>
                 
-                <div className="bg-white p-2 rounded-[1.5rem] border shadow-sm flex items-center gap-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-3">Format:</Label>
+                <div className="bg-background px-3 py-1.5 rounded-xl border shadow-sm flex items-center gap-3 w-full sm:w-auto h-12">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Format</span>
                   <Select value={fileType} onValueChange={setFileType}>
-                    <SelectTrigger className="w-28 h-12 border-0 bg-gray-50 rounded-xl shadow-none focus:ring-0 font-black text-sm">
+                    <SelectTrigger className="w-24 h-8 border-0 bg-muted/50 rounded-lg shadow-none focus:ring-0 text-xs font-bold">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem value="PNG" className="font-black">PNG</SelectItem>
-                      <SelectItem value="SVG" className="font-black">SVG</SelectItem>
-                      <SelectItem value="PDF" className="font-black text-red-500">PDF</SelectItem>
+                    <SelectContent>
+                      <SelectItem value="PNG">PNG</SelectItem>
+                      <SelectItem value="SVG">SVG</SelectItem>
+                      <SelectItem value="PDF">PDF</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -235,74 +231,55 @@ export default function QrCodePage() {
 
             </div>
 
-            {/* Preview Panel */}
-            <div className="lg:col-span-5 flex flex-col gap-8 sticky top-24">
-              
-              <div className="relative group">
-                {/* Immersive Background Glow */}
-                <div 
-                  className="absolute inset-0 blur-[100px] opacity-30 transition-all duration-1000 group-hover:opacity-50"
-                  style={{ backgroundColor: qrColor }}
-                />
-                
-                <Card className="relative overflow-hidden border-0 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] rounded-[3rem] bg-white">
-                  <CardContent className="p-12 flex flex-col items-center gap-12">
+            {/* Preview */}
+            <div className="lg:col-span-5">
+              <div className="sticky top-24 space-y-6">
+                <Card className="overflow-hidden border shadow-lg">
+                  <div className="bg-muted/30 p-4 border-b flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Live Preview</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] font-medium text-muted-foreground">{fileType}</span>
+                      <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-[10px] font-bold text-primary">{isHighErrorCorrection ? '300 DPI' : '72 DPI'}</span>
+                    </div>
+                  </div>
+                  <CardContent className="p-10 flex flex-col items-center gap-8 bg-background">
                     
-                    {/* The QR Slate */}
-                    <div className="relative p-10 bg-gray-50/50 rounded-[3.5rem] border-[1px] border-gray-100 shadow-inner group-hover:scale-[1.03] transition-transform duration-500 ease-out">
-                      <div className="bg-white p-6 rounded-[2.5rem] shadow-xl">
-                        <QrCode 
-                          className="h-64 w-64 transition-all duration-700 ease-in-out" 
-                          style={{ color: qrColor }}
-                          strokeWidth={1.2}
-                        />
-                      </div>
-                      
-                      {/* Interactive Cursor Simulation */}
-                      <div className="absolute -bottom-4 -right-4 bg-[#142424] text-white p-3 rounded-2xl shadow-2xl animate-bounce">
-                        <MousePointer2 className="h-5 w-5" />
-                      </div>
+                    <div className="relative p-8 bg-white rounded-2xl border shadow-sm group transition-all hover:shadow-md">
+                      <QrCode 
+                        className="h-56 w-56 transition-colors duration-300" 
+                        style={{ color: qrColor }}
+                        strokeWidth={1.5}
+                      />
                     </div>
 
-                    {/* Path Visualizer */}
-                    <div className="w-full space-y-4">
-                      <div className="flex items-center justify-between px-2">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
-                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#142424]">Live Canvas Ready</p>
-                        </div>
-                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{fileType} • {isHighErrorCorrection ? '300 DPI' : '72 DPI'}</span>
+                    <div className="w-full space-y-3">
+                      <div className="flex items-center gap-2 px-1">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-foreground">Verified Destination</span>
                       </div>
-                      
-                      <div className="relative flex items-center bg-gray-100 rounded-2xl border-2 border-white shadow-sm overflow-hidden h-14">
-                        <div className="flex items-center justify-center h-full aspect-square bg-white border-r text-primary">
-                          <ExternalLink className="h-5 w-5" />
-                        </div>
-                        <div className="flex-1 px-5 overflow-hidden">
-                          <p className="text-sm font-black text-[#142424] truncate">
-                            {isCustomUrl ? 'your-custom-site.com/orders' : `bloomsburys.menu/table/rak-05`}
-                          </p>
-                        </div>
+                      <div className="flex items-center bg-muted/50 rounded-lg border px-4 h-11">
+                        <ExternalLink className="h-4 w-4 text-primary shrink-0 mr-3" />
+                        <p className="text-xs font-semibold truncate text-muted-foreground">
+                          {isCustomUrl ? 'your-domain.com/menu' : `bloomsburys.menu/table/rak-05`}
+                        </p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              </div>
 
-              {/* Status Indicator */}
-              <div className="flex items-center justify-between p-6 rounded-[2rem] bg-[#142424] text-white shadow-xl">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
-                    <Info className="h-5 w-5 text-primary" />
+                <div className="p-4 rounded-xl border bg-primary/5 border-primary/10 flex items-start gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                    <QrCode className="h-4 w-4" />
                   </div>
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-widest opacity-60">Status</p>
-                    <p className="text-sm font-bold">Safe for Printing</p>
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-foreground">Pro Tip</p>
+                    <p className="text-[11px] leading-relaxed text-muted-foreground">
+                      Use **SVG format** for professional printing on table stands or menu cards to ensure infinite scalability.
+                    </p>
                   </div>
                 </div>
-                <div className="h-3 w-3 rounded-full bg-green-400 shadow-[0_0_12px_#4ade80]" />
               </div>
-
             </div>
           </div>
         </div>
