@@ -597,10 +597,10 @@ export default function PosIntegrationPage() {
               </Sheet>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex justify-center animate-in fade-in slide-in-from-bottom-4 duration-500">
               {connections.map((conn) => (
                 <Card key={conn.id} className={cn(
-                  "overflow-hidden border-2 transition-all hover:shadow-xl rounded-3xl",
+                  "overflow-hidden border-2 transition-all hover:shadow-xl rounded-3xl w-full max-w-xl",
                   conn.status === 'error' ? "border-destructive/20" : "border-border"
                 )}>
                   <CardHeader className="pb-4 bg-muted/10 border-b">
@@ -644,36 +644,36 @@ export default function PosIntegrationPage() {
                       </div>
                     )}
                   </CardContent>
-                  <CardFooter className="bg-muted/20 border-t p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                  <CardFooter className="bg-muted/20 border-t p-4 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-1">
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-10 w-10 text-muted-foreground hover:text-foreground rounded-xl"
+                        className="h-9 w-9 text-muted-foreground hover:text-foreground rounded-xl"
                         onClick={() => handleOpenSettings(conn)}
                       >
-                        <Settings className="h-5 w-5" />
+                        <Settings className="h-4 w-4" />
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-10 w-10 text-muted-foreground hover:text-primary rounded-xl"
+                        className="h-9 w-9 text-muted-foreground hover:text-primary rounded-xl"
                         onClick={() => toast({ title: "Manual Refresh", description: "Fetching latest data from terminal..." })}
                       >
-                        <RefreshCw className="h-5 w-5" />
+                        <RefreshCw className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-xl" onClick={() => handleDeleteConnection(conn.id)}>
-                        <Trash2 className="h-5 w-5" />
+                      <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive hover:bg-destructive/10 rounded-xl" onClick={() => handleDeleteConnection(conn.id)}>
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="h-10 text-[10px] font-bold uppercase tracking-widest px-6 gap-2 border-primary/20 text-primary hover:bg-primary/5 rounded-xl bg-background shadow-sm" 
+                      className="h-10 text-[10px] font-bold uppercase tracking-wide px-4 gap-2 border-primary/20 text-primary hover:bg-primary/5 rounded-xl bg-background shadow-sm flex-shrink-0" 
                       onClick={() => setIsVerificationModalOpen(true)}
                     >
                       <Database className="h-4 w-4" />
-                      Manage Synced Menu
+                      Manage Menu
                     </Button>
                   </CardFooter>
                 </Card>
@@ -883,7 +883,7 @@ export default function PosIntegrationPage() {
                 <Database className="h-6 w-6 text-primary" />
               </div>
               <div className="space-y-0.5">
-                <h2 className="text-2xl font-bold tracking-tight text-foreground">Manage Synced Menu</h2>
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">Manage Menu</h2>
                 <div className="flex items-center gap-2 text-muted-foreground font-medium text-xs">
                   <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest py-0.5">Machine Active</Badge>
                   <span>{SUPPORTED_POS.find(p => p.id === selectedProvider)?.name || 'Machine Connection'}</span>
