@@ -16,7 +16,6 @@ import {
   Zap, 
   WalletCards, 
   Settings, 
-  Trash2, 
   CheckCircle2, 
   AlertCircle, 
   ExternalLink,
@@ -197,14 +196,6 @@ export default function PaymentGatewayPage() {
       default:
         return <Badge variant="secondary" className="font-bold">Disconnected</Badge>;
     }
-  };
-
-  const handleDeleteConnection = (id: string) => {
-    setConnections(prev => prev.filter(c => c.id !== id));
-    toast({
-      title: "Connection Removed",
-      description: "The payment gateway has been disconnected."
-    });
   };
 
   const toggleGatewayStatus = (id: string, enabled: boolean) => {
@@ -435,9 +426,6 @@ export default function PaymentGatewayPage() {
                           onClick={() => handleOpenSettings(conn)}
                         >
                           <Settings className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive hover:bg-destructive/10 rounded-xl" onClick={() => handleDeleteConnection(conn.id)}>
-                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                       <Button 
