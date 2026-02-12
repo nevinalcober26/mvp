@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -26,10 +25,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Info,
-  Image as ImageIcon,
   Clock,
   Upload,
-  ExternalLink,
   Save,
   Rocket,
   ArrowLeft,
@@ -37,20 +34,81 @@ import {
   RotateCcw,
   Plus,
   Trash2,
-  HelpCircle
+  HelpCircle,
+  Image as ImageIcon,
+  ExternalLink
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 const cuisines = ['Italian', 'Boutique Café', 'Signature Store', 'Japanese', 'Mexican', 'Indian', 'French'];
-
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+const TIME_OPTIONS = [
+  '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
+  '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM',
+  '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM', '12:00 AM'
+];
 
 export default function AddNewBranchPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('basic');
+
+  // State for Opening Hours
+  const [regularHours, setRegularHours] = useState(
+    DAYS.map(day => ({
+      day,
+      open: '11:00 AM',
+      close: '10:00 PM',
+      closed: day === 'Sunday'
+    }))
+  );
+
+  const [specialHours, setSpecialHours] = useState<any[]>([]);
+
+  const handleUpdateRegularHour = (index: number, field: string, value: any) => {
+    const updated = [...regularHours];
+    updated[index] = { ...updated[index], [field]: value };
+    setRegularHours(updated);
+  };
+
+  const handleCopyToAllDays = () => {
+    const firstDay = regularHours[0];
+    const synced = regularHours.map(h => ({
+      ...h,
+      open: firstDay.open,
+      close: firstDay.close,
+      closed: firstDay.closed
+    }));
+    setRegularHours(synced);
+    toast({ title: "Schedule Synced", description: "Hours from Monday have been applied to all days." });
+  };
+
+  const handleResetHours = () => {
+    setRegularHours(DAYS.map(day => ({
+      day,
+      open: '11:00 AM',
+      close: '10:00 PM',
+      closed: false
+    })));
+  };
+
+  const handleAddSpecialHour = () => {
+    setSpecialHours([
+      ...specialHours,
+      { id: Date.now().toString(), date: 'New Date', name: 'Holiday Name', from: '11:00 AM', to: '10:00 PM', closed: false }
+    ]);
+  };
+
+  const handleRemoveSpecialHour = (id: string) => {
+    setSpecialHours(specialHours.filter(sh => sh.id !== id));
+  };
+
+  const handleUpdateSpecialHour = (id: string, field: string, value: any) => {
+    setSpecialHours(specialHours.map(sh => sh.id === id ? { ...sh, [field]: value } : sh));
+  };
 
   const handleSave = () => {
     toast({
@@ -84,7 +142,7 @@ export default function AddNewBranchPage() {
               <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <div>
+              <div className="text-left">
                 <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Add New Branch</h1>
                 <p className="text-muted-foreground mt-1">Configure your new outlet details and operating hours</p>
               </div>
@@ -132,7 +190,7 @@ export default function AddNewBranchPage() {
                     <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center border-2 border-dashed">
                       <ImageIcon className="h-8 w-8 text-muted-foreground opacity-40" />
                     </div>
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 text-left">
                       <Button variant="outline" className="gap-2" size="sm">
                         <Upload className="h-4 w-4" />
                         Upload Logo
@@ -210,10 +268,10 @@ export default function AddNewBranchPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="gap-2 font-bold text-xs uppercase tracking-wider">
+                    <Button variant="outline" size="sm" className="gap-2 font-bold text-xs uppercase tracking-wider" onClick={handleCopyToAllDays}>
                       <Copy className="h-3.5 w-3.5" /> Copy to All Days
                     </Button>
-                    <Button variant="outline" size="sm" className="gap-2 font-bold text-xs uppercase tracking-wider">
+                    <Button variant="outline" size="sm" className="gap-2 font-bold text-xs uppercase tracking-wider" onClick={handleResetHours}>
                       <RotateCcw className="h-3.5 w-3.5" /> Reset Hours
                     </Button>
                   </div>
@@ -229,70 +287,42 @@ export default function AddNewBranchPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-0 divide-y">
-                    {DAYS.map((day) => (
-                      <div key={day} className="flex items-center gap-8 py-4 px-6 group hover:bg-muted/10 transition-colors">
-                        <div className="w-28 shrink-0">
-                          <span className="font-bold text-sm">{day}</span>
+                    {regularHours.map((hour, index) => (
+                      <div key={hour.day} className="flex items-center gap-8 py-4 px-6 group hover:bg-muted/10 transition-colors">
+                        <div className="w-28 shrink-0 text-left">
+                          <span className="font-bold text-sm">{hour.day}</span>
                         </div>
                         
                         <div className="flex-1 flex flex-col gap-3">
-                          <div className="flex items-center gap-4">
-                            <Select defaultValue="11:00 AM">
+                          <div className={cn("flex items-center gap-4 transition-opacity", hour.closed && "opacity-30 pointer-events-none")}>
+                            <Select value={hour.open} onValueChange={(val) => handleUpdateRegularHour(index, 'open', val)}>
                               <SelectTrigger className="w-32 h-10">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="11:00 AM">11:00 AM</SelectItem>
-                                <SelectItem value="09:00 AM">09:00 AM</SelectItem>
+                                {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                               </SelectContent>
                             </Select>
                             <span className="text-xs font-bold text-muted-foreground uppercase">to</span>
-                            <Select defaultValue="10:00 PM">
+                            <Select value={hour.close} onValueChange={(val) => handleUpdateRegularHour(index, 'close', val)}>
                               <SelectTrigger className="w-32 h-10">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="10:00 PM">10:00 PM</SelectItem>
-                                <SelectItem value="11:00 PM">11:00 PM</SelectItem>
+                                {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                               </SelectContent>
                             </Select>
-                            
-                            <Button variant="ghost" size="sm" className="text-primary hover:text-primary font-bold text-xs gap-1.5 ml-2">
-                              <Plus className="h-3.5 w-3.5" /> Add Shift
-                            </Button>
                           </div>
-
-                          {/* Render an extra shift for Saturday as per reference */}
-                          {day === 'Saturday' && (
-                            <div className="flex items-center gap-4 animate-in slide-in-from-top-1 duration-200">
-                              <Select defaultValue="02:00 PM">
-                                <SelectTrigger className="w-32 h-10">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="02:00 PM">02:00 PM</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <span className="text-xs font-bold text-muted-foreground uppercase">to</span>
-                              <Select defaultValue="05:00 PM">
-                                <SelectTrigger className="w-32 h-10">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="05:00 PM">05:00 PM</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive ml-2">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          )}
                         </div>
 
                         <div className="flex items-center gap-6">
                           <div className="flex items-center gap-2">
-                            <Checkbox id={`closed-${day}`} />
-                            <label htmlFor={`closed-${day}`} className="text-xs font-bold text-muted-foreground cursor-pointer">Closed</label>
+                            <Checkbox 
+                              id={`closed-${hour.day}`} 
+                              checked={hour.closed} 
+                              onCheckedChange={(checked) => handleUpdateRegularHour(index, 'closed', !!checked)} 
+                            />
+                            <label htmlFor={`closed-${hour.day}`} className="text-xs font-bold text-muted-foreground cursor-pointer">Closed</label>
                           </div>
                           <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Copy className="h-4 w-4 text-muted-foreground" />
@@ -317,20 +347,24 @@ export default function AddNewBranchPage() {
                   <Card className="border shadow-none overflow-hidden">
                     <CardHeader className="bg-muted/30 border-b py-3 px-6 flex flex-row items-center justify-between space-y-0">
                       <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Special Dates</CardTitle>
-                      <Button size="sm" className="bg-primary text-primary-foreground font-bold h-8 px-4 rounded-lg text-xs">
+                      <Button size="sm" className="bg-primary text-primary-foreground font-bold h-8 px-4 rounded-lg text-xs" onClick={handleAddSpecialHour}>
                         <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Special Hours
                       </Button>
                     </CardHeader>
                     <CardContent className="p-0 divide-y">
-                      {[
-                        { date: 'Jul 4, 2025', name: 'Independence Day', from: '11:00 AM', to: '10:00 PM' },
-                        { date: 'Dec 24, 2025', name: 'Christmas Eve', from: '11:00 AM', to: '10:00 PM' },
-                        { date: 'Dec 25, 2025', name: 'Christmas Day', closed: true }
-                      ].map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-8 py-4 px-6 group hover:bg-muted/10 transition-colors">
+                      {specialHours.map((item) => (
+                        <div key={item.id} className="flex items-center gap-8 py-4 px-6 group hover:bg-muted/10 transition-colors">
                           <div className="w-40 shrink-0 text-left">
-                            <p className="font-bold text-sm">{item.date}</p>
-                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">{item.name}</p>
+                            <Input 
+                              value={item.date} 
+                              onChange={(e) => handleUpdateSpecialHour(item.id, 'date', e.target.value)}
+                              className="h-8 font-bold text-sm bg-transparent border-none p-0 focus-visible:ring-0" 
+                            />
+                            <Input 
+                              value={item.name} 
+                              onChange={(e) => handleUpdateSpecialHour(item.id, 'name', e.target.value)}
+                              className="h-6 text-[10px] uppercase font-bold text-muted-foreground tracking-wider bg-transparent border-none p-0 focus-visible:ring-0" 
+                            />
                           </div>
                           
                           <div className="flex-1 flex items-center gap-4">
@@ -338,21 +372,21 @@ export default function AddNewBranchPage() {
                               <span className="text-sm font-medium text-muted-foreground italic">Closed all day</span>
                             ) : (
                               <>
-                                <Select defaultValue={item.from}>
+                                <Select value={item.from} onValueChange={(val) => handleUpdateSpecialHour(item.id, 'from', val)}>
                                   <SelectTrigger className="w-32 h-10">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value={item.from}>{item.from}</SelectItem>
+                                    {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                                   </SelectContent>
                                 </Select>
                                 <span className="text-xs font-bold text-muted-foreground uppercase">to</span>
-                                <Select defaultValue={item.to}>
+                                <Select value={item.to} onValueChange={(val) => handleUpdateSpecialHour(item.id, 'to', val)}>
                                   <SelectTrigger className="w-32 h-10">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value={item.to}>{item.to}</SelectItem>
+                                    {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                                   </SelectContent>
                                 </Select>
                               </>
@@ -361,10 +395,13 @@ export default function AddNewBranchPage() {
 
                           <div className="flex items-center gap-6">
                             <div className="flex items-center gap-2">
-                              <Checkbox checked={item.closed} />
+                              <Checkbox 
+                                checked={item.closed} 
+                                onCheckedChange={(checked) => handleUpdateSpecialHour(item.id, 'closed', !!checked)} 
+                              />
                               <span className="text-xs font-bold text-muted-foreground">Closed</span>
                             </div>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleRemoveSpecialHour(item.id)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
