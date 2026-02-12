@@ -30,6 +30,7 @@ import { cn } from '@/lib/utils';
 import { CategoriesPageSkeleton } from '@/components/dashboard/skeletons';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 import { QuickSettingsSheet } from './quick-settings-sheet';
+import { useToast } from '@/hooks/use-toast';
 import gsap from 'gsap';
 
 type RestaurantStatus = 'Open' | 'Closed';
@@ -135,14 +136,14 @@ const RestaurantCard = ({
   onQuickSettings: (r: Restaurant) => void;
   onEdit: (r: Restaurant) => void;
   isActive: boolean;
-  onSelect: (id: string) => void;
+  onSelect: (r: Restaurant) => void;
 }) => (
   <Card 
     className={cn(
       "overflow-hidden group hover:shadow-xl transition-all duration-300 relative cursor-pointer",
-      isActive ? "ring-2 ring-[#18B4A6] shadow-xl scale-[1.02]" : "hover:shadow-md"
+      isActive ? "ring-2 ring-primary shadow-xl scale-[1.02]" : "hover:shadow-md"
     )}
-    onClick={() => onSelect(restaurant.id)}
+    onClick={() => onSelect(restaurant)}
   >
     <div className="relative aspect-[16/9] w-full bg-muted overflow-hidden">
       {restaurant.image && restaurant.image !== "" ? (
@@ -159,7 +160,7 @@ const RestaurantCard = ({
         </div>
       )}
       
-      {/* Shine Sweep Overlay */}
+      {/* GSAP Shine Sweep Overlay */}
       {isActive && (
         <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden">
           <div 
@@ -170,7 +171,7 @@ const RestaurantCard = ({
 
       <div className="absolute top-3 left-3 flex gap-2 z-20">
         {isActive ? (
-          <Badge className="bg-[#18B4A6] text-white border-0 font-bold px-3 py-1 shadow-lg animate-in fade-in zoom-in duration-300">
+          <Badge className="bg-primary text-white border-0 font-bold px-3 py-1 shadow-lg animate-in fade-in zoom-in duration-300">
             Actively Selected
           </Badge>
         ) : (
@@ -188,7 +189,7 @@ const RestaurantCard = ({
         {restaurant.status}
       </Badge>
     </div>
-    <CardHeader className="p-5 pb-2">
+    <CardHeader className="p-5 pb-2 text-left">
       <div className="flex items-start justify-between">
         <div>
           <h3 className="text-lg font-bold leading-tight">{restaurant.name}</h3>
@@ -202,7 +203,7 @@ const RestaurantCard = ({
         </div>
       </div>
     </CardHeader>
-    <CardContent className="p-5 pt-2 space-y-3">
+    <CardContent className="p-5 pt-2 space-y-3 text-left">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <MapPin className="h-4 w-4 shrink-0" />
         <span className="truncate">{restaurant.address}</span>
@@ -246,11 +247,87 @@ const RestaurantCard = ({
 
 export default function ManageRestaurantPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedBranch, setSelectedBranch] = useState<Restaurant | null>(null);
   const [isQuickSettingsOpen, setIsQuickSettingsOpen] = useState(false);
   const [activeBranchId, setActiveBranchId] = useState<string>('1');
+
+  useEffect(() => {
+    // Initial sync from localStorage
+    const savedBranch = localStorage.getItem('activeBranch');
+    if (savedBranch) {
+      try {
+        const branchData = JSON.parse(savedBranch);
+        setActiveBranchId(branchData.id);
+      } catch (e) {
+        setActiveBranchId('1');
+      }
+    }
+    
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // GSAP Shine Animation Effect
+  useEffect(() => {
+    if (!isLoading && activeBranchId) {
+      const sweepAnimation = () => {
+        gsap.to('.shine-sweep', {
+          left: '150%',
+          duration: 1.2,
+          ease: 'power2.inOut',
+          delay: 2.5,
+          repeat: -1,
+          repeatDelay: 3,
+          onStart: () => {
+            gsap.set('.shine-sweep', { left: '-100%' });
+          }
+        });
+      };
+      sweepAnimation();
+    }
+    return () => {
+      gsap.killTweensOf('.shine-sweep');
+    };
+  }, [isLoading, activeBranchId]);
+
+  const handleOpenQuickSettings = (restaurant: Restaurant) => {
+    setSelectedBranch(restaurant);
+    setIsQuickSettingsOpen(true);
+  };
+
+  const handleEditBranch = (restaurant: Restaurant) => {
+    router.push(`/dashboard/categories/edit/${restaurant.id}`);
+  };
+
+  const handleAddNewBranch = () => {
+    router.push('/dashboard/categories/new');
+  };
+
+  const handleSelectBranch = (restaurant: Restaurant) => {
+    if (activeBranchId === restaurant.id) return;
+    
+    setActiveBranchId(restaurant.id);
+    
+    // Update local storage for cross-component sync
+    localStorage.setItem('activeBranch', JSON.stringify({
+      id: restaurant.id,
+      name: restaurant.name.replace("Bloomsbury's - ", ""),
+      type: restaurant.type
+    }));
+
+    // Trigger custom event for sidebar sync
+    window.dispatchEvent(new CustomEvent('branch-changed'));
+
+    toast({
+      title: "Context Updated",
+      description: `Now managing: ${restaurant.name}`,
+    });
+  };
 
   const kpiCards: StatCardData[] = useMemo(() => [
     {
@@ -291,52 +368,6 @@ export default function ManageRestaurantPage() {
     },
   ], []);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!isLoading && activeBranchId) {
-      const sweepAnimation = () => {
-        gsap.to('.shine-sweep', {
-          left: '150%',
-          duration: 1.2,
-          ease: 'power2.inOut',
-          delay: 2.5,
-          repeat: -1,
-          repeatDelay: 3,
-          onStart: () => {
-            gsap.set('.shine-sweep', { left: '-100%' });
-          }
-        });
-      };
-      sweepAnimation();
-    }
-    return () => {
-      gsap.killTweensOf('.shine-sweep');
-    };
-  }, [isLoading, activeBranchId]);
-
-  const handleOpenQuickSettings = (restaurant: Restaurant) => {
-    setSelectedBranch(restaurant);
-    setIsQuickSettingsOpen(true);
-  };
-
-  const handleEditBranch = (restaurant: Restaurant) => {
-    router.push(`/dashboard/categories/edit/${restaurant.id}`);
-  };
-
-  const handleAddNewBranch = () => {
-    router.push('/dashboard/categories/new');
-  };
-
-  const handleSelectBranch = (id: string) => {
-    setActiveBranchId(id);
-  };
-
   if (isLoading) {
     return <CategoriesPageSkeleton view="gallery" />;
   }
@@ -348,9 +379,9 @@ export default function ManageRestaurantPage() {
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-foreground text-left">Manage Branches</h1>
-              <p className="text-muted-foreground mt-1 text-left">
+            <div className="text-left">
+              <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Manage Branches</h1>
+              <p className="text-muted-foreground mt-1">
                 Overview and configuration for all Bloomsbury&apos;s outlets
               </p>
             </div>

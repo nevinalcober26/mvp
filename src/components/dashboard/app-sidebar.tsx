@@ -1,4 +1,3 @@
-
 'use client';
 import {
   PieChart,
@@ -17,6 +16,7 @@ import {
   MapPin,
   PlusCircle,
   QrCode,
+  Loader2,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -204,6 +204,38 @@ export function AppSidebar() {
   const [isBranchSearching, setIsBranchSearching] = useState(false);
   const [branchSearchQuery, setBranchSearchQuery] = useState('');
   const [activeBranch, setActiveBranch] = useState(branches[0]);
+  const [isBranchLoading, setIsBranchLoading] = useState(false);
+
+  useEffect(() => {
+    // Initial load from local storage
+    const savedBranch = localStorage.getItem('activeBranch');
+    if (savedBranch) {
+      try {
+        const branchData = JSON.parse(savedBranch);
+        const match = branches.find(b => b.id === branchData.id);
+        if (match) setActiveBranch(match);
+      } catch (e) {
+        // Fallback to default
+      }
+    }
+
+    // Sync when branch is changed from Manage Restaurant page
+    const syncBranch = () => {
+      setIsBranchLoading(true);
+      const updatedBranch = localStorage.getItem('activeBranch');
+      if (updatedBranch) {
+        try {
+          const branchData = JSON.parse(updatedBranch);
+          const match = branches.find(b => b.id === branchData.id);
+          if (match) setActiveBranch(match);
+        } catch (e) {}
+      }
+      setTimeout(() => setIsBranchLoading(false), 800);
+    };
+
+    window.addEventListener('branch-changed', syncBranch);
+    return () => window.removeEventListener('branch-changed', syncBranch);
+  }, []);
 
   useEffect(() => {
     const allGroups = [...MANAGEMENT, ...CONNECTIONS];
@@ -389,7 +421,10 @@ export function AppSidebar() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="flex h-auto w-full items-center justify-between gap-2 rounded-xl bg-[#142424] p-3 text-left text-white hover:bg-[#1a2e2e] border border-white/5 transition-all shadow-xl"
+                  className={cn(
+                    "flex h-auto w-full items-center justify-between gap-2 rounded-xl bg-[#142424] p-3 text-left text-white hover:bg-[#1a2e2e] border border-white/5 transition-all shadow-xl",
+                    isBranchLoading && "animate-pulse"
+                  )}
                 >
                   <div className="flex items-center gap-3">
                     <TooltipProvider>
@@ -401,13 +436,17 @@ export function AppSidebar() {
                               style={{ background: 'conic-gradient(from 0deg, #18B4A6, #4ade80, #facc15, #fb923c, #18B4A6)' }}
                             >
                               <div className="h-full w-full rounded-full bg-[#142424] p-[1.5px] flex items-center justify-center overflow-hidden">
-                                <Image
-                                  src="https://picsum.photos/seed/brand/100/100"
-                                  width={40}
-                                  height={40}
-                                  alt="Brand logo"
-                                  className="rounded-full object-cover grayscale brightness-110"
-                                />
+                                {isBranchLoading ? (
+                                  <Loader2 className="h-5 w-5 text-[#18B4A6] animate-spin" />
+                                ) : (
+                                  <Image
+                                    src="https://picsum.photos/seed/brand/100/100"
+                                    width={40}
+                                    height={40}
+                                    alt="Brand logo"
+                                    className="rounded-full object-cover grayscale brightness-110"
+                                  />
+                                )}
                               </div>
                             </div>
                             <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5">
@@ -426,7 +465,7 @@ export function AppSidebar() {
                         BLOOMSBURY&apos;S
                       </span>
                       <h4 className="truncate text-[17px] font-black text-white tracking-tight leading-tight">
-                        {activeBranch.name}
+                        {isBranchLoading ? "Loading..." : activeBranch.name}
                       </h4>
                     </div>
                   </div>
@@ -485,6 +524,12 @@ export function AppSidebar() {
                             onClick={() => {
                               setActiveBranch(branch);
                               setIsBranchSwitcherOpen(false);
+                              localStorage.setItem('activeBranch', JSON.stringify({
+                                id: branch.id,
+                                name: branch.name,
+                                type: branch.type
+                              }));
+                              window.dispatchEvent(new CustomEvent('branch-changed'));
                             }}
                             className={cn(
                               "cursor-pointer focus:bg-primary/5 p-3 rounded-xl flex items-center justify-between transition-all group mb-1",
