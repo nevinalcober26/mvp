@@ -22,7 +22,7 @@ const popularItemsData = [
   },
   {
     id: 'caesar-salad',
-    name: 'Caesar Salad',
+    name: 'Caesar',
     orders: 98,
     revenue: 890,
   },
@@ -56,39 +56,40 @@ export function PopularItems() {
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Popular Items</CardTitle>
-        <CardDescription>
-          A list of the most popular items based on recent sales.
+    <Card className="border-0 shadow-smooth">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-xl font-bold text-[#142424]">Popular Items</CardTitle>
+        <CardDescription className="text-sm text-gray-400">
+          A list of the most recent open and in-progress tickets.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-5">
         {popularItems.map((item) => (
           <div key={item.id} className="flex items-center gap-4">
-            {item.imageUrl && (
+            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-muted">
               <Image
-                src={item.imageUrl}
+                src={item.imageUrl || "https://picsum.photos/seed/placeholder/100/100"}
                 alt={item.name}
-                width={64}
-                height={64}
-                className="rounded-md object-cover h-16 w-16"
-                data-ai-hint={item.imageHint}
+                fill
+                className="object-cover"
+                data-ai-hint={item.imageHint || "food item"}
               />
-            )}
-            <div className="flex-1">
-              <p className="font-semibold">{item.name}</p>
-              <p className="text-sm text-muted-foreground">
+            </div>
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <p className="font-bold text-base text-[#142424] truncate">{item.name}</p>
+              <p className="text-sm text-gray-400 font-medium">
                 {item.orders} orders
               </p>
             </div>
-            <p className="font-semibold">${item.revenue.toLocaleString()}</p>
+            <p className="font-bold text-lg text-[#142424]">
+              ${item.revenue.toLocaleString()}
+            </p>
           </div>
         ))}
       </CardContent>
-      <CardFooter className="justify-center border-t pt-4">
-        <Button variant="link" className="text-teal-600">
-          <ArrowDown className="mr-2 h-4 w-4" />
+      <CardFooter className="justify-center border-t border-dashed pt-4">
+        <Button variant="link" className="text-[#18B4A6] hover:text-[#149d94] font-bold gap-2 no-underline">
+          <ArrowDown className="h-4 w-4" />
           View All Items
         </Button>
       </CardFooter>

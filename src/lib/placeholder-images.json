@@ -45,8 +45,32 @@
     {
       "id": "restaurant-6",
       "description": "Bloomsbury's Ajman",
-      "imageUrl": "https://images.unsplash.com/photo-1695606392868-b9ed053e1c0c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxidXJnZXIlMjBqb2ludHxlbnwwfHx8fDE3NzA4MDg1MDJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1695606392868-b9ed053e1c0c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxidXJnZXIlMjBqb2ludHxlbnwwfHx8fDE3TzA4MDg1MDJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "burger joint"
+    },
+    {
+      "id": "classic-cheese-burger",
+      "description": "Classic Cheese Burger",
+      "imageUrl": "https://images.unsplash.com/photo-1508736793122-f516e3ba5569?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjaGVlc2UlMjBidXJnZXJ8ZW58MHx8fHwxNzcwOTIxNTA4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cheese burger"
+    },
+    {
+      "id": "caesar-salad",
+      "description": "Caesar Salad",
+      "imageUrl": "https://images.unsplash.com/photo-1669283714145-f97867f6c238?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjYWVzYXIlMjBzYWxhZHxlbnwwfHx8fDE3NzA4NTYxMjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "caesar salad"
+    },
+    {
+      "id": "red-velvet-cupcake",
+      "description": "Red Velvet Cupcake",
+      "imageUrl": "https://images.unsplash.com/photo-1645366188121-2a19e02fcbd5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxyZWQlMjB2ZWx2ZXR8ZW58MHx8fHwxNzcwOTIxNTA4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red velvet"
+    },
+    {
+      "id": "red-velvet-cupcake-2",
+      "description": "Red Velvet Cupcake Duplicate",
+      "imageUrl": "https://images.unsplash.com/photo-1760124056888-8ae3ec14b978?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxkZXNzZXJ0JTIwZGlzcGxheXxlbnwwfHx8fDE3NzA5MjE1MDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dessert display"
     }
   ]
 }
