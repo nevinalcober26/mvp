@@ -24,7 +24,14 @@ import {
   ChevronRight,
   Store,
   TrendingUp,
+  Trash,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { CategoriesPageSkeleton } from '@/components/dashboard/skeletons';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
@@ -83,9 +90,27 @@ const RestaurantCard = ({
             Actively Selected
           </Badge>
         ) : (
-          <button className="h-8 w-8 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 backdrop-blur-sm transition-colors">
-            <MoreHorizontal className="h-4 w-4" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button 
+                className="h-8 w-8 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 backdrop-blur-sm transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem 
+                className="text-destructive cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                <Trash className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
       <Badge
