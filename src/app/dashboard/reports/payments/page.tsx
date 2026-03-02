@@ -72,6 +72,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 
 type Transaction = {
   id: string;
@@ -122,43 +123,6 @@ const initialFilterState = {
   branch: 'all',
   paymentStatus: 'all',
 };
-
-const KpiCard = ({ icon: Icon, title, value, description, color, tooltipText }: { icon: React.ElementType, title: string, value: string, description: string, color: string, tooltipText: string }) => {
-    const colorClasses: Record<string, string> = {
-        orange: 'border-orange-500 bg-orange-50 text-orange-600',
-        pink: 'border-pink-500 bg-pink-50 text-pink-600',
-        green: 'border-green-500 bg-green-50 text-green-600',
-        red: 'border-red-500 bg-red-50 text-red-600',
-    }
-    return (
-        <Card className={cn("border-l-4 shadow-sm", colorClasses[color] || 'border-gray-500')}>
-            <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                    <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0", colorClasses[color] || 'bg-gray-50 text-gray-600')}>
-                        <Icon className="h-6 w-6" />
-                    </div>
-                    <div className="flex-grow">
-                        <div className="flex items-center gap-1">
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{title}</p>
-                             <TooltipProvider>
-                                <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p className="max-w-xs">{tooltipText}</p>
-                                </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        </div>
-                        <p className="text-2xl font-bold text-foreground">{value}</p>
-                        <p className="text-xs text-muted-foreground">{description}</p>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    )
-}
 
 const ExportDialog = ({
   open,
@@ -285,7 +249,7 @@ export default function OrderReportPage() {
     }).sort((a, b) => b.timestamp - a.timestamp);
   }, [transactions, filters]);
 
-    const kpiData = useMemo(() => {
+    const kpiData: StatCardData[] = useMemo(() => {
         const totalOrders = filteredTransactions.length;
         const grossSales = filteredTransactions.reduce((acc, t) => acc + t.totalAmount, 0);
         const paidAmount = filteredTransactions.reduce((acc, t) => acc + t.paidAmount, 0);
@@ -293,11 +257,11 @@ export default function OrderReportPage() {
         const voidedOrders = filteredTransactions.filter(t => t.paymentStatus === 'Voided').length;
 
         return [
-            { title: 'Total Orders', value: totalOrders.toLocaleString(), description: 'Processed', icon: ShoppingCart, color: 'orange', tooltipText: 'Total number of orders processed within the selected period.' },
-            { title: 'Gross Sales', value: `AED ${grossSales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, description: 'Before Voids', icon: DollarSign, color: 'pink', tooltipText: 'Total sales value from all orders, including unpaid amounts.' },
-            { title: 'Paid Amount', value: `AED ${paidAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, description: 'Revenue Collected', icon: WalletCards, color: 'green', tooltipText: 'Total revenue successfully collected from customers.' },
-            { title: 'Outstanding', value: `AED ${outstandingAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, description: 'Revenue at Risk', icon: AlertTriangle, color: 'orange', tooltipText: 'Total amount from orders that has not yet been paid.' },
-            { title: 'Voided Orders', value: voidedOrders.toLocaleString(), description: 'Non-Revenue', icon: Ban, color: 'red', tooltipText: 'Total number of orders that were voided and resulted in no revenue.' },
+            { title: 'Total Orders', value: totalOrders.toLocaleString(), changeDescription: 'Processed', icon: ShoppingCart, color: 'orange', tooltipText: 'Total number of orders processed within the selected period.' },
+            { title: 'Gross Sales', value: `AED ${grossSales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, changeDescription: 'Before Voids', icon: DollarSign, color: 'pink', tooltipText: 'Total sales value from all orders, including unpaid amounts.' },
+            { title: 'Paid Amount', value: `AED ${paidAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, changeDescription: 'Revenue Collected', icon: WalletCards, color: 'green', tooltipText: 'Total revenue successfully collected from customers.' },
+            { title: 'Outstanding', value: `AED ${outstandingAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, changeDescription: 'Revenue at Risk', icon: AlertTriangle, color: 'orange', tooltipText: 'Total amount from orders that has not yet been paid.' },
+            { title: 'Voided Orders', value: voidedOrders.toLocaleString(), changeDescription: 'Non-Revenue', icon: Ban, color: 'red', tooltipText: 'Total number of orders that were voided and resulted in no revenue.' },
         ]
     }, [filteredTransactions]);
 
@@ -464,9 +428,7 @@ export default function OrderReportPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {kpiData.map(card => <KpiCard key={card.title} {...card} />)}
-        </div>
+        <StatCards cards={kpiData} />
 
           <Card>
             <CardHeader>
