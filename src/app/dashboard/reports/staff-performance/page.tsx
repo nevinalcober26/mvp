@@ -29,16 +29,11 @@ import {
   Cell,
   XAxis,
   YAxis,
-  Tooltip,
   ResponsiveContainer,
   Legend,
 } from 'recharts';
 import { 
-  ChevronDown, 
   Info, 
-  Apple, 
-  Smartphone, 
-  Monitor,
   ShoppingCart,
   DollarSign,
   AlertTriangle,
@@ -48,6 +43,11 @@ import {
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
 
 // --- Data Mocks ---
 
@@ -126,6 +126,28 @@ const webEntryData = [
   { name: 'Edge', value: 4, color: '#ef4444' },
 ];
 
+const paymentPulseConfig = {
+  Paid: { label: 'Paid' },
+  Partial: { label: 'Partial' },
+  Pending: { label: 'Pending' },
+  Failed: { label: 'Failed' },
+};
+const volumeConfig = { value: { label: 'Orders', color: '#14b8a6' } };
+const revenueConfig = { value: { label: 'Revenue', color: '#14b8a6' } };
+const osConfig = {
+  iOS: { label: 'iOS' },
+  Android: { label: 'Android' },
+  macOS: { label: 'macOS' },
+  Windows: { label: 'Windows' },
+};
+const webEntryConfig = {
+  Safari: { label: 'Safari' },
+  Chrome: { label: 'Chrome' },
+  Firefox: { label: 'Firefox' },
+  Edge: { label: 'Edge' },
+};
+
+
 // --- Main Page Component ---
 export default function AnalyticsPage() {
   return (
@@ -194,21 +216,23 @@ export default function AnalyticsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center">
-                  <div className="h-48 w-48 relative">
-                    <ResponsiveContainer width="100%" height="100%">
+                  <ChartContainer config={paymentPulseConfig} className="h-48 w-48 relative">
                       <PieChart>
+                        <ChartTooltip
+                          cursor={false}
+                          content={<ChartTooltipContent hideLabel />}
+                        />
                         <Pie data={paymentPulseData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="75%" outerRadius="95%" startAngle={90} endAngle={450} paddingAngle={4}>
                           {paymentPulseData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} stroke={entry.color} />
                           ))}
                         </Pie>
                       </PieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  </ChartContainer>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-16">
                       <p className="text-[10px] font-bold text-muted-foreground uppercase">Success Rate</p>
                       <p className="text-4xl font-bold text-foreground mt-1">{successRate}%</p>
                     </div>
-                  </div>
                   <div className="w-full mt-6">
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-4">
                       {paymentPulseData.map(item => (
@@ -249,34 +273,38 @@ export default function AnalyticsPage() {
                                     <h3 className="font-semibold text-sm">Volume (Orders)</h3>
                                     <p className="text-xl font-bold">155 <span className="text-xs font-semibold text-muted-foreground">UNITS</span></p>
                                 </div>
-                                <ResponsiveContainer width="100%" height={200}>
+                                <ChartContainer config={volumeConfig} className="h-[200px] w-full">
                                     <RechartsBarChart data={volumeData} margin={{ top: 5, right: 0, left: -20, bottom: -10 }}>
+                                        <ChartTooltip
+                                            cursor={{ fill: "hsl(var(--muted))" }}
+                                            content={<ChartTooltipContent />}
+                                        />
                                         <XAxis dataKey="name" axisLine={false} tickLine={false} fontSize={10} />
-                                        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                                            {volumeData.map((_entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={'#14b8a6'} />
-                                            ))}
-                                        </Bar>
+                                        <Bar dataKey="value" radius={[4, 4, 0, 0]} fill="var(--color-value)" />
                                     </RechartsBarChart>
-                                </ResponsiveContainer>
+                                </ChartContainer>
                             </div>
                             <div>
                                 <div className="flex justify-between items-baseline mb-4">
                                     <h3 className="font-semibold text-sm">Gross Revenue</h3>
                                     <p className="text-xl font-bold">AED <span className="text-xl font-bold">19,865</span></p>
                                 </div>
-                                <ResponsiveContainer width="100%" height={200}>
+                                <ChartContainer config={revenueConfig} className="h-[200px] w-full">
                                     <AreaChart data={revenueData} margin={{ top: 5, right: 0, left: -20, bottom: -10 }}>
                                         <defs>
                                             <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3}/>
-                                                <stop offset="95%" stopColor="#14b8a6" stopOpacity={0}/>
+                                                <stop offset="5%" stopColor="var(--color-value)" stopOpacity={0.3}/>
+                                                <stop offset="95%" stopColor="var(--color-value)" stopOpacity={0}/>
                                             </linearGradient>
                                         </defs>
+                                        <ChartTooltip
+                                            cursor={{ fill: "hsl(var(--muted))" }}
+                                            content={<ChartTooltipContent />}
+                                        />
                                         <XAxis dataKey="name" axisLine={false} tickLine={false} fontSize={10} />
-                                        <Area type="monotone" dataKey="value" stroke="#14b8a6" strokeWidth={2} fill="url(#revenueGradient)" />
+                                        <Area type="monotone" dataKey="value" stroke="var(--color-value)" strokeWidth={2} fill="url(#revenueGradient)" />
                                     </AreaChart>
-                                </ResponsiveContainer>
+                                </ChartContainer>
                             </div>
                         </div>
                         <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center gap-3 text-xs text-yellow-800">
@@ -299,21 +327,23 @@ export default function AnalyticsPage() {
                       <Badge variant="outline" className="text-xs">DEVICE USAGE</Badge>
                   </CardHeader>
                   <CardContent className="grid grid-cols-2 gap-4 items-center">
-                      <div className="h-48 relative">
-                          <ResponsiveContainer width="100%" height="100%">
-                              <PieChart>
-                                  <Pie data={osDistributionData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="70%" outerRadius="90%" startAngle={90} endAngle={450} paddingAngle={2}>
-                                      {osDistributionData.map((entry, index) => (
-                                          <Cell key={`cell-${index}`} fill={entry.color} stroke={entry.color} />
-                                      ))}
-                                  </Pie>
-                              </PieChart>
-                          </ResponsiveContainer>
+                      <ChartContainer config={osConfig} className="h-48 relative">
+                          <PieChart>
+                                <ChartTooltip
+                                  cursor={false}
+                                  content={<ChartTooltipContent hideLabel />}
+                                />
+                              <Pie data={osDistributionData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="70%" outerRadius="90%" startAngle={90} endAngle={450} paddingAngle={2}>
+                                  {osDistributionData.map((entry) => (
+                                      <Cell key={`cell-${entry.name}`} fill={entry.color} stroke={entry.color} />
+                                  ))}
+                              </Pie>
+                          </PieChart>
                           <div className="absolute inset-0 flex flex-col items-center justify-center">
                               <p className="text-[10px] font-bold text-muted-foreground uppercase">MOBILE</p>
                               <p className="text-xl font-bold">{osDistributionData.reduce((max, item) => item.value > max.value ? item : max, osDistributionData[0]).name}</p>
                           </div>
-                      </div>
+                      </ChartContainer>
                       <div>
                           <ul className="space-y-2 text-sm">
                               {osDistributionData.map(item => (
@@ -338,21 +368,23 @@ export default function AnalyticsPage() {
                       <Badge variant="outline" className="text-xs">TOP BROWSER</Badge>
                   </CardHeader>
                   <CardContent className="grid grid-cols-2 gap-4 items-center">
-                      <div className="h-48 relative">
-                          <ResponsiveContainer width="100%" height="100%">
-                              <PieChart>
-                                  <Pie data={webEntryData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="70%" outerRadius="90%" startAngle={90} endAngle={450} paddingAngle={2}>
-                                      {webEntryData.map((entry, index) => (
-                                          <Cell key={`cell-${index}`} fill={entry.color} stroke={entry.color} />
-                                      ))}
-                                  </Pie>
-                              </PieChart>
-                          </ResponsiveContainer>
+                      <ChartContainer config={webEntryConfig} className="h-48 relative">
+                          <PieChart>
+                              <ChartTooltip
+                                cursor={false}
+                                content={<ChartTooltipContent hideLabel />}
+                              />
+                              <Pie data={webEntryData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="70%" outerRadius="90%" startAngle={90} endAngle={450} paddingAngle={2}>
+                                  {webEntryData.map((entry) => (
+                                      <Cell key={`cell-${entry.name}`} fill={entry.color} stroke={entry.color} />
+                                  ))}
+                              </Pie>
+                          </PieChart>
                           <div className="absolute inset-0 flex flex-col items-center justify-center">
                               <p className="text-[10px] font-bold text-muted-foreground uppercase">TOP</p>
                               <p className="text-xl font-bold">{webEntryData.reduce((max, item) => item.value > max.value ? item : max, webEntryData[0]).name}</p>
                           </div>
-                      </div>
+                      </ChartContainer>
                       <div>
                           <ul className="space-y-2 text-sm">
                               {webEntryData.map(item => (
