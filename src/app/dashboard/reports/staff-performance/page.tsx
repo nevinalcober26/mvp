@@ -331,7 +331,7 @@ export default function AnalyticsPage() {
         .map(([dateStr, data]) => ({ date: new Date(dateStr), ...data }))
         .sort((a, b) => a.date.getTime() - b.date.getTime());
     
-    const finalVolumeAndRevenueData = sortedData.map(d => ({
+    const finalVolumeAndRevenueData = sortedData.map((d, index) => ({
         name: formatLabel(d.date),
         volume: d.volume,
         prevVolume: d.prevVolume,
@@ -344,6 +344,15 @@ export default function AnalyticsPage() {
 
     return { paymentPulseData: finalPulseData, successRate: finalSuccessRate, volumeAndRevenueData: finalVolumeAndRevenueData, totalVolume: totalVol, totalGrossRevenue: totalGrossRev };
 }, [filteredTransactions, previousPeriodFilteredTransactions, isComparing, timeRange]);
+
+ const dynamicInfoText = useMemo(() => {
+    const branchName = branchFilter === 'all' 
+      ? 'all outlets' 
+      : branchFilter.replace("Bloomsbury's - ", "");
+    const timeWindow = `last ${timeRange.replace('d', '')} days`;
+    
+    return `Visualizing performance for ${branchName} within the ${timeWindow} window. Data is updated in real-time from your linked POS terminals.`;
+  }, [branchFilter, timeRange]);
 
   if (isLoading) {
       return <OrdersPageSkeleton view="list"/>
@@ -507,7 +516,7 @@ export default function AnalyticsPage() {
                         </div>
                         <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center gap-3 text-xs text-yellow-800">
                             <Info className="h-4 w-4 shrink-0" />
-                            <p>Visualizing performance for Al Quoz within the TW window. Data is updated in real-time from your linked POS terminals.</p>
+                            <p>{dynamicInfoText}</p>
                         </div>
                     </CardContent>
                 </Card>
