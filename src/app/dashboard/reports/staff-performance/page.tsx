@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -165,7 +164,21 @@ export default function AnalyticsPage() {
     setIsLoading(true);
     setTimeout(() => {
         const mockOrders = mockDataStore.orders;
-        const mockTransactions = generateTransactionsFromOrders(mockOrders);
+        
+        // Re-base timestamps to be relative to today to ensure data is always fresh
+        const now = new Date();
+        // Find the most recent timestamp in the stale mock data
+        const latestTimestampInMock = Math.max(...mockOrders.map(o => o.orderTimestamp));
+        // Calculate the difference between now and the latest mock timestamp
+        const timeDiff = now.getTime() - latestTimestampInMock;
+
+        // Create a new array of orders with updated timestamps
+        const freshOrders = mockOrders.map(order => ({
+            ...order,
+            orderTimestamp: order.orderTimestamp + timeDiff,
+        }));
+
+        const mockTransactions = generateTransactionsFromOrders(freshOrders);
         setTransactions(mockTransactions);
         setIsLoading(false);
     }, 1000);
