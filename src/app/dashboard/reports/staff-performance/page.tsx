@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -179,7 +180,7 @@ export default function AnalyticsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [timeRange, setTimeRange] = useState('7d');
-  const [branchFilter, setBranchFilter] = useState('all');
+  const [branchFilter, setBranchFilter] = useState("Bloomsbury's - Ras Al Khaimah");
   const [isComparing, setIsComparing] = useState(false);
 
   useEffect(() => {
@@ -251,20 +252,20 @@ export default function AnalyticsPage() {
       const periodLabel = `vs. previous ${timeRange.replace('d', '')} days`;
 
       return [
-        { title: 'Total Orders', value: currentMetrics.totalOrders.toLocaleString(), icon: ShoppingCart, color: 'teal', change: calculateChange(currentMetrics.totalOrders, previousMetrics.totalOrders), changeDescription: periodLabel },
-        { title: 'Average Order Value', value: `AED ${currentMetrics.avgOrderValue.toFixed(2)}`, icon: DollarSign, color: 'orange', change: calculateChange(currentMetrics.avgOrderValue, previousMetrics.avgOrderValue), changeDescription: periodLabel },
-        { title: 'Pending Amount', value: `AED ${currentMetrics.pendingAmount.toFixed(2)}`, icon: AlertTriangle, color: 'pink', change: calculateChange(currentMetrics.pendingAmount, previousMetrics.pendingAmount), changeDescription: periodLabel },
-        { title: 'Bill Paid', value: `AED ${currentMetrics.billPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, icon: WalletCards, color: 'green', change: calculateChange(currentMetrics.billPaid, previousMetrics.billPaid), changeDescription: periodLabel },
-        { title: 'Tips Collected', value: `AED ${currentMetrics.tipsCollected.toFixed(2)}`, icon: HandCoins, color: 'purple', change: calculateChange(currentMetrics.tipsCollected, previousMetrics.tipsCollected), changeDescription: periodLabel },
+        { title: 'Total Orders', value: currentMetrics.totalOrders.toLocaleString(), icon: ShoppingCart, color: 'teal', change: calculateChange(currentMetrics.totalOrders, previousMetrics.totalOrders), changeDescription: periodLabel, tooltipText: "Total number of orders placed." },
+        { title: 'Average Order Value', value: `AED ${currentMetrics.avgOrderValue.toFixed(2)}`, icon: DollarSign, color: 'orange', change: calculateChange(currentMetrics.avgOrderValue, previousMetrics.avgOrderValue), changeDescription: periodLabel, tooltipText: "Average amount spent per order." },
+        { title: 'Pending Amount', value: `AED ${currentMetrics.pendingAmount.toFixed(2)}`, icon: AlertTriangle, color: 'pink', change: calculateChange(currentMetrics.pendingAmount, previousMetrics.pendingAmount), changeDescription: periodLabel, tooltipText: "Total amount from orders that are not fully paid." },
+        { title: 'Bill Paid', value: `AED ${currentMetrics.billPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, icon: WalletCards, color: 'green', change: calculateChange(currentMetrics.billPaid, previousMetrics.billPaid), changeDescription: periodLabel, tooltipText: "Total amount collected from customers." },
+        { title: 'Tips Collected', value: `AED ${currentMetrics.tipsCollected.toFixed(2)}`, icon: HandCoins, color: 'purple', change: calculateChange(currentMetrics.tipsCollected, previousMetrics.tipsCollected), changeDescription: periodLabel, tooltipText: "Total tips collected from customers." },
       ];
     }
 
     return [
-        { title: 'Total Orders', value: currentMetrics.totalOrders.toLocaleString(), icon: ShoppingCart, color: 'teal', changeDescription: `Last ${timeRange.replace('d', '')} days` },
-        { title: 'Average Order Value', value: `AED ${currentMetrics.avgOrderValue.toFixed(2)}`, icon: DollarSign, color: 'orange', changeDescription: `Last ${timeRange.replace('d', '')} days` },
-        { title: 'Pending Amount', value: `AED ${currentMetrics.pendingAmount.toFixed(2)}`, icon: AlertTriangle, color: 'pink', changeDescription: 'from open orders' },
-        { title: 'Bill Paid', value: `AED ${currentMetrics.billPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, icon: WalletCards, color: 'green', changeDescription: `Last ${timeRange.replace('d', '')} days` },
-        { title: 'Tips Collected', value: `AED ${currentMetrics.tipsCollected.toFixed(2)}`, icon: HandCoins, color: 'purple', changeDescription: `Last ${timeRange.replace('d', '')} days` },
+        { title: 'Total Orders', value: currentMetrics.totalOrders.toLocaleString(), icon: ShoppingCart, color: 'teal', changeDescription: `Last ${timeRange.replace('d', '')} days`, tooltipText: "Total number of orders placed." },
+        { title: 'Average Order Value', value: `AED ${currentMetrics.avgOrderValue.toFixed(2)}`, icon: DollarSign, color: 'orange', changeDescription: `Last ${timeRange.replace('d', '')} days`, tooltipText: "Average amount spent per order." },
+        { title: 'Pending Amount', value: `AED ${currentMetrics.pendingAmount.toFixed(2)}`, icon: AlertTriangle, color: 'pink', changeDescription: 'from open orders', tooltipText: "Total amount from orders that are not fully paid." },
+        { title: 'Bill Paid', value: `AED ${currentMetrics.billPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, icon: WalletCards, color: 'green', changeDescription: `Last ${timeRange.replace('d', '')} days`, tooltipText: "Total amount collected from customers." },
+        { title: 'Tips Collected', value: `AED ${currentMetrics.tipsCollected.toFixed(2)}`, icon: HandCoins, color: 'purple', changeDescription: `Last ${timeRange.replace('d', '')} days`, tooltipText: "Total tips collected from customers." },
     ];
   }, [filteredTransactions, previousPeriodFilteredTransactions, timeRange, isComparing]);
   
@@ -292,6 +293,10 @@ export default function AnalyticsPage() {
     const now = new Date();
     let days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
     const startDate = startOfDay(subDays(now, days - 1));
+    
+    const shouldShowAllLabels = days > 14;
+    const interval = shouldShowAllLabels ? Math.floor(days / 7) : 0;
+    
     const formatLabel = timeRange === '7d' ? (d: Date) => format(d, 'eee') : (d: Date) => format(d, 'd');
 
     const processTransactions = (txns: Transaction[], period: 'current' | 'previous') => {
