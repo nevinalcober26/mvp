@@ -97,7 +97,7 @@ const generateSettlementLogs = (orders: Order[]): SplitSettlementLog[] => {
         orderId: order.orderId,
         totalBill: order.totalAmount,
         splits: order.payments.length,
-        splitMethod: order.splitType,
+        splitMethod: order.splitType === 'equally' ? 'Equal' : 'Item-based',
         payerBreakdown: order.payments.map((p) => parseFloat(p.amount)),
         settlementTime: `${settlementMinutes}m ${settlementSeconds}s`,
         timestamp: order.orderTimestamp,
@@ -277,40 +277,40 @@ export default function SplitBillsReportPage() {
           <div className="flex flex-wrap items-center gap-4">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground px-1">OUTLET</Label>
-               <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full sm:w-[220px] justify-between">
-                      <span className="truncate">
-                        {filters.branches.length === mockDataStore.branches.length
-                          ? 'All Branches'
-                          : filters.branches.length === 0
-                          ? 'Select Branch'
-                          : filters.branches.length === 1
-                          ? filters.branches[0]
-                          : `${filters.branches.length} branches selected`}
-                      </span>
-                      <ChevronDown className="h-4 w-4 opacity-50 ml-2" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[220px]">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full sm:w-[220px] justify-between">
+                    <span className="truncate">
+                      {filters.branches.length === mockDataStore.branches.length
+                        ? 'All Branches'
+                        : filters.branches.length === 0
+                        ? 'Select Branch'
+                        : filters.branches.length === 1
+                        ? filters.branches[0]
+                        : `${filters.branches.length} branches selected`}
+                    </span>
+                    <ChevronDown className="h-4 w-4 opacity-50 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[220px]">
+                  <DropdownMenuCheckboxItem
+                    checked={filters.branches.length === mockDataStore.branches.length}
+                    onCheckedChange={handleSelectAllBranches}
+                  >
+                    All Branches
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuSeparator />
+                  {mockDataStore.branches.map((branch) => (
                     <DropdownMenuCheckboxItem
-                      checked={filters.branches.length === mockDataStore.branches.length}
-                      onCheckedChange={handleSelectAllBranches}
+                      key={branch.id}
+                      checked={filters.branches.includes(branch.name)}
+                      onCheckedChange={(checked) => handleBranchesChange(branch.name, !!checked)}
                     >
-                      All Branches
+                      {branch.name}
                     </DropdownMenuCheckboxItem>
-                    <DropdownMenuSeparator />
-                    {mockDataStore.branches.map((branch) => (
-                      <DropdownMenuCheckboxItem
-                        key={branch.id}
-                        checked={filters.branches.includes(branch.name)}
-                        onCheckedChange={(checked) => handleBranchesChange(branch.name, !!checked)}
-                      >
-                        {branch.name}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground px-1">SPLIT METHODS</Label>
