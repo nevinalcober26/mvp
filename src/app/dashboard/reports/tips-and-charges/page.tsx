@@ -414,8 +414,10 @@ export default function TipsAndGratuityReportPage() {
           </Button>
         </div>
 
-        <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3 shadow-sm">
-          <div className="flex flex-wrap items-end gap-4">
+        <StatCards cards={tipsKpiCards} />
+
+        <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3 shadow-sm">
+          <div className="flex flex-wrap items-start gap-4">
             <div className="space-y-1">
                 <Label className="text-xs font-semibold text-muted-foreground px-1">OUTLET</Label>
                 <DropdownMenu>
@@ -499,8 +501,6 @@ export default function TipsAndGratuityReportPage() {
             Refresh
           </Button>
         </div>
-
-        <StatCards cards={tipsKpiCards} />
 
         <Card>
             <CardHeader>

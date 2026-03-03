@@ -275,8 +275,8 @@ export default function SplitBillsReportPage() {
 
         <StatCards cards={kpiCards} />
 
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3 shadow-sm">
-          <div className="flex flex-wrap items-end gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3 shadow-sm">
+          <div className="flex flex-wrap items-start gap-4">
             <div className="space-y-1">
               <Label className="text-xs font-semibold text-muted-foreground px-1">OUTLET</Label>
               <DropdownMenu>
