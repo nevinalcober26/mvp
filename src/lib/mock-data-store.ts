@@ -143,7 +143,7 @@ const generateMockProducts = (count: number): Product[] => {
 // --- Customer and Order Generation (interlinked) ---
 const firstNames = ['John', 'Jane', 'Alex', 'Emily', 'Chris', 'Katie', 'Michael', 'Sarah', 'David', 'Laura'];
 const lastNames = ['Smith', 'Doe', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez'];
-const staffNames = ['Alex', 'Maria', 'John', 'Sarah', 'David', 'Frank M.'];
+const staffNames = ['Alex', 'Maria', 'John', 'Sarah', 'David', 'Frank M.', 'Emily', 'Jessica', 'Michael', 'Chris'];
 const comments = ['Customer requested extra napkins.', 'Allergy alert: No nuts.', 'Birthday celebration at the table.', null, 'Guest is in a hurry.'];
 
 const generateRelatedMockData = (customerCount: number, orderCount: number, products: Product[]) => {
