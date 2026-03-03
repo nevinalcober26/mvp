@@ -24,6 +24,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -39,6 +46,7 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { DashboardHeader } from '@/components/dashboard/header';
@@ -107,7 +115,7 @@ const initialFilterState = {
     from: subDays(new Date(), 29),
     to: new Date(),
   } as DateRange | undefined,
-  branch: 'all',
+  branches: ["Bloomsbury's - Ras Al Khaimah"],
   staffName: 'all',
 };
 
@@ -222,6 +230,24 @@ export default function TipsAndGratuityReportPage() {
     setCurrentPage(1);
   };
 
+  const handleBranchesChange = (branchName: string, isChecked: boolean) => {
+    setFilters(prev => {
+        const newBranches = isChecked 
+            ? [...prev.branches, branchName] 
+            : prev.branches.filter(b => b !== branchName);
+        return { ...prev, branches: newBranches };
+    });
+    setCurrentPage(1);
+  };
+  
+  const handleSelectAllBranches = (isChecked: boolean) => {
+    setFilters(prev => ({
+        ...prev,
+        branches: isChecked ? mockDataStore.branches.map(b => b.name) : []
+    }));
+    setCurrentPage(1);
+  };
+
   const resetAllFilters = () => {
     setFilters(initialFilterState);
     setCurrentPage(1);
@@ -237,8 +263,7 @@ export default function TipsAndGratuityReportPage() {
               end: endOfDay(filters.dateRange.to),
             })
           : true;
-      const matchesBranch =
-        filters.branch === 'all' || transaction.branch === filters.branch;
+      const matchesBranch = filters.branches.includes(transaction.branch);
       const matchesStaffName =
         filters.staffName === 'all' || transaction.staffName === filters.staffName;
 
@@ -378,19 +403,40 @@ export default function TipsAndGratuityReportPage() {
           <div className="flex flex-wrap items-center gap-4">
             <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground px-1">OUTLET</Label>
-                <Select
-                  value={filters.branch}
-                  onValueChange={(value) => handleFilterChange('branch', value)}
-                >
-                  <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Branch/Venue" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Branches</SelectItem>
-                    <SelectItem value="Ras Al Khaimah">Ras Al Khaimah</SelectItem>
-                    <SelectItem value="Dubai Mall">Dubai Mall</SelectItem>
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full sm:w-[220px] justify-between">
+                      <span className="truncate">
+                        {filters.branches.length === mockDataStore.branches.length
+                          ? 'All Branches'
+                          : filters.branches.length === 0
+                          ? 'Select Branch'
+                          : filters.branches.length === 1
+                          ? filters.branches[0]
+                          : `${filters.branches.length} branches selected`}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50 ml-2" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[220px]">
+                    <DropdownMenuCheckboxItem
+                      checked={filters.branches.length === mockDataStore.branches.length}
+                      onCheckedChange={handleSelectAllBranches}
+                    >
+                      All Branches
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuSeparator />
+                    {mockDataStore.branches.map((branch) => (
+                      <DropdownMenuCheckboxItem
+                        key={branch.id}
+                        checked={filters.branches.includes(branch.name)}
+                        onCheckedChange={(checked) => handleBranchesChange(branch.name, !!checked)}
+                      >
+                        {branch.name}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
             </div>
             <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground px-1">STAFF MEMBERS</Label>
