@@ -49,23 +49,7 @@ const summarizeDataFlow = ai.defineFlow(
     outputSchema: SummarizeDataOutputSchema,
   },
   async input => {
-    try {
-      const {output} = await prompt(input);
-      return output!;
-    } catch (error: any) {
-      console.error('AI Summarization Error:', error);
-      
-      // Handle rate limits (429) gracefully to prevent crashing the UI
-      if (error.status === 429 || error.message?.includes('429') || error.message?.includes('quota')) {
-        return {
-          summary: "I'm currently busy analyzing multiple requests. Please **wait a moment** and refresh to see your AI insights! 🚀"
-        };
-      }
-      
-      // Return a safe fallback message for other errors
-      return {
-        summary: "I encountered a minor issue summarizing this data. A **manual review** of the metrics below is advised."
-      };
-    }
+    const {output} = await prompt(input);
+    return output!;
   }
 );
