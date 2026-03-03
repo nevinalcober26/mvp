@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Table,
@@ -63,6 +64,7 @@ import {
   TooltipContent as UiTooltipContent,
   TooltipTrigger as UiTooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Label } from '@/components/ui/label';
 
 type SplitSettlementLog = {
   orderId: string;
