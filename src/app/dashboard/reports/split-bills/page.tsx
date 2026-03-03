@@ -72,7 +72,6 @@ import {
   TooltipContent as UiTooltipContent,
   TooltipTrigger as UiTooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Label } from '@/components/ui/label';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 
 type SplitSettlementLog = {
@@ -275,8 +274,8 @@ export default function SplitBillsReportPage() {
 
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3">
           <div className="flex flex-wrap items-center gap-4">
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground px-1">OUTLET</Label>
+          <div className="space-y-1">
+              <p className="text-xs font-semibold text-muted-foreground">OUTLET</p>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-full sm:w-[220px] justify-between">
@@ -313,7 +312,7 @@ export default function SplitBillsReportPage() {
               </DropdownMenu>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground px-1">SPLIT METHODS</Label>
+              <p className="text-xs font-semibold text-muted-foreground">SPLIT METHODS</p>
               <Select
                 value={filters.splitMethod}
                 onValueChange={(value) => handleFilterChange('splitMethod', value)}
@@ -329,7 +328,7 @@ export default function SplitBillsReportPage() {
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground px-1">REPORT PERIOD</Label>
+              <p className="text-xs font-semibold text-muted-foreground">REPORT PERIOD</p>
               <DateRangePicker
                 dateRange={filters.dateRange}
                 onDateRangeChange={(range) => handleFilterChange('dateRange', range)}
