@@ -272,9 +272,11 @@ export default function SplitBillsReportPage() {
           </Button>
         </div>
 
+        <StatCards cards={kpiCards} />
+
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3">
           <div className="flex flex-wrap items-center gap-4">
-          <div className="space-y-1">
+            <div className="flex items-center gap-2">
               <p className="text-xs font-semibold text-muted-foreground">OUTLET</p>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -311,7 +313,7 @@ export default function SplitBillsReportPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <div className="space-y-1">
+            <div className="flex items-center gap-2">
               <p className="text-xs font-semibold text-muted-foreground">SPLIT METHODS</p>
               <Select
                 value={filters.splitMethod}
@@ -327,7 +329,7 @@ export default function SplitBillsReportPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1">
+            <div className="flex items-center gap-2">
               <p className="text-xs font-semibold text-muted-foreground">REPORT PERIOD</p>
               <DateRangePicker
                 dateRange={filters.dateRange}
@@ -345,7 +347,7 @@ export default function SplitBillsReportPage() {
           </Button>
         </div>
 
-        <StatCards cards={kpiCards} />
+        
 
         <Card>
           <CardHeader>
