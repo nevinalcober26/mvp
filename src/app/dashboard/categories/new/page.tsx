@@ -491,157 +491,139 @@ export default function AddNewBranchPage() {
 
               <TabsContent value="tip-fee" className="p-8 space-y-10 focus-visible:ring-0 mt-0 bg-background">
                 <section className="space-y-8">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-bold">Tip Fee Settings</h3>
-                    <Switch id="tip-fee-enabled" checked={tipFeeEnabled} onCheckedChange={setTipFeeEnabled} />
+                  <div className="flex items-center justify-between border-b pb-6">
+                    <div>
+                      <h3 className="text-xl font-bold">Gratuity Settings</h3>
+                      <p className="text-sm text-muted-foreground">Configure how customers can add tips to their orders.</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Label htmlFor="tip-fee-enabled" className="text-sm font-bold">Enable Tipping</Label>
+                      <Switch id="tip-fee-enabled" checked={tipFeeEnabled} onCheckedChange={setTipFeeEnabled} />
+                    </div>
                   </div>
 
-                  <div className={cn(!tipFeeEnabled && "opacity-50 pointer-events-none", "space-y-6")}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2 text-left">
-                        <Label>Currency</Label>
-                        <Select value={currency} onValueChange={setCurrency}>
-                          <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="AED">AED</SelectItem>
-                            <SelectItem value="USD">USD</SelectItem>
-                            <SelectItem value="EUR">EUR</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2 text-left">
-                        <Label>Fee Type</Label>
-                        <RadioGroup
-                          value={feeType}
-                          onValueChange={setFeeType}
-                          className="grid grid-cols-2 gap-1 rounded-lg border bg-muted p-1"
-                        >
-                          <div>
-                            <RadioGroupItem value="Percentage" id="fee-type-percentage-new" className="sr-only" />
-                            <Label
-                              htmlFor="fee-type-percentage-new"
-                              className={cn(
-                                "flex h-9 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
-                                feeType === 'Percentage'
-                                  ? "bg-background text-foreground shadow-sm"
-                                  : "text-muted-foreground hover:bg-background/50"
-                              )}
-                            >
-                              Percentage
-                            </Label>
-                          </div>
-                          <div>
-                            <RadioGroupItem value="Fixed" id="fee-type-fixed-new" className="sr-only" />
-                            <Label
-                              htmlFor="fee-type-fixed-new"
-                              className={cn(
-                                "flex h-9 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
-                                feeType === 'Fixed'
-                                  ? "bg-background text-foreground shadow-sm"
-                                  : "text-muted-foreground hover:bg-background/50"
-                              )}
-                            >
-                              Fixed Amount
-                            </Label>
-                          </div>
-                        </RadioGroup>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                      <div className="space-y-2 text-left">
-                        <Label>Max Tip Amount Allowed</Label>
-                        <Input value={maxRate} onChange={(e) => setMaxRate(e.target.value)} placeholder="100" className="bg-background"/>
-                      </div>
-                      <div className="space-y-2 text-left">
-                        <Label>Custom Entry</Label>
-                        <div className="flex items-center h-[44px]">
-                          <Switch id="custom-entry-enabled" checked={customEntryEnabled} onCheckedChange={setCustomEntryEnabled} />
+                  <div className={cn(!tipFeeEnabled && "opacity-40 pointer-events-none", "space-y-8")}>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Core Configuration</CardTitle>
+                        <CardDescription>Set the fundamental rules for how tips are calculated.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                        <div className="space-y-2 text-left">
+                          <Label>Currency</Label>
+                          <Select value={currency} onValueChange={setCurrency}>
+                            <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="AED">AED - UAE Dirham</SelectItem>
+                              <SelectItem value="USD">USD - US Dollar</SelectItem>
+                              <SelectItem value="EUR">EUR - Euro</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground pt-1">The currency used for all tip calculations.</p>
                         </div>
-                      </div>
-                    </div>
-                    <div className="space-y-2 text-left">
-                        <div className="flex justify-between items-center">
-                            <Label>Suggested Rates</Label>
-                            {suggestedRates.length > 0 && (
-                            <Button
-                                type="button"
-                                variant="link"
-                                className="p-0 h-auto text-xs text-muted-foreground hover:text-destructive"
-                                onClick={() => {
-                                  setSuggestedRates([]);
-                                  setPopularRate(null);
-                                }}
-                            >
-                                Clear All
-                            </Button>
-                            )}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2 min-h-[28px]">
-                            {suggestedRates.map((rate, index) => (
-                              <Badge
-                                key={index}
+                        <div className="space-y-2 text-left">
+                          <Label>Tip Calculation Method</Label>
+                          <RadioGroup
+                            value={feeType}
+                            onValueChange={setFeeType}
+                            className="grid grid-cols-2 gap-1 rounded-lg border bg-muted p-1"
+                          >
+                            <div>
+                              <RadioGroupItem value="Percentage" id="fee-type-percentage-new" className="sr-only" />
+                              <Label
+                                htmlFor="fee-type-percentage-new"
                                 className={cn(
-                                  "text-sm p-2 rounded-md font-semibold flex items-center gap-1 transition-all",
-                                  popularRate === rate
-                                    ? "bg-yellow-400 text-yellow-900 shadow-lg border-2 border-white/50"
-                                    : "bg-primary/80 hover:bg-primary/70 text-white"
+                                  "flex h-9 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
+                                  feeType === 'Percentage'
+                                    ? "bg-background text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:bg-background/50"
                                 )}
                               >
-                                <span>{rate}{feeType === 'Percentage' && '%'}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => setPopularRate(rate === popularRate ? null : rate)}
-                                  className="rounded-full hover:bg-black/20 p-0.5"
-                                >
-                                  <Star
-                                    className={cn(
-                                      "h-3.5 w-3.5 transition-colors",
-                                      popularRate === rate
-                                        ? "fill-yellow-900 text-yellow-900"
-                                        : "text-white/50 hover:text-white"
-                                    )}
-                                  />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setSuggestedRates(rates => rates.filter((_, i) => i !== index))}
-                                  className="ml-1 rounded-full hover:bg-black/20 p-0.5"
-                                >
-                                  <X className="h-3.5 w-3.5" />
-                                </button>
-                              </Badge>
-                            ))}
-                        </div>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                            <Input
-                                type="text"
-                                placeholder="Select or enter custom rate..."
-                                value={quickTagSearch}
-                                onChange={(e) => setQuickTagSearch(e.target.value)}
-                                onKeyDown={handleAddSuggestedRate}
-                                className="bg-background mt-2 placeholder:text-muted-foreground"
-                            />
-                            </PopoverTrigger>
-                            <PopoverContent className="w-[--radix-popover-trigger-width] p-1">
-                            <div className="grid grid-cols-4 gap-1">
-                                {PRESET_RATES.map((rate) => (
-                                <Button
-                                    key={rate}
-                                    type="button"
-                                    variant="ghost"
-                                    className="font-semibold"
-                                    onClick={() => {
-                                        handleAddRate(rate);
-                                    }}
-                                >
-                                    {rate}%
-                                </Button>
-                                ))}
+                                Percentage (%)
+                              </Label>
                             </div>
-                            </PopoverContent>
-                        </Popover>
-                    </div>
+                            <div>
+                              <RadioGroupItem value="Fixed" id="fee-type-fixed-new" className="sr-only" />
+                              <Label
+                                htmlFor="fee-type-fixed-new"
+                                className={cn(
+                                  "flex h-9 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
+                                  feeType === 'Fixed'
+                                    ? "bg-background text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:bg-background/50"
+                                )}
+                              >
+                                Fixed Amount
+                              </Label>
+                            </div>
+                          </RadioGroup>
+                          <p className="text-xs text-muted-foreground pt-1">Calculate tip based on the total bill or as a flat rate.</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Customer Tipping Options</CardTitle>
+                        <CardDescription>Control the options and limits your customers see during checkout.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6 pt-2">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                              <div className="space-y-2 text-left">
+                              <Label>Max Tip Amount Allowed ({feeType === 'Percentage' ? '%' : currency})</Label>
+                              <Input value={maxRate} onChange={(e) => setMaxRate(e.target.value)} placeholder="e.g. 100" className="bg-background"/>
+                              <p className="text-xs text-muted-foreground pt-1">Set a maximum limit for tips to prevent errors.</p>
+                              </div>
+                              <div className="space-y-2 text-left">
+                              <Label>Allow Custom Tip</Label>
+                              <div className="flex items-center justify-between rounded-lg border p-3 h-[60px] bg-background">
+                                  <p className="text-sm text-muted-foreground">Let customers enter their own amount.</p>
+                                  <Switch id="custom-entry-enabled" checked={customEntryEnabled} onCheckedChange={setCustomEntryEnabled} />
+                              </div>
+                              </div>
+                          </div>
+
+                          <div className="space-y-2 text-left pt-4 border-t">
+                              <div className="flex justify-between items-center">
+                                  <Label>Suggested Rates</Label>
+                                  {suggestedRates.length > 0 && (
+                                  <Button type="button" variant="link" className="p-0 h-auto text-xs text-muted-foreground hover:text-destructive" onClick={() => { setSuggestedRates([]); setPopularRate(null); }}>
+                                      Clear All
+                                  </Button>
+                                  )}
+                              </div>
+                              <p className="text-xs text-muted-foreground">Provide customers with quick-select tip options.</p>
+                              <div className="flex flex-wrap items-center gap-2 min-h-[44px] rounded-lg border bg-background p-3">
+                                  {suggestedRates.map((rate, index) => (
+                                    <Badge key={index} className={cn("text-sm p-2 rounded-md font-semibold flex items-center gap-1 transition-all", popularRate === rate ? "bg-yellow-400 text-yellow-900 shadow-lg border-2 border-white/50" : "bg-primary/80 hover:bg-primary/70 text-white")}>
+                                      <span>{rate}{feeType === 'Percentage' && '%'}</span>
+                                      <button type="button" onClick={() => setPopularRate(rate === popularRate ? null : rate)} className="rounded-full hover:bg-black/20 p-0.5">
+                                        <Star className={cn("h-3.5 w-3.5 transition-colors", popularRate === rate ? "fill-yellow-900 text-yellow-900" : "text-white/50 hover:text-white")} />
+                                      </button>
+                                      <button type="button" onClick={() => setSuggestedRates(rates => rates.filter((_, i) => i !== index))} className="ml-1 rounded-full hover:bg-black/20 p-0.5">
+                                        <X className="h-3.5 w-3.5" />
+                                      </button>
+                                    </Badge>
+                                  ))}
+                                  {suggestedRates.length === 0 && <p className="text-sm text-muted-foreground italic">No suggested rates added yet.</p>}
+                              </div>
+                              <Popover>
+                                  <PopoverTrigger asChild>
+                                  <Input type="text" placeholder="Select or enter custom rate..." value={quickTagSearch} onChange={(e) => setQuickTagSearch(e.target.value)} onKeyDown={handleAddSuggestedRate} className="bg-background mt-2 placeholder:text-muted-foreground" />
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-[--radix-popover-trigger-width] p-1">
+                                  <div className="grid grid-cols-4 gap-1">
+                                      {PRESET_RATES.map((rate) => (
+                                      <Button key={rate} type="button" variant="ghost" className="font-semibold" onClick={() => { handleAddRate(rate); }}>
+                                          {rate}%
+                                      </Button>
+                                      ))}
+                                  </div>
+                                  </PopoverContent>
+                              </Popover>
+                          </div>
+                      </CardContent>
+                    </Card>
                   </div>
                 </section>
               </TabsContent>
