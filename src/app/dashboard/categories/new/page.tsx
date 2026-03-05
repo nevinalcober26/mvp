@@ -22,7 +22,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   Info,
   Clock,
@@ -37,7 +37,8 @@ import {
   HelpCircle,
   Image as ImageIcon,
   ExternalLink,
-  CalendarDays
+  CalendarDays,
+  HandCoins,
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
@@ -68,6 +69,10 @@ export default function AddNewBranchPage() {
   );
 
   const [specialHours, setSpecialHours] = useState<any[]>([]);
+
+  const [tippingEnabled, setTippingEnabled] = useState(true);
+  const [customTipEnabled, setCustomTipEnabled] = useState(true);
+  const [serviceChargeEnabled, setServiceChargeEnabled] = useState(false);
 
   const handleUpdateRegularHour = (index: number, field: string, value: any) => {
     const updated = [...regularHours];
@@ -165,7 +170,7 @@ export default function AddNewBranchPage() {
 
           <Card className="shadow-smooth border-0 overflow-hidden">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full grid grid-cols-2 rounded-none border-b bg-background p-0 h-14 sticky top-0 z-20">
+              <TabsList className="w-full grid grid-cols-3 rounded-none border-b bg-background p-0 h-14 sticky top-0 z-20">
                 <TabsTrigger 
                   value="basic" 
                   className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none h-full gap-2 text-sm font-semibold"
@@ -174,6 +179,9 @@ export default function AddNewBranchPage() {
                 </TabsTrigger>
                 <TabsTrigger value="hours" className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none h-full gap-2 text-sm font-semibold">
                   <Clock className="h-4 w-4" /> Opening Hours
+                </TabsTrigger>
+                <TabsTrigger value="tip-fee" className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none h-full gap-2 text-sm font-semibold">
+                  <HandCoins className="h-4 w-4" /> Tip Fee
                 </TabsTrigger>
               </TabsList>
 
@@ -452,6 +460,76 @@ export default function AddNewBranchPage() {
                     </CardContent>
                   </Card>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="tip-fee" className="p-8 space-y-10 focus-visible:ring-0 mt-0 bg-background">
+                <section className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold">Tip & Gratuity Settings</h3>
+                    <div className="flex items-center gap-3">
+                      <Label htmlFor="tipping-enabled" className="text-sm font-medium">Enable Tipping</Label>
+                      <Switch id="tipping-enabled" checked={tippingEnabled} onCheckedChange={setTippingEnabled} />
+                    </div>
+                  </div>
+
+                  <div className={cn(!tippingEnabled && "opacity-50 pointer-events-none", "space-y-6")}>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Suggested Tip Percentages</CardTitle>
+                        <CardDescription>Set predefined percentages for customers to select from.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                          <Label className="text-xs font-semibold text-muted-foreground">Option 1 (%)</Label>
+                          <Input defaultValue="10" />
+                        </div>
+                        <div>
+                          <Label className="text-xs font-semibold text-muted-foreground">Option 2 (%)</Label>
+                          <Input defaultValue="15" />
+                        </div>
+                        <div>
+                          <Label className="text-xs font-semibold text-muted-foreground">Option 3 (%)</Label>
+                          <Input defaultValue="20" />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Custom Tips</CardTitle>
+                        <CardDescription>Allow customers to enter their own tip amount.</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="custom-tip-enabled">Allow Custom Tip Amount</Label>
+                            <p className="text-xs text-muted-foreground">Customers can enter any amount they wish to tip.</p>
+                          </div>
+                          <Switch id="custom-tip-enabled" checked={customTipEnabled} onCheckedChange={setCustomTipEnabled} />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card>
+                      <CardHeader>
+                          <CardTitle>Automatic Service Charge</CardTitle>
+                          <CardDescription>Apply a mandatory service charge to all bills.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                          <div className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="service-charge-enabled">Enable Automatic Service Charge</Label>
+                            </div>
+                            <Switch id="service-charge-enabled" checked={serviceChargeEnabled} onCheckedChange={setServiceChargeEnabled}/>
+                          </div>
+                          <div className={cn("space-y-2", !serviceChargeEnabled && "opacity-50 pointer-events-none")}>
+                              <Label className="text-xs font-semibold text-muted-foreground">Service Charge Percentage (%)</Label>
+                              <Input placeholder="e.g. 10" disabled={!serviceChargeEnabled}/>
+                          </div>
+                      </CardContent>
+                  </Card>
+                </section>
               </TabsContent>
             </Tabs>
           </Card>
