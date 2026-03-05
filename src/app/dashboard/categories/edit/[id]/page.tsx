@@ -44,6 +44,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const cuisines = ['Italian', 'Boutique Café', 'Signature Store', 'Japanese', 'Mexican', 'Indian', 'French'];
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -492,13 +493,40 @@ export default function EditBranchPage() {
                       </div>
                       <div className="space-y-2 text-left">
                         <Label>Fee Type</Label>
-                        <Select value={feeType} onValueChange={setFeeType}>
-                          <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Percentage">Percentage</SelectItem>
-                            <SelectItem value="Fixed">Fixed Amount</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <RadioGroup
+                          value={feeType}
+                          onValueChange={setFeeType}
+                          className="grid grid-cols-2 gap-1 rounded-lg border bg-muted p-1"
+                        >
+                          <div>
+                            <RadioGroupItem value="Percentage" id="fee-type-percentage-edit" className="sr-only" />
+                            <Label
+                              htmlFor="fee-type-percentage-edit"
+                              className={cn(
+                                "flex h-9 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
+                                feeType === 'Percentage'
+                                  ? "bg-background text-foreground shadow-sm"
+                                  : "text-muted-foreground hover:bg-background/50"
+                              )}
+                            >
+                              Percentage
+                            </Label>
+                          </div>
+                          <div>
+                            <RadioGroupItem value="Fixed" id="fee-type-fixed-edit" className="sr-only" />
+                            <Label
+                              htmlFor="fee-type-fixed-edit"
+                              className={cn(
+                                "flex h-9 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
+                                feeType === 'Fixed'
+                                  ? "bg-background text-foreground shadow-sm"
+                                  : "text-muted-foreground hover:bg-background/50"
+                              )}
+                            >
+                              Fixed Amount
+                            </Label>
+                          </div>
+                        </RadioGroup>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
