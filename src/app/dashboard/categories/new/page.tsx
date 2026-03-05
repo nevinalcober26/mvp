@@ -48,6 +48,12 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 const cuisines = ['Italian', 'Boutique Café', 'Signature Store', 'Japanese', 'Mexican', 'Indian', 'French'];
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -593,20 +599,29 @@ export default function AddNewBranchPage() {
                                   )}
                               </div>
                               <p className="text-xs text-muted-foreground">Provide customers with quick-select tip options.</p>
-                              <div className="flex flex-wrap items-center gap-2 min-h-[44px] rounded-lg border bg-background p-3">
-                                  {suggestedRates.map((rate, index) => (
-                                    <Badge key={index} className={cn("text-sm p-2 rounded-md font-semibold flex items-center gap-1 transition-all", popularRate === rate ? "bg-yellow-400 text-yellow-900 shadow-lg border-2 border-white/50" : "bg-primary/80 hover:bg-primary/70 text-white")}>
-                                      <span>{rate}{feeType === 'Percentage' && '%'}</span>
-                                      <button type="button" onClick={() => setPopularRate(rate === popularRate ? null : rate)} className="rounded-full hover:bg-black/20 p-0.5">
-                                        <Star className={cn("h-3.5 w-3.5 transition-colors", popularRate === rate ? "fill-yellow-900 text-yellow-900" : "text-white/50 hover:text-white")} />
-                                      </button>
-                                      <button type="button" onClick={() => setSuggestedRates(rates => rates.filter((_, i) => i !== index))} className="ml-1 rounded-full hover:bg-black/20 p-0.5">
-                                        <X className="h-3.5 w-3.5" />
-                                      </button>
-                                    </Badge>
-                                  ))}
-                                  {suggestedRates.length === 0 && <p className="text-sm text-muted-foreground italic">No suggested rates added yet.</p>}
-                              </div>
+                              <TooltipProvider>
+                                <div className="flex flex-wrap items-center gap-2 min-h-[44px] rounded-lg border bg-background p-3">
+                                    {suggestedRates.map((rate, index) => (
+                                      <Badge key={index} className={cn("text-sm p-2 rounded-md font-semibold flex items-center gap-1 transition-all", popularRate === rate ? "bg-yellow-400 text-yellow-900 shadow-lg border-2 border-white/50" : "bg-primary/80 hover:bg-primary/70 text-white")}>
+                                        <span>{rate}{feeType === 'Percentage' && '%'}</span>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <button type="button" onClick={() => setPopularRate(rate === popularRate ? null : rate)} className="rounded-full hover:bg-black/20 p-0.5">
+                                              <Star className={cn("h-3.5 w-3.5 transition-colors", popularRate === rate ? "fill-yellow-900 text-yellow-900" : "text-white/50 hover:text-white")} />
+                                            </button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Set as Popular</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                        <button type="button" onClick={() => setSuggestedRates(rates => rates.filter((_, i) => i !== index))} className="ml-1 rounded-full hover:bg-black/20 p-0.5">
+                                          <X className="h-3.5 w-3.5" />
+                                        </button>
+                                      </Badge>
+                                    ))}
+                                    {suggestedRates.length === 0 && <p className="text-sm text-muted-foreground italic">No suggested rates added yet.</p>}
+                                </div>
+                              </TooltipProvider>
                               <Popover>
                                   <PopoverTrigger asChild>
                                   <Input type="text" placeholder="Select or enter custom rate..." value={quickTagSearch} onChange={(e) => setQuickTagSearch(e.target.value)} onKeyDown={handleAddSuggestedRate} className="bg-background mt-2 placeholder:text-muted-foreground" />
