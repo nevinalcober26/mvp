@@ -380,7 +380,7 @@ export function OrderDetailsSheet({
       </SheetContent>
       {order.staffReference && (
         <Dialog open={isStaffInfoOpen} onOpenChange={setIsStaffInfoOpen}>
-            <DialogContent className="bg-gray-900 p-0 max-w-sm overflow-hidden rounded-3xl border-0 shadow-2xl">
+            <DialogContent className="bg-white p-0 max-w-sm overflow-hidden rounded-3xl border-0 shadow-2xl">
                 <DialogHeaderComponent className="sr-only">
                     <DialogTitleComponent>Server Performance: {order.staffName}</DialogTitleComponent>
                     <DialogDescriptionComponent>A summary of {order.staffName}'s performance including sales and tips for the current period.</DialogDescriptionComponent>
@@ -415,15 +415,15 @@ export function OrderDetailsSheet({
                             </CardContent>
                         </Card>
                         
-                        <Card className="rounded-2xl shadow-lg bg-gray-800 border-gray-700">
+                        <Card className="rounded-2xl shadow-lg bg-gray-50 border-gray-200">
                             <CardContent className="p-4 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="h-9 w-9 flex items-center justify-center bg-purple-100/10 text-purple-400 rounded-lg">
+                                    <div className="h-9 w-9 flex items-center justify-center bg-purple-100 text-purple-600 rounded-lg">
                                         <CalendarDays className="h-5 w-5"/>
                                     </div>
-                                    <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">Period</p>
+                                    <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">Period</p>
                                 </div>
-                                <p className="font-bold text-sm text-white">
+                                <p className="font-bold text-sm text-gray-900">
                                     {format(new Date(order.staffReference.start_date), 'MMM d')} - {format(new Date(order.staffReference.end_date), 'MMM d')}
                                 </p>
                             </CardContent>
