@@ -21,6 +21,16 @@ export type Customer = {
   phone: string;
 }
 
+export type StaffReference = {
+  employee_reference_code: string;
+  total_sale_amount: number;
+  order_count: number;
+  total_tip_amount: number;
+  currency: string;
+  start_date: string;
+  end_date: string;
+};
+
 export type Order = {
   orderId: string;
   branch: string;
@@ -39,4 +49,5 @@ export type Order = {
   customer?: Customer;
   orderComments?: string;
   source?: 'App to App' | 'POS';
+  staffReference?: StaffReference;
 };

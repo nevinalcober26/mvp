@@ -2,7 +2,7 @@
 
 import type { Product, Variation } from '@/app/dashboard/products/types';
 import type { Customer, Visit, Payment as CustomerPayment } from '@/app/dashboard/customer/list/types';
-import type { Order, OrderItem, Payment as OrderPayment } from '@/app/dashboard/orders/types';
+import type { Order, OrderItem, Payment as OrderPayment, StaffReference } from '@/app/dashboard/orders/types';
 import { format, subDays, subHours, endOfDay, setHours, setMinutes, subMinutes, formatDistanceToNow } from 'date-fns';
 import type { Column } from '@/app/dashboard/categories/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -296,6 +296,15 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
             staffName: staffNames[i % staffNames.length],
             orderComments: comments[i % comments.length] || undefined,
             source: i % 3 === 0 ? 'POS' : 'App to App',
+            staffReference: i % 2 === 0 ? {
+                employee_reference_code: `EMP-${staffNames[i % staffNames.length].replace(/[^A-Z]/g, '')}${100 + i}`,
+                total_sale_amount: Math.random() * 5000 + 1000,
+                order_count: Math.floor(Math.random() * 50) + 10,
+                total_tip_amount: Math.random() * 500,
+                currency: 'AED',
+                start_date: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
+                end_date: format(new Date(), 'yyyy-MM-dd'),
+            } : undefined,
         };
         orders.push(order);
 

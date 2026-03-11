@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { format } from 'date-fns';
 import {
   Sheet,
   SheetContent,
@@ -294,6 +295,49 @@ export function OrderDetailsSheet({
                     </div>
                   </CardContent>
                 </Card>
+
+                {order.staffReference && (
+                    <Card>
+                        <CardHeader className="p-8">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                            <User className="h-5 w-5" />
+                            Staff Reference
+                        </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-8 pt-0 text-sm space-y-4">
+                            <div className="flex justify-between items-center">
+                                <p className="text-muted-foreground">Employee Code</p>
+                                <p className="font-mono text-xs font-bold bg-muted px-2 py-1 rounded">
+                                    {order.staffReference.employee_reference_code}
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <p className="text-muted-foreground">Total Sales</p>
+                                    <p className="font-medium">
+                                        {order.staffReference.currency} {order.staffReference.total_sale_amount.toFixed(2)}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-muted-foreground">Total Orders</p>
+                                    <p className="font-medium">{order.staffReference.order_count}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-muted-foreground">Total Tips</p>
+                                    <p className="font-medium">
+                                        {order.staffReference.currency} {order.staffReference.total_tip_amount.toFixed(2)}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-muted-foreground">Period</p>
+                                    <p className="font-medium">
+                                        {format(new Date(order.staffReference.start_date), 'MMM d')} - {format(new Date(order.staffReference.end_date), 'MMM d')}
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 <Card>
                   <CardHeader className="p-8">
