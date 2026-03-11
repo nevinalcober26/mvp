@@ -8,6 +8,8 @@ import {
   SheetHeader,
   SheetFooter,
   SheetClose,
+  SheetTitle,
+  SheetDescription,
 } from '@/components/ui/sheet';
 import {
   Dialog,
@@ -69,7 +71,7 @@ export function OrderDetailsSheet({
         <div className="flex flex-col h-full">
           <SheetHeader className="p-6 border-b bg-muted/50">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <h1 className="text-2xl font-bold">Order {order.orderId}</h1>
+              <SheetTitle className="text-2xl font-bold">Order {order.orderId}</SheetTitle>
               <div className="flex items-center gap-2">
                 <Badge variant={getStatusBadgeVariant(order.orderStatus)}>
                   {order.orderStatus}
@@ -79,10 +81,10 @@ export function OrderDetailsSheet({
                 </Badge>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <SheetDescription className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
               <CalendarIcon className="h-4 w-4" />
               <span>{order.orderDate}</span>
-            </div>
+            </SheetDescription>
           </SheetHeader>
           <div className="flex-grow overflow-y-auto p-6">
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -387,17 +389,17 @@ export function OrderDetailsSheet({
                 </RadixDialogClose>
                 
                 <div className="relative">
-                    <div className="h-60 w-full bg-gradient-to-br from-teal-300 to-cyan-400 p-8 flex flex-col items-center justify-center">
-                        <Avatar className="h-24 w-24 border-4 border-white/30 shadow-lg">
+                    <div className="h-64 w-full bg-gradient-to-br from-teal-300 to-cyan-400 p-8 flex flex-col items-center justify-center">
+                        <Avatar className="h-28 w-28 border-4 border-white/30 shadow-xl">
                             <AvatarFallback className="text-4xl bg-gray-100 text-gray-400">
-                                <User className="h-12 w-12" />
+                                <User className="h-16 w-16" />
                             </AvatarFallback>
                         </Avatar>
-                        <h2 className="mt-4 text-3xl font-bold text-white" style={{textShadow: '0 1px 3px rgba(0,0,0,0.15)'}}>{order.staffName}</h2>
-                        <p className="font-mono text-base text-white/90 mt-1" style={{textShadow: '0 1px 2px rgba(0,0,0,0.2)'}}>{order.staffReference.employee_reference_code}</p>
+                        <h2 className="mt-4 text-4xl font-bold text-white" style={{textShadow: '0 2px 4px rgba(0,0,0,0.2)'}}>{order.staffName}</h2>
+                        <p className="font-mono text-lg text-white/90 mt-1" style={{textShadow: '0 1px 3px rgba(0,0,0,0.3)'}}>{order.staffReference.employee_reference_code}</p>
                     </div>
 
-                    <div className="p-6 -mt-12 space-y-4">
+                    <div className="p-6 -mt-16 space-y-4">
                         <Card className="rounded-2xl shadow-xl bg-white">
                             <CardContent className="p-6 text-center">
                                 <Badge variant="secondary" className="font-bold text-xs bg-gray-100 text-gray-500 mb-3 border-gray-200 uppercase tracking-wider">
@@ -411,7 +413,7 @@ export function OrderDetailsSheet({
                             </CardContent>
                         </Card>
                         
-                        <Card className="rounded-2xl shadow-lg bg-gray-50 border-gray-200">
+                        <Card className="rounded-2xl shadow-lg bg-white border-gray-200">
                             <CardContent className="p-4 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="h-9 w-9 flex items-center justify-center bg-purple-100 text-purple-600 rounded-lg">
