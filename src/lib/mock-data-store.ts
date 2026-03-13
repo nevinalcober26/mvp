@@ -227,7 +227,7 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
         const splitType = isSplit ? (i % 6 === 0 ? 'byItem' : 'equally') : undefined;
 
         if (isSplit) {
-            orderStatus = 'Completed'; // Split bills should be completed
+            orderStatus = 'Completed';
             paymentState = 'Fully Paid';
             paidAmount = totalAmount;
 
@@ -235,30 +235,36 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
                 const itemsToPay = [...currentItems];
                 let guestIndex = 0;
 
-                while (itemsToPay.length > 0) {
-                    const itemsForThisPayment: OrderItem[] = [];
-                    let paymentAmount = 0;
-                    const numItemsInPayment = Math.random() > 0.6 && itemsToPay.length > 1 ? 2 : 1;
-                    
-                    for (let k = 0; k < numItemsInPayment && itemsToPay.length > 0; k++) {
-                        const item = itemsToPay.shift()!;
-                        itemsForThisPayment.push(item);
-                        paymentAmount += item.price * item.quantity;
-                    }
-                    
-                    if (itemsForThisPayment.length > 0) {
-                        const tip = paymentAmount * (Math.random() * 0.1 + 0.05);
-                        customerPayments.push({
-                            id: `txn_${12345 + i}_${guestIndex}`,
-                            amount: paymentAmount,
-                            tip: parseFloat(tip.toFixed(2)),
-                            method: guestIndex % 2 === 0 ? 'Credit Card' : 'Online',
-                            status: 'Paid',
-                            date: format(subMinutes(randomDate, Math.random() * 5), 'PPpp'),
-                            items: itemsForThisPayment.map(it => ({name: it.name, quantity: it.quantity})),
-                        });
-                        guestIndex++;
-                    }
+                // Ensure there are at least two payments for an item-based split
+                if (itemsToPay.length > 0) {
+                    const firstItem = itemsToPay.shift()!;
+                    const paymentAmount = firstItem.price * firstItem.quantity;
+                    const tip = paymentAmount * (Math.random() * 0.1 + 0.05);
+                    customerPayments.push({
+                        id: `txn_${12345 + i}_${guestIndex}`,
+                        amount: paymentAmount,
+                        tip: parseFloat(tip.toFixed(2)),
+                        method: 'Credit Card',
+                        status: 'Paid',
+                        date: format(subMinutes(randomDate, Math.random() * 5), 'PPpp'),
+                        items: [{name: firstItem.name, quantity: firstItem.quantity}],
+                    });
+                    guestIndex++;
+                }
+
+                if (itemsToPay.length > 0) {
+                     const remainingAmount = itemsToPay.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                     const tip = remainingAmount * (Math.random() * 0.1 + 0.05);
+                     customerPayments.push({
+                        id: `txn_${12345 + i}_${guestIndex}`,
+                        amount: remainingAmount,
+                        tip: parseFloat(tip.toFixed(2)),
+                        method: 'Online',
+                        status: 'Paid',
+                        date: format(subMinutes(randomDate, Math.random() * 5), 'PPpp'),
+                        items: itemsToPay.map(it => ({name: it.name, quantity: it.quantity})),
+                     });
+                     guestIndex++;
                 }
             } else { // 'equally'
                 const numPayers = Math.floor(Math.random() * 2) + 2; // 2-3 payers
