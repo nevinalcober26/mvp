@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -506,18 +505,22 @@ export default function SplitBillsReportPage() {
                                   <Badge variant="secondary" className="font-bold">+{log.payerBreakdown.length - 2} more</Badge>
                                 </div>
                               </UiTooltipTrigger>
-                              <UiTooltipContent>
-                                <div className="p-1">
-                                  <h4 className="font-semibold mb-2 text-center text-xs uppercase text-muted-foreground">Breakdown</h4>
-                                  <ul className="space-y-1">
-                                    {log.payerBreakdown.map((amount, i) => (
-                                      <li key={i} className="flex justify-between items-center text-xs gap-4">
-                                        <span className="text-muted-foreground">Payer {i + 1}</span>
-                                        <span className="font-mono font-semibold">AED {amount.toFixed(2)}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
+                              <UiTooltipContent className="p-0 border-0 shadow-xl">
+                                <Card className="border-0">
+                                  <CardHeader className="p-4 bg-muted rounded-t-lg">
+                                    <CardTitle className="text-sm">Full Breakdown</CardTitle>
+                                  </CardHeader>
+                                  <CardContent className="p-4">
+                                      <ul className="space-y-2">
+                                        {log.payerBreakdown.map((amount, i) => (
+                                          <li key={i} className="flex justify-between items-center text-xs gap-4">
+                                            <span className="text-muted-foreground font-medium">Payer {i + 1}</span>
+                                            <span className="font-mono font-semibold">AED {amount.toFixed(2)}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                  </CardContent>
+                                </Card>
                               </UiTooltipContent>
                             </UiTooltip>
                           ) : (
