@@ -490,7 +490,7 @@ export default function SplitBillsReportPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {log.payerBreakdown.length > 3 ? (
+                          {log.payerBreakdown.length > 2 ? (
                             <UiTooltip>
                               <UiTooltipTrigger>
                                 <Badge variant="secondary">{log.splits} Payments</Badge>
