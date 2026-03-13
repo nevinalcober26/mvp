@@ -65,13 +65,20 @@ export function OrderDetailsSheet({
 
   if (!order) return null;
 
+  const subtotal = order.totalAmount;
+  const taxAmount = subtotal * 0.05;
+  const totalWithTax = subtotal + taxAmount;
+  const pendingAmount = totalWithTax - order.paidAmount;
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-4xl w-full p-0">
+        <SheetTitle className="sr-only">Order Details</SheetTitle>
+        <SheetDescription className="sr-only">A detailed view of the selected order, including items, payment status, and customer information.</SheetDescription>
         <div className="flex flex-col h-full">
           <SheetHeader className="p-6 border-b bg-muted/50">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <SheetTitle className="text-2xl font-bold">Order {order.orderId}</SheetTitle>
+              <h2 className="text-2xl font-bold">Order {order.orderId}</h2>
               <div className="flex items-center gap-2">
                 <Badge variant={getStatusBadgeVariant(order.orderStatus)}>
                   {order.orderStatus}
@@ -81,10 +88,10 @@ export function OrderDetailsSheet({
                 </Badge>
               </div>
             </div>
-            <SheetDescription className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
               <CalendarIcon className="h-4 w-4" />
               <span>{order.orderDate}</span>
-            </SheetDescription>
+            </div>
           </SheetHeader>
           <div className="flex-grow overflow-y-auto p-6">
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -131,11 +138,11 @@ export function OrderDetailsSheet({
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Subtotal</span>
-                        <span>${order.totalAmount.toFixed(2)}</span>
+                        <span>${subtotal.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Tax (0%)</span>
-                        <span>$0.00</span>
+                        <span className="text-muted-foreground">Tax (5%)</span>
+                        <span>${taxAmount.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">
@@ -146,7 +153,7 @@ export function OrderDetailsSheet({
                       <Separator className="my-2" />
                       <div className="flex justify-between font-bold text-base">
                         <span>Total</span>
-                        <span>${order.totalAmount.toFixed(2)}</span>
+                        <span>${totalWithTax.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between font-semibold text-green-600">
                         <span>Paid</span>
@@ -156,9 +163,7 @@ export function OrderDetailsSheet({
                         <span>Pending</span>
                         <span>
                           $
-                          {(order.totalAmount - order.paidAmount).toFixed(
-                            2
-                          )}
+                          {pendingAmount > 0.01 ? pendingAmount.toFixed(2) : '0.00'}
                         </span>
                       </div>
                     </div>
@@ -186,14 +191,14 @@ export function OrderDetailsSheet({
                       ) : null}
 
                       {order.payments.length > 0 ||
-                      order.totalAmount - order.paidAmount > 0.01 ? (
+                      pendingAmount > 0.01 ? (
                         <div className="flow-root">
                           <ul>
                             {order.payments.map((payment, index) => {
                               const isLastPayment =
                                 index === order.payments.length - 1;
                               const hasPendingAmount =
-                                order.totalAmount - order.paidAmount > 0.01;
+                                pendingAmount > 0.01;
                               const showLineAndPadding =
                                 !isLastPayment || hasPendingAmount;
 
@@ -244,7 +249,7 @@ export function OrderDetailsSheet({
                               );
                             })}
 
-                            {order.totalAmount - order.paidAmount > 0.01 && (
+                            {pendingAmount > 0.01 && (
                               <li key="pending">
                                 <div className="relative">
                                   <div className="relative flex items-start space-x-3">
@@ -264,9 +269,7 @@ export function OrderDetailsSheet({
                                       </div>
                                       <span className="font-mono font-semibold text-red-600">
                                         $
-                                        {(
-                                          order.totalAmount - order.paidAmount
-                                        ).toFixed(2)}
+                                        {pendingAmount.toFixed(2)}
                                       </span>
                                     </div>
                                   </div>
