@@ -502,7 +502,7 @@ export default function SplitBillsReportPage() {
                                       AED {amount.toFixed(2)}
                                     </Badge>
                                   ))}
-                                  <Badge variant="secondary" className="font-bold">+</Badge>
+                                  <Badge variant="secondary" className="font-bold">+{log.payerBreakdown.length - 2} more</Badge>
                                 </div>
                               </UiTooltipTrigger>
                               <UiTooltipContent>
