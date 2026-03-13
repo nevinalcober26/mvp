@@ -234,12 +234,34 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
             if (splitType === 'byItem') {
                 const itemsToPay = [...currentItems];
                 let guestIndex = 0;
+                let payersCount = Math.floor(Math.random() * 5) + 2; // 2, 3, 4, 5, or 6 payers
+                
+                if (itemsToPay.length < payersCount) {
+                    payersCount = itemsToPay.length;
+                }
+                
+                if (payersCount < 2 && itemsToPay.length > 1) {
+                    payersCount = 2;
+                }
 
-                // Ensure there are at least two payments for an item-based split
-                if (itemsToPay.length > 0) {
-                    const firstItem = itemsToPay.shift()!;
-                    const paymentAmount = firstItem.price * firstItem.quantity;
+
+                while(itemsToPay.length > 0 && guestIndex < payersCount) {
+                    const isLastPayer = guestIndex === payersCount - 1;
+                    let itemsForThisPayer: OrderItem[];
+
+                    if (isLastPayer) {
+                        itemsForThisPayer = [...itemsToPay];
+                        itemsToPay.length = 0;
+                    } else {
+                        const itemsCountForPayer = Math.max(1, Math.floor(Math.random() * (itemsToPay.length - (payersCount - guestIndex -1) ) ));
+                        itemsForThisPayer = itemsToPay.splice(0, itemsCountForPayer);
+                    }
+
+                    if(itemsForThisPayer.length === 0) continue;
+
+                    const paymentAmount = itemsForThisPayer.reduce((sum, item) => sum + (item.price * item.quantity), 0);
                     const tip = paymentAmount * (Math.random() * 0.1 + 0.05);
+
                     customerPayments.push({
                         id: `txn_${12345 + i}_${guestIndex}`,
                         amount: paymentAmount,
@@ -247,27 +269,13 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
                         method: 'Credit Card',
                         status: 'Paid',
                         date: format(subMinutes(randomDate, Math.random() * 5), 'PPpp'),
-                        items: [{name: firstItem.name, quantity: firstItem.quantity}],
+                        items: itemsForThisPayer.map(it => ({ name: it.name, quantity: it.quantity })),
                     });
                     guestIndex++;
                 }
 
-                if (itemsToPay.length > 0) {
-                     const remainingAmount = itemsToPay.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                     const tip = remainingAmount * (Math.random() * 0.1 + 0.05);
-                     customerPayments.push({
-                        id: `txn_${12345 + i}_${guestIndex}`,
-                        amount: remainingAmount,
-                        tip: parseFloat(tip.toFixed(2)),
-                        method: 'Online',
-                        status: 'Paid',
-                        date: format(subMinutes(randomDate, Math.random() * 5), 'PPpp'),
-                        items: itemsToPay.map(it => ({name: it.name, quantity: it.quantity})),
-                     });
-                     guestIndex++;
-                }
             } else { // 'equally'
-                const numPayers = Math.floor(Math.random() * 2) + 2; // 2-3 payers
+                const numPayers = Math.floor(Math.random() * 5) + 2; // 2-6 payers
                 const totalTip = parseFloat((totalAmount * (Math.random() * 0.1 + 0.1)).toFixed(2));
                 let remainingAmount = totalAmount;
                 let remainingTip = totalTip;
