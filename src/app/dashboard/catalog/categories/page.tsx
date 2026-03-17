@@ -204,6 +204,7 @@ export default function CategoriesPage() {
     };
 
     const handleOpenAddSheet = (parentId: UniqueIdentifier | 'new-column' = 'none') => {
+        resetDragState();
         setInitialParentId(parentId);
         setIsAddSheetOpen(true);
     };
@@ -241,6 +242,7 @@ export default function CategoriesPage() {
     };
 
     const handleEditCategory = (category: Item | Column) => {
+        resetDragState();
         setSelectedCategory(category);
         setIsEditSheetOpen(true);
     };
@@ -318,6 +320,7 @@ export default function CategoriesPage() {
     };
 
     const handleScheduleCategory = (category: Item | Column) => {
+        resetDragState();
         setSelectedCategory(category);
         setIsScheduleSheetOpen(true);
     };
@@ -336,6 +339,7 @@ export default function CategoriesPage() {
     }
 
     const confirmDeleteItem = (id: UniqueIdentifier, isColumn: boolean = false) => {
+      resetDragState();
       setDeleteTarget({ id, isColumn });
     }
 
