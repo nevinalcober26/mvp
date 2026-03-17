@@ -160,29 +160,29 @@ const OVERVIEW: SidebarItem[] = [
 ];
 
 const MANAGEMENT: SidebarItem[] = [
-  { 
-    label: 'Settings', 
-    id: 'settings', 
-    icon: Settings, 
-    items: [
-      { label: 'Manage Restaurant', path: '/dashboard/categories' }
-    ] 
+  {
+    label: 'Catalog',
+    id: 'catalog',
+    icon: Briefcase,
+    items: [{ label: 'Products', path: '/dashboard/products' }],
   },
-  { 
-    label: 'Operations', 
-    id: 'operations', 
-    icon: Briefcase, 
-    items: [
-      { label: 'QR Code', path: '/dashboard/operations/qr-code' }
-    ] 
+  {
+    label: 'Operations',
+    id: 'operations',
+    icon: Briefcase,
+    items: [{ label: 'QR Code', path: '/dashboard/operations/qr-code' }],
   },
-  { 
-    label: 'Orders', 
-    id: 'orders', 
-    icon: ClipboardList, 
-    items: [
-      { label: 'All Orders', path: '/dashboard/orders' }
-    ] 
+  {
+    label: 'Orders',
+    id: 'orders',
+    icon: ClipboardList,
+    items: [{ label: 'All Orders', path: '/dashboard/orders' }],
+  },
+  {
+    label: 'Settings',
+    id: 'settings',
+    icon: Settings,
+    items: [{ label: 'Manage Restaurant', path: '/dashboard/categories' }],
   },
 ];
 
