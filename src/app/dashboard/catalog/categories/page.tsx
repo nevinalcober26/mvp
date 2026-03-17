@@ -23,7 +23,7 @@ import { SortableItem } from '@/app/dashboard/categories/dnd/SortableItem';
 import { Item as ItemComponent } from '@/components/dashboard/dnd/Item';
 import { AddCategorySheet, type CategoryFormValues } from '@/app/dashboard/categories/add-category-sheet';
 import { CategorySheet } from '@/app/dashboard/categories/category-sheet';
-import { ScheduleSheet } from '@/app/dashboard/categories/schedule-sheet';
+import { CategoryScheduleSheet as ScheduleSheet } from '@/app/dashboard/categories/schedule-sheet';
 import type { Column, Item, ScheduleRule } from '@/app/dashboard/categories/types';
 import { mockDataStore } from '@/lib/mock-data-store';
 import { useToast } from '@/hooks/use-toast';
