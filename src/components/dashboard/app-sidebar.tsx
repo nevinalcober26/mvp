@@ -188,7 +188,7 @@ const MANAGEMENT: SidebarItem[] = [
     label: 'Settings',
     id: 'settings',
     icon: Settings,
-    items: [{ label: 'Manage Branches', path: '/dashboard/categories' }],
+    items: [{ label: 'Manage Restaurants', path: '/dashboard/categories' }],
   },
 ];
 
@@ -608,21 +608,6 @@ export function AppSidebar() {
 
           <div className="group-data-[collapsible=icon]:hidden mt-2 border-t border-white/5 pt-2">
             <SidebarMenu className="px-0">
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Quickstart"
-                  size="sm"
-                  className="h-9 justify-start text-white/70 hover:text-white hover:bg-white/5 font-medium transition-colors"
-                >
-                  <NextLink href="#">
-                    <Rocket className="h-4 w-4 mr-3 !text-[#18B4A6]" />
-                    <span className="group-data-[collapsible=icon]:hidden">
-                      Quickstart
-                    </span>
-                  </NextLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
