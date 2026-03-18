@@ -2,6 +2,11 @@ export interface VariationOption {
   id: string;
   value: string;
   sortOrder: number;
+  photoUrl?: string;
+  regularPrice?: number;
+  salePrice?: number;
+  stock?: number;
+  description?: string;
 }
 
 export interface VariationGroup {
