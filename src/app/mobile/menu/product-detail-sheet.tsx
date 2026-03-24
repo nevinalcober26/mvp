@@ -75,7 +75,6 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
   const handleAddToCart = () => {
     if (isAdding) return;
     if (product.isCustomisable && product.options?.required && !selectedOption) {
-      // This should not happen if button is disabled, but as a safeguard.
       return;
     }
     setIsAdding(true);
@@ -86,16 +85,17 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
     if (cartIcon && sheetElement) {
         gsap.to(sheetElement, {
             duration: 0.2, // Extremely fast
-            scale: 0, // Shrink to a point
+            scale: 0,
             opacity: 0,
-            borderRadius: '50%',
-            x: cartIcon.getBoundingClientRect().left - sheetElement.getBoundingClientRect().left + (cartIcon.offsetWidth / 2) - (sheetElement.offsetWidth / 2),
-            y: cartIcon.getBoundingClientRect().top - sheetElement.getBoundingClientRect().top + (cartIcon.offsetHeight / 2) - (sheetElement.offsetHeight / 2),
-            ease: 'power2.in', // Accelerate into the cart
+            // This is the key: it makes the element shrink towards its right-center point.
+            transformOrigin: "right 50%", 
+            x: (cartIcon.getBoundingClientRect().left + cartIcon.offsetWidth / 2) - sheetElement.getBoundingClientRect().right,
+            y: (cartIcon.getBoundingClientRect().top + cartIcon.offsetHeight / 2) - (sheetElement.getBoundingClientRect().top + sheetElement.offsetHeight / 2),
+            ease: 'power1.in',
             onComplete: () => {
                 gsap.fromTo(cartIcon, 
-                    { scale: 1.3, rotate: -15 }, 
-                    { scale: 1, rotate: 0, duration: 0.6, ease: 'elastic.out(1, 0.3)' }
+                    { scale: 1.4, rotate: -10 }, 
+                    { scale: 1, rotate: 0, duration: 0.7, ease: 'elastic.out(1, 0.3)' }
                 );
                 onOpenChange(false);
             }
