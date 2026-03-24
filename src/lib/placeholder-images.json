@@ -71,6 +71,36 @@
       "description": "Red Velvet Cupcake Duplicate",
       "imageUrl": "https://images.unsplash.com/photo-1760124056888-8ae3ec14b978?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxkZXNzZXJ0JTIwZGlzcGxheXxlbnwwfHx8fDE3NzA5MjE1MDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "dessert display"
+    },
+    {
+      "id": "pizza-margherita",
+      "description": "Pizza margherita",
+      "imageUrl": "https://picsum.photos/seed/margherita/400/400",
+      "imageHint": "margherita pizza"
+    },
+    {
+      "id": "pizza-alfredo",
+      "description": "Chicken alfredo pizza",
+      "imageUrl": "https://picsum.photos/seed/alfredo/400/400",
+      "imageHint": "alfredo pizza"
+    },
+    {
+      "id": "pizza-hawaiian",
+      "description": "Hawaiian pizza",
+      "imageUrl": "https://picsum.photos/seed/hawaiian/400/400",
+      "imageHint": "hawaiian pizza"
+    },
+    {
+      "id": "soft-drink",
+      "description": "Soft drink can",
+      "imageUrl": "https://picsum.photos/seed/soda/400/400",
+      "imageHint": "soda can"
+    },
+    {
+      "id": "bottled-water",
+      "description": "Bottled water",
+      "imageUrl": "https://picsum.photos/seed/water/400/400",
+      "imageHint": "water bottle"
     }
   ]
 }

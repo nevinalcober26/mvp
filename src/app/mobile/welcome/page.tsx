@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Globe, Crown, MapPin, Utensils, Receipt } from 'lucide-react';
+import Link from 'next/link';
 import React from 'react';
 
 // Custom icon for the main circular button, matching the design.
@@ -74,9 +75,11 @@ export default function MobileWelcomePage() {
               </p>
 
               <div className="w-full space-y-3 pt-2">
-                <Button variant="outline" className="w-full h-14 rounded-xl text-lg font-bold border-2 border-primary/80 text-primary hover:bg-primary/5 hover:text-primary active:bg-primary/10">
-                  <Utensils className="h-5 w-5 mr-3" />
-                  View Menu
+                <Button variant="outline" className="w-full h-14 rounded-xl text-lg font-bold border-2 border-primary/80 text-primary hover:bg-primary/5 hover:text-primary active:bg-primary/10" asChild>
+                  <Link href="/mobile/menu">
+                    <Utensils className="h-5 w-5 mr-3" />
+                    View Menu
+                  </Link>
                 </Button>
                 <Button className="w-full h-14 rounded-xl text-lg font-bold bg-primary hover:bg-primary/90 active:bg-primary/80 shadow-lg shadow-primary/20">
                   <Receipt className="h-5 w-5 mr-3" />
