@@ -8,6 +8,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ArrowLeft, Search, Flame, Minus, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { ProductDetailSheet } from './product-detail-sheet';
 
 // Helper to find image URL by ID
 const getImageUrl = (id: string) => {
@@ -19,17 +20,29 @@ const getImageUrl = (id: string) => {
 const menuData = {
   categories: ['Bestsellers', 'Pizza', 'Sides', 'Desserts', 'Drinks'],
   items: [
-    { id: 'item-1', name: 'Pizza Margherita - 12 inches', description: 'Homemade dough, homemade pizza sauce,...', price: 36.00, category: 'Bestsellers', image: getImageUrl('pizza-margherita'), isCustomisable: false },
+    { id: 'item-1', name: 'Pizza Margherita - 12 inches', description: 'Homemade dough, homemade pizza sauce, shredded mozzarella cheese, and shredded cheddar cheese.', price: 36.00, category: 'Bestsellers', image: getImageUrl('pizza-margherita'), isCustomisable: false },
     { id: 'item-2', name: 'Chicken Alfredo Pizza - 12 inches', description: 'Homemade dough, white sauce base, marinated...', price: 48.00, category: 'Bestsellers', image: getImageUrl('pizza-alfredo'), isCustomisable: true },
-    { id: 'item-3', name: 'Pizza Margherita - 10 inches', description: 'Homemade dough, homemade pizza sauce,...', price: 27.00, category: 'Pizza', image: getImageUrl('pizza-margherita'), isCustomisable: false },
+    { id: 'item-3', name: 'Pizza Margherita - 10 inches', description: 'Homemade dough, homemade pizza sauce, shredded mozzarella cheese, and shredded cheddar cheese.', price: 27.00, category: 'Pizza', image: getImageUrl('pizza-margherita'), isCustomisable: false },
     { id: 'item-4', name: 'Hawaiian Pizza - 10 inches', description: 'Homemade dough, pizza sauce, mozzarella, ham,...', price: 32.00, category: 'Pizza', image: getImageUrl('pizza-hawaiian'), isCustomisable: true },
     { id: 'item-5', name: 'Soft Drink', description: 'Choose your favorite flavor.', price: 3.00, category: 'Drinks', image: getImageUrl('soft-drink'), isCustomisable: true },
     { id: 'item-6', name: 'Bottled Water', description: 'Still or sparkling water.', price: 2.50, category: 'Drinks', image: getImageUrl('bottled-water'), isCustomisable: false },
   ]
 };
 
-const MenuItemCard = ({ item }: { item: typeof menuData.items[0] }) => {
-  const [quantity, setQuantity] = useState(item.id === 'item-1' ? 1 : 0);
+type MenuItem = typeof menuData.items[0];
+
+const MenuItemCard = ({ item, onAdd }: { item: MenuItem; onAdd: (item: MenuItem) => void; }) => {
+  const [quantity, setQuantity] = useState(0);
+
+  const handleAddClick = () => {
+    if (!item.isCustomisable) {
+      onAdd(item);
+    } else {
+      // Handle customizable items differently if needed
+      // For now, let's just increment quantity
+      setQuantity(1);
+    }
+  };
 
   return (
     <div className="flex items-start p-3 bg-white rounded-2xl shadow-sm border border-gray-100/80">
@@ -47,7 +60,7 @@ const MenuItemCard = ({ item }: { item: typeof menuData.items[0] }) => {
             {quantity === 0 ? (
                  <Button 
                     className="w-full h-9 rounded-lg bg-teal-500 text-white font-bold text-sm shadow-md hover:bg-teal-600"
-                    onClick={() => setQuantity(1)}
+                    onClick={handleAddClick}
                 >
                     Add
                 </Button>
@@ -74,63 +87,77 @@ const MenuItemCard = ({ item }: { item: typeof menuData.items[0] }) => {
 
 export default function MobileMenuPage() {
   const [activeTab, setActiveTab] = useState('Bestsellers');
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   
   const sections = ['Bestsellers', 'Pizza', 'Drinks'];
 
-  return (
-    <div className="bg-[#F7F9FB] min-h-screen">
-      {/* Header */}
-      <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg p-4 pb-0">
-        <div className="flex items-center justify-between mb-4">
-          <Link href="/mobile/welcome" className="p-2 -ml-2">
-            <ArrowLeft className="h-6 w-6 text-gray-800" />
-          </Link>
-          <div className="text-center">
-            <h1 className="text-xl font-bold text-gray-900">Drinks</h1>
-            <p className="text-sm text-teal-600 font-medium">2 items</p>
-          </div>
-          <Button size="icon" variant="ghost">
-            <Search className="h-6 w-6 text-gray-800" />
-          </Button>
-        </div>
+  const handleAddItem = (item: MenuItem) => {
+    setSelectedItem(item);
+    setIsSheetOpen(true);
+  };
 
-        {/* Category Tabs */}
-        <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex items-center space-x-1 border-b">
-            {menuData.categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveTab(cat)}
-                className={cn(
-                  "flex items-center gap-1.5 whitespace-nowrap px-4 py-3 text-sm font-bold transition-colors relative",
-                  activeTab === cat
-                    ? "text-teal-600"
-                    : "text-gray-500 hover:text-gray-800"
-                )}
-              >
-                {cat === 'Bestsellers' && <Flame className="h-4 w-4 text-red-500" />}
-                {cat}
-                {activeTab === cat && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500 rounded-full" />}
-              </button>
-            ))}
-          </div>
-          <ScrollBar orientation="horizontal" className="hidden" />
-        </ScrollArea>
-      </header>
-      
-      {/* Menu Items */}
-      <main className="p-4 space-y-8">
-        {sections.map(section => (
-            <div key={section}>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">{section}</h2>
-                <div className="space-y-4">
-                    {menuData.items.filter(item => item.category === section).map(item => (
-                        <MenuItemCard key={item.id} item={item} />
-                    ))}
-                </div>
+  return (
+    <>
+      <div className="bg-[#F7F9FB] min-h-screen">
+        {/* Header */}
+        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg p-4 pb-0">
+          <div className="flex items-center justify-between mb-4">
+            <Link href="/mobile/welcome" className="p-2 -ml-2">
+              <ArrowLeft className="h-6 w-6 text-gray-800" />
+            </Link>
+            <div className="text-center">
+              <h1 className="text-xl font-bold text-gray-900">Drinks</h1>
+              <p className="text-sm text-teal-600 font-medium">2 items</p>
             </div>
-        ))}
-      </main>
-    </div>
+            <Button size="icon" variant="ghost">
+              <Search className="h-6 w-6 text-gray-800" />
+            </Button>
+          </div>
+
+          {/* Category Tabs */}
+          <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex items-center space-x-1 border-b">
+              {menuData.categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveTab(cat)}
+                  className={cn(
+                    "flex items-center gap-1.5 whitespace-nowrap px-4 py-3 text-sm font-bold transition-colors relative",
+                    activeTab === cat
+                      ? "text-teal-600"
+                      : "text-gray-500 hover:text-gray-800"
+                  )}
+                >
+                  {cat === 'Bestsellers' && <Flame className="h-4 w-4 text-red-500" />}
+                  {cat}
+                  {activeTab === cat && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500 rounded-full" />}
+                </button>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" className="hidden" />
+          </ScrollArea>
+        </header>
+        
+        {/* Menu Items */}
+        <main className="p-4 space-y-8">
+          {sections.map(section => (
+              <div key={section}>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">{section}</h2>
+                  <div className="space-y-4">
+                      {menuData.items.filter(item => item.category === section).map(item => (
+                          <MenuItemCard key={item.id} item={item} onAdd={handleAddItem} />
+                      ))}
+                  </div>
+              </div>
+          ))}
+        </main>
+      </div>
+      <ProductDetailSheet 
+        product={selectedItem}
+        isOpen={isSheetOpen}
+        onOpenChange={setIsSheetOpen}
+      />
+    </>
   );
 }

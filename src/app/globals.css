@@ -16,7 +16,7 @@ body {
     --card-foreground: 220 12% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 12% 10%;
-    --primary: 175 80% 40%;
+    --primary: 175 80% 35%;
     --primary-foreground: 0 0% 98%;
     --secondary: 220 14% 94%;
     --secondary-foreground: 220 12% 10%;
@@ -143,3 +143,4 @@ body {
   animation: rotate-border 4s linear infinite;
   z-index: 0;
 }
+
