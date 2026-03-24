@@ -85,16 +85,16 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
 
     if (cartIcon && sheetElement) {
         gsap.to(sheetElement, {
-            duration: 0.3, // Super fast
-            scale: 0.05, // Shrink to a dot
+            duration: 0.2, // Extremely fast
+            scale: 0, // Shrink to a point
             opacity: 0,
             borderRadius: '50%',
             x: cartIcon.getBoundingClientRect().left - sheetElement.getBoundingClientRect().left + (cartIcon.offsetWidth / 2) - (sheetElement.offsetWidth / 2),
             y: cartIcon.getBoundingClientRect().top - sheetElement.getBoundingClientRect().top + (cartIcon.offsetHeight / 2) - (sheetElement.offsetHeight / 2),
-            ease: 'none', // Use a linear ease for a straight path
+            ease: 'power2.in', // Accelerate into the cart
             onComplete: () => {
                 gsap.fromTo(cartIcon, 
-                    { scale: 1.2, rotate: -10 }, 
+                    { scale: 1.3, rotate: -15 }, 
                     { scale: 1, rotate: 0, duration: 0.6, ease: 'elastic.out(1, 0.3)' }
                 );
                 onOpenChange(false);
