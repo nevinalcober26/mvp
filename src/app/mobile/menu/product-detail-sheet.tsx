@@ -71,7 +71,7 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
             xPercent: -50,
             yPercent: -50,
             opacity: 0.5,
-            duration: 0.7,
+            duration: 0.5,
             ease: 'power2.in',
             onComplete: () => {
                 // Shake the cart icon
