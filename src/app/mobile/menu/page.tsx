@@ -10,6 +10,7 @@ import { ArrowLeft, Search, Flame, Minus, Plus, Trash2, ShoppingCart } from 'luc
 import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ProductDetailSheet } from './product-detail-sheet';
+import { CartSheet } from './cart-sheet';
 import { Card } from '@/components/ui/card';
 
 // Helper to find image URL by ID
@@ -121,6 +122,8 @@ export default function MobileMenuPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [isCartAnimating, setIsCartAnimating] = useState(false);
+  const [isCartSheetOpen, setIsCartSheetOpen] = useState(false);
+
   
   const sectionRefs = useRef<{[key: string]: HTMLElement | null}>({});
   const tabRefs = useRef<{[key: string]: HTMLButtonElement | null}>({});
@@ -145,44 +148,42 @@ export default function MobileMenuPage() {
     }
   }, [isCartAnimating]);
 
-  // This effect sets up the IntersectionObserver to watch the menu sections.
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
   useEffect(() => {
-    const observer = new IntersectionObserver(
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+  
+    observerRef.current = new IntersectionObserver(
       (entries) => {
-        // Do nothing if scrolling is due to a tab click
         if (isTabClickScrolling.current) return;
         
-        // Find all sections that are currently intersecting with the viewport
         const visibleEntries = entries.filter((entry) => entry.isIntersecting);
-        
         if (visibleEntries.length > 0) {
-          // Find the entry that is highest on the screen
           const topEntry = visibleEntries.reduce((prev, current) => {
             return prev.boundingClientRect.top < current.boundingClientRect.top ? prev : current;
           });
-          // Update the active tab state
           setActiveTab(topEntry.target.id);
         }
       },
       {
-        rootMargin: "-120px 0px -40% 0px", // Defines the area to check for intersections
+        rootMargin: "-120px 0px -40% 0px",
         threshold: 0,
       }
     );
-
+  
+    const currentObserver = observerRef.current;
     const currentRefs = sectionRefs.current;
     Object.values(currentRefs).forEach(ref => {
-      if (ref) observer.observe(ref);
+      if (ref) currentObserver.observe(ref);
     });
-
+  
     return () => {
-       Object.values(currentRefs).forEach(ref => {
-        if (ref) observer.unobserve(ref);
-      });
+      currentObserver.disconnect();
     };
-  }, [sections]); // Rerun only if the sections change
-
-  // This effect scrolls the active tab into view whenever `activeTab` changes.
+  }, []); // Re-run only once on mount
+  
   useEffect(() => {
     if (isTabClickScrolling.current) return;
     
@@ -211,7 +212,6 @@ export default function MobileMenuPage() {
             behavior: 'smooth'
         });
 
-        // Reset the flag after the scroll is likely to have completed.
         setTimeout(() => {
             isTabClickScrolling.current = false;
         }, 1000); 
@@ -252,6 +252,15 @@ export default function MobileMenuPage() {
     setSelectedItem(item);
     setIsSheetOpen(true);
   };
+
+  const cartItemsForSheet = useMemo(() => {
+    return Object.entries(cart)
+      .map(([id, quantity]) => {
+        const item = menuData.items.find(i => i.id === id);
+        return item ? { item, quantity } : null;
+      })
+      .filter((i): i is { item: MenuItem; quantity: number } => i !== null);
+  }, [cart]);
 
   return (
     <>
@@ -333,22 +342,21 @@ export default function MobileMenuPage() {
 
         {totalItemsInCart > 0 && (
           <div id="floating-cart-icon" className="fixed bottom-24 right-6 z-20 animate-in fade-in zoom-in-95">
-            <Link href="#">
+            <button onClick={() => setIsCartSheetOpen(true)}>
               <div className="relative">
-                <Button
-                  size="icon"
+                <div
                   className={cn(
-                    "rounded-full w-16 h-16 bg-red-500 hover:bg-red-600 shadow-lg",
+                    "rounded-full w-16 h-16 bg-red-500 hover:bg-red-600 shadow-lg flex items-center justify-center",
                     isCartAnimating && "animate-pulse-once"
                   )}
                 >
-                  <ShoppingCart className="h-8 w-8" />
-                </Button>
+                  <ShoppingCart className="h-8 w-8 text-white" />
+                </div>
                 <Badge className="absolute -top-1 -right-1 w-6 h-6 flex items-center justify-center bg-gray-800 text-white rounded-full border-2 border-red-500">
                   {totalItemsInCart}
                 </Badge>
               </div>
-            </Link>
+            </button>
           </div>
         )}
       </div>
@@ -357,6 +365,14 @@ export default function MobileMenuPage() {
         isOpen={isSheetOpen}
         onOpenChange={setIsSheetOpen}
         onAddToCart={(quantity) => selectedItem && handleAddToCart(selectedItem, quantity)}
+      />
+      <CartSheet
+        isOpen={isCartSheetOpen}
+        onOpenChange={setIsCartSheetOpen}
+        cartItems={cartItemsForSheet}
+        onIncrement={handleIncrement}
+        onDecrement={handleDecrement}
+        onRemove={handleDecrement}
       />
     </>
   );
