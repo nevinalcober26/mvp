@@ -73,9 +73,9 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
 
   if (!product) return null;
 
-  const handleAddToCart = () => {
+  const handleAddToCartAnimation = () => {
     if (isAdding) return;
-    if (product.isCustomisable && product.options?.required && !selectedOption) {
+    if (isOptionSelectionRequired) {
       return;
     }
     setIsAdding(true);
@@ -87,7 +87,7 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
 
     if (cartIcon && sheetElement) {
         gsap.to(sheetElement, {
-            duration: 0.3,
+            duration: 0.4,
             scale: 0.1,
             opacity: 0,
             x: '150%',
@@ -95,10 +95,6 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
             transformOrigin: "right center", 
             ease: 'power2.in',
             onComplete: () => {
-                gsap.fromTo(cartIcon, 
-                    { scale: 1.4, rotate: -10 }, 
-                    { scale: 1, rotate: 0, duration: 0.7, ease: 'elastic.out(1, 0.3)' }
-                );
                 onOpenChange(false);
             }
         });
@@ -250,7 +246,7 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
                           "flex-1 h-12 text-white font-bold text-base transition-colors",
                           isAdding ? "bg-gray-300" : "bg-teal-500 hover:bg-teal-600"
                       )}
-                      onClick={handleAddToCart}
+                      onClick={handleAddToCartAnimation}
                       disabled={isAdding}
                   >
                       {addToCartText}
