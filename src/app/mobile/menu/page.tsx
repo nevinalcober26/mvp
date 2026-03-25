@@ -112,9 +112,7 @@ const MenuItemCard = ({
 
 export default function MobileMenuPage() {
   const sections = useMemo(() => {
-    return menuData.categories.filter(category =>
-      menuData.items.some(item => item.category === category)
-    );
+    return menuData.categories;
   }, []);
   
   const [activeTab, setActiveTab] = useState(sections[0] || '');
@@ -123,6 +121,7 @@ export default function MobileMenuPage() {
   const [cart, setCart] = useState<Record<string, number>>({});
   
   const sectionRefs = useRef<{[key: string]: HTMLElement | null}>({});
+  const tabRefs = useRef<{[key: string]: HTMLButtonElement | null}>({});
   const isTabClickScrolling = useRef(false);
 
   useEffect(() => {
@@ -139,7 +138,17 @@ export default function MobileMenuPage() {
               : current;
           });
           
-          setActiveTab(topEntry.target.id);
+          const newActiveTab = topEntry.target.id;
+          setActiveTab(newActiveTab);
+
+          const activeTabElement = tabRefs.current[newActiveTab];
+          if (activeTabElement) {
+            activeTabElement.scrollIntoView({
+              behavior: 'smooth',
+              inline: 'center',
+              block: 'nearest'
+            });
+          }
         }
       },
       {
@@ -239,9 +248,10 @@ export default function MobileMenuPage() {
           {/* Category Tabs */}
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex items-center space-x-1 border-b">
-              {menuData.categories.map((cat) => (
+              {sections.map((cat) => (
                 <button
                   key={cat}
+                  ref={(el) => (tabRefs.current[cat] = el)}
                   onClick={() => handleTabClick(cat)}
                   className={cn(
                     "flex items-center gap-1.5 whitespace-nowrap px-4 py-3 text-sm font-bold transition-colors relative",
@@ -262,7 +272,7 @@ export default function MobileMenuPage() {
         
         {/* Menu Items */}
         <main className="p-4 space-y-8">
-          {menuData.categories.map(section => {
+          {sections.map(section => {
               const itemsForSection = menuData.items.filter(item => item.category === section);
               return (
                   <div 
