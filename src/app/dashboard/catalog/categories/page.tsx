@@ -192,7 +192,7 @@ export default function CategoriesPage() {
 
     const handleAddColumn = () => {
         setBoard(produce(board, draft => {
-            draft.push({ id: `col_${Date.now()}`, name: 'New Column', items: [] });
+            draft.push({ id: `col_${Date.now()}`, name: 'New Column', items: [], status: 'Published' });
         }));
     };
     
@@ -221,7 +221,7 @@ export default function CategoriesPage() {
         setBoard(
           produce(draft => {
             if (values.parentId === 'none') {
-                const newColumn: Column = { id: newCategory.id, name: newCategory.name, items: [], ...values };
+                const newColumn: Column = { id: newCategory.id, name: newCategory.name, items: [], ...values, status: values.status || 'Published' };
                 draft.push(newColumn);
             } else {
                 const parentCol = findColumn(draft, values.parentId);

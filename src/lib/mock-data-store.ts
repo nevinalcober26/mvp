@@ -4,7 +4,7 @@ import type { Product, Variation } from '@/app/dashboard/products/types';
 import type { Customer, Visit, Payment as CustomerPayment } from '@/app/dashboard/customer/list/types';
 import type { Order, OrderItem, Payment as OrderPayment, StaffReference } from '@/app/dashboard/orders/types';
 import { format, subDays, subHours, endOfDay, setHours, setMinutes, subMinutes, formatDistanceToNow } from 'date-fns';
-import type { Column } from '@/app/dashboard/categories/types';
+import type { Column, Item } from '@/app/dashboard/categories/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { VariationGroup } from '@/app/dashboard/catalog/variations/types';
 import type { ComboGroup } from '@/app/dashboard/catalog/combo-groups/types';
@@ -496,15 +496,17 @@ class MockDataStore {
             id: 'food',
             name: 'Food',
             description: 'All of our delicious food items.',
+            status: 'Published',
             items: [
               {
                 id: 'appetizers',
                 name: 'Appetizers',
                 description: 'Start your meal with a tasty bite.',
                 cardShadow: false,
+                status: 'Published',
                 children: [
-                  { id: 'soups', name: 'Soups', children: [], description: 'Warm and comforting soups.' },
-                  { id: 'salads', name: 'Salads', children: [], description: 'Fresh and healthy salads.' },
+                  { id: 'soups', name: 'Soups', children: [], description: 'Warm and comforting soups.', status: 'Published' },
+                  { id: 'salads', name: 'Salads', children: [], description: 'Fresh and healthy salads.', status: 'Published' },
                 ],
               },
               {
@@ -512,19 +514,21 @@ class MockDataStore {
                 name: 'Main Courses',
                 description: 'The star of the show.',
                 displayFullwidth: true,
+                status: 'Published',
                 children: [
-                  { id: 'pizza', name: 'Pizza', children: [] },
-                  { id: 'pasta', name: 'Pasta', children: [] },
-                  { id: 'burgers', name: 'Burgers', children: [] },
+                  { id: 'pizza', name: 'Pizza', children: [], status: 'Published' },
+                  { id: 'pasta', name: 'Pasta', children: [], status: 'Published' },
+                  { id: 'burgers', name: 'Burgers', children: [], status: 'Published' },
                 ],
               },
               {
                 id: 'desserts',
                 name: 'Desserts',
                 description: 'Sweet treats to end your meal.',
+                status: 'Published',
                 children: [
-                    { id: 'cakes', name: 'Cakes', children: [] },
-                    { id: 'ice-cream', name: 'Ice Cream', children: [] },
+                    { id: 'cakes', name: 'Cakes', children: [], status: 'Published' },
+                    { id: 'ice-cream', name: 'Ice Cream', children: [], status: 'Published' },
                 ],
               },
             ],
@@ -533,42 +537,47 @@ class MockDataStore {
             id: 'beverages',
             name: 'Beverages',
             description: 'Quench your thirst.',
+            status: 'Published',
             items: [
               {
                 id: 'hot-drinks',
                 name: 'Hot Drinks',
+                status: 'Published',
                 children: [
-                  { id: 'coffee', name: 'Coffee', children: [] },
-                  { id: 'tea', name: 'Tea', children: [] },
+                  { id: 'coffee', name: 'Coffee', children: [], status: 'Published' },
+                  { id: 'tea', name: 'Tea', children: [], status: 'Published' },
                 ],
               },
               {
                 id: 'cold-drinks',
                 name: 'Cold Drinks',
+                status: 'Published',
                 children: [
-                  { id: 'juices', name: 'Juices', children: [] },
-                  { id: 'soft-drinks', name: 'Soft Drinks', children: [] },
+                  { id: 'juices', name: 'Juices', children: [], status: 'Published' },
+                  { id: 'soft-drinks', name: 'Soft Drinks', children: [], status: 'Published' },
                 ],
               },
-              { id: 'mocktails', name: 'Mocktails', children: [] },
+              { id: 'mocktails', name: 'Mocktails', children: [], status: 'Published' },
             ],
           },
           {
             id: 'specials',
             name: 'Special Offers',
             description: 'Great deals for you.',
+            status: 'Published',
             items: [
-                { id: 'daily-specials', name: 'Daily Specials', children: [] },
-                { id: 'combo-meals', name: 'Combo Meals', children: [] },
+                { id: 'daily-specials', name: 'Daily Specials', children: [], status: 'Published' },
+                { id: 'combo-meals', name: 'Combo Meals', children: [], status: 'Published' },
             ],
           },
           {
             id: 'breakfast',
             name: 'Breakfast',
+            status: 'Published',
             items: [
-                { id: 'pancakes-waffles', name: 'Pancakes & Waffles', children: [] },
-                { id: 'omelettes', name: 'Omelettes', children: [] },
-                { id: 'healthy-bowls', name: 'Healthy Bowls', children: [] },
+                { id: 'pancakes-waffles', name: 'Pancakes & Waffles', children: [], status: 'Published' },
+                { id: 'omelettes', name: 'Omelettes', children: [], status: 'Published' },
+                { id: 'healthy-bowls', name: 'Healthy Bowls', children: [], status: 'Published' },
             ]
           }
         ];

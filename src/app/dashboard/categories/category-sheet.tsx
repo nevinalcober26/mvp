@@ -39,6 +39,7 @@ const categorySchema = z.object({
   name: z.string().min(1, 'Category name is required'),
   description: z.string().optional(),
   parentId: z.string().default('none'),
+  status: z.enum(['Published', 'Draft']).default('Published'),
   // display
   displayFullwidth: z.boolean().default(false),
   hiddenTitle: z.boolean().default(false),
@@ -144,6 +145,7 @@ export function CategorySheet({
         name: category.name || '',
         description: category.description || '',
         parentId: parentId ? parentId.toString() : 'none',
+        status: category.status || 'Published',
         displayFullwidth: category.displayFullwidth || false,
         hiddenTitle: category.hiddenTitle || false,
         hiddenImage: category.hiddenImage || false,
@@ -176,7 +178,7 @@ export function CategorySheet({
       <SheetContent className="sm:max-w-lg w-full p-0">
         {category && (
             <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
+            <form className="flex flex-col h-full">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
                     <div className="px-6 pt-6">
                         <SheetHeader className="pb-4">
@@ -356,8 +358,8 @@ export function CategorySheet({
                                 <Button type="button" onClick={handleNext}>Next</Button>
                             ) : (
                                 <>
-                                    <Button type="submit" variant="outline" onClick={() => form.setValue('hidden', true)}>Save as Draft</Button>
-                                    <Button type="submit" onClick={() => form.setValue('hidden', false)}>Publish</Button>
+                                    <Button type="button" variant="outline" onClick={() => { form.setValue('status', 'Draft'); form.handleSubmit(onSubmit)(); }}>Save as Draft</Button>
+                                    <Button type="button" onClick={() => { form.setValue('status', 'Published'); form.handleSubmit(onSubmit)(); }}>Publish</Button>
                                 </>
                             )}
                         </div>

@@ -12,6 +12,7 @@ export type ScheduleRule = {
 export type CategoryBase = {
   description?: string;
   schedules?: ScheduleRule[];
+  status: 'Published' | 'Draft';
   // display
   displayFullwidth?: boolean;
   hiddenTitle?: boolean;

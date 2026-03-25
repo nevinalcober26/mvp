@@ -37,6 +37,7 @@ const categorySchema = z.object({
   name: z.string().min(1, 'Category name is required'),
   description: z.string().optional(),
   parentId: z.string().default('none'),
+  status: z.enum(['Published', 'Draft']).default('Published'),
   // display
   displayFullwidth: z.boolean().default(false),
   hiddenTitle: z.boolean().default(false),
@@ -94,6 +95,7 @@ export function AddCategorySheet({
       name: '',
       description: '',
       parentId: initialParentId.toString(),
+      status: 'Published',
       displayFullwidth: false,
       hiddenTitle: false,
       hiddenImage: false,
@@ -115,6 +117,7 @@ export function AddCategorySheet({
         name: '',
         description: '',
         parentId: initialParentId.toString() === 'new-column' ? 'none' : initialParentId.toString(),
+        status: 'Published',
         displayFullwidth: false,
         hiddenTitle: false,
         hiddenImage: false,
@@ -139,7 +142,7 @@ export function AddCategorySheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-lg w-full p-0">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
+          <form className="flex flex-col h-full">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
               <div className="px-6 pt-6">
                 <SheetHeader className="pb-4">
@@ -316,8 +319,8 @@ export function AddCategorySheet({
                         <Button type="button" onClick={handleNext}>Next</Button>
                     ) : (
                         <>
-                            <Button type="submit" variant="outline" onClick={() => form.setValue('hidden', true)}>Save as Draft</Button>
-                            <Button type="submit" onClick={() => form.setValue('hidden', false)}>Publish</Button>
+                            <Button type="button" variant="outline" onClick={() => { form.setValue('status', 'Draft'); form.handleSubmit(onSubmit)(); }}>Save as Draft</Button>
+                            <Button type="button" onClick={() => { form.setValue('status', 'Published'); form.handleSubmit(onSubmit)(); }}>Publish</Button>
                         </>
                     )}
                 </div>
