@@ -4,8 +4,9 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { ArrowLeft, Search, Flame, Minus, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Search, Flame, Minus, Plus, Trash2, ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ProductDetailSheet } from './product-detail-sheet';
@@ -119,10 +120,30 @@ export default function MobileMenuPage() {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [cart, setCart] = useState<Record<string, number>>({});
+  const [isCartAnimating, setIsCartAnimating] = useState(false);
   
   const sectionRefs = useRef<{[key: string]: HTMLElement | null}>({});
   const tabRefs = useRef<{[key: string]: HTMLButtonElement | null}>({});
   const isTabClickScrolling = useRef(false);
+  
+  const prevCartTotalRef = useRef(0);
+  const totalItemsInCart = useMemo(() => {
+    return Object.values(cart).reduce((sum, quantity) => sum + quantity, 0);
+  }, [cart]);
+  
+  useEffect(() => {
+    if (totalItemsInCart > prevCartTotalRef.current) {
+        setIsCartAnimating(true);
+    }
+    prevCartTotalRef.current = totalItemsInCart;
+  }, [totalItemsInCart]);
+
+  useEffect(() => {
+    if (isCartAnimating) {
+        const timer = setTimeout(() => setIsCartAnimating(false), 500); // Corresponds to animation duration
+        return () => clearTimeout(timer);
+    }
+  }, [isCartAnimating]);
 
   // This effect sets up the IntersectionObserver to watch the menu sections.
   useEffect(() => {
@@ -309,6 +330,27 @@ export default function MobileMenuPage() {
               );
           })}
         </main>
+
+        {totalItemsInCart > 0 && (
+          <div id="floating-cart-icon" className="fixed bottom-24 right-6 z-20 animate-in fade-in zoom-in-95">
+            <Link href="#">
+              <div className="relative">
+                <Button
+                  size="icon"
+                  className={cn(
+                    "rounded-full w-16 h-16 bg-red-500 hover:bg-red-600 shadow-lg",
+                    isCartAnimating && "animate-pulse-once"
+                  )}
+                >
+                  <ShoppingCart className="h-8 w-8" />
+                </Button>
+                <Badge className="absolute -top-1 -right-1 w-6 h-6 flex items-center justify-center bg-gray-800 text-white rounded-full border-2 border-red-500">
+                  {totalItemsInCart}
+                </Badge>
+              </div>
+            </Link>
+          </div>
+        )}
       </div>
       <ProductDetailSheet 
         product={selectedItem}

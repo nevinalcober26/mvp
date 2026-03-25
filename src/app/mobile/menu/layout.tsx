@@ -1,9 +1,7 @@
 'use client';
 
-import { Home, Receipt, ShoppingCart } from 'lucide-react';
+import { Home, Receipt } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 
 export default function MobileMenuLayout({
   children,
@@ -13,23 +11,6 @@ export default function MobileMenuLayout({
   return (
     <div className="relative min-h-screen w-full max-w-md mx-auto bg-white font-sans">
       <div className="pb-28">{children}</div>
-
-      {/* Floating Cart Button */}
-      <div id="floating-cart-icon" className="fixed bottom-24 right-6 z-20">
-        <Link href="#">
-            <div className="relative">
-                <Button
-                    size="icon"
-                    className="rounded-full w-16 h-16 bg-red-500 hover:bg-red-600 shadow-lg"
-                >
-                    <ShoppingCart className="h-8 w-8" />
-                </Button>
-                <Badge className="absolute -top-1 -right-1 w-6 h-6 flex items-center justify-center bg-gray-800 text-white rounded-full border-2 border-red-500">
-                    1
-                </Badge>
-            </div>
-        </Link>
-      </div>
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-[#F7F9FB] border-t border-gray-200/80">
