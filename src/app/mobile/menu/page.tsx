@@ -124,36 +124,27 @@ export default function MobileMenuPage() {
   const tabRefs = useRef<{[key: string]: HTMLButtonElement | null}>({});
   const isTabClickScrolling = useRef(false);
 
+  // This effect sets up the IntersectionObserver to watch the menu sections.
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
+        // Do nothing if scrolling is due to a tab click
         if (isTabClickScrolling.current) return;
-
+        
+        // Find all sections that are currently intersecting with the viewport
         const visibleEntries = entries.filter((entry) => entry.isIntersecting);
-
+        
         if (visibleEntries.length > 0) {
+          // Find the entry that is highest on the screen
           const topEntry = visibleEntries.reduce((prev, current) => {
-            return prev.boundingClientRect.top < current.boundingClientRect.top
-              ? prev
-              : current;
+            return prev.boundingClientRect.top < current.boundingClientRect.top ? prev : current;
           });
-          
-          const newActiveTab = topEntry.target.id;
-          setActiveTab(newActiveTab);
-
-          const activeTabElement = tabRefs.current[newActiveTab];
-          if (activeTabElement) {
-            activeTabElement.scrollIntoView({
-              behavior: 'smooth',
-              inline: 'center',
-              block: 'nearest'
-            });
-          }
+          // Update the active tab state
+          setActiveTab(topEntry.target.id);
         }
       },
       {
-        root: null, 
-        rootMargin: "-120px 0px -50% 0px",
+        rootMargin: "-120px 0px -40% 0px", // Defines the area to check for intersections
         threshold: 0,
       }
     );
@@ -168,7 +159,21 @@ export default function MobileMenuPage() {
         if (ref) observer.unobserve(ref);
       });
     };
-  }, [sections]);
+  }, [sections]); // Rerun only if the sections change
+
+  // This effect scrolls the active tab into view whenever `activeTab` changes.
+  useEffect(() => {
+    if (isTabClickScrolling.current) return;
+    
+    const activeTabElement = tabRefs.current[activeTab];
+    if (activeTabElement) {
+      activeTabElement.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest'
+      });
+    }
+  }, [activeTab]);
 
   const handleTabClick = (tab: string) => {
     isTabClickScrolling.current = true;
@@ -185,6 +190,7 @@ export default function MobileMenuPage() {
             behavior: 'smooth'
         });
 
+        // Reset the flag after the scroll is likely to have completed.
         setTimeout(() => {
             isTabClickScrolling.current = false;
         }, 1000); 
@@ -193,7 +199,6 @@ export default function MobileMenuPage() {
     }
   };
   
-
   const handleAddToCart = (item: MenuItem, quantity: number) => {
     setCart(prevCart => ({
       ...prevCart,
