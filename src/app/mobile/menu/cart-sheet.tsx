@@ -77,17 +77,17 @@ export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecr
                 {/* Cart Items */}
                 <div className="space-y-4">
                     {cartItems.map(({ item, quantity }) => (
-                        <div key={item.id} className="flex items-center p-3 bg-white rounded-2xl shadow-sm border border-gray-100/80">
-                            <Image src={item.image} alt={item.name} width={64} height={64} className="object-cover rounded-xl w-16 h-16" />
-                            <div className="flex-1 px-4">
-                                <h4 className="font-bold text-gray-800 text-sm leading-snug line-clamp-2">{item.name}</h4>
-                                <p className="font-extrabold text-teal-600 text-base mt-1">AED {(item.price * quantity).toFixed(2)}</p>
+                         <div key={item.id} className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm border border-gray-100/80">
+                            <Image src={item.image} alt={item.name} width={72} height={72} className="object-cover rounded-lg w-20 h-20" />
+                            <div className="flex-1">
+                                <h4 className="font-bold text-gray-800 text-base leading-snug">{item.name}</h4>
+                                <p className="font-semibold text-teal-600 text-sm mt-1">AED {item.price.toFixed(2)}</p>
                             </div>
-                            <div className="flex items-center justify-between rounded-lg border w-28 h-10">
+                            <div className="flex items-center justify-between rounded-lg border border-gray-200 w-24 h-9">
                                 <Button size="icon" variant="ghost" className="h-full rounded-l-lg text-red-500" onClick={() => onDecrement(item.id)}>
-                                    {quantity === 1 ? <Trash2 className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
+                                    <Trash2 className="h-4 w-4" />
                                 </Button>
-                                <span className="font-bold text-base text-gray-800">{quantity}</span>
+                                <span className="font-bold text-sm text-gray-800">{quantity}</span>
                                 <Button size="icon" variant="ghost" className="h-full rounded-r-lg text-teal-500" onClick={() => onIncrement(item.id)}>
                                     <Plus className="h-4 w-4" />
                                 </Button>
