@@ -117,40 +117,24 @@ export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecr
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-white rounded-2xl border">
-                    <div className="flex items-center gap-3">
-                        <Edit className="h-5 w-5 text-gray-500"/>
-                        <div>
-                            <p className="font-bold text-gray-800">Add a Note</p>
-                            <p className="text-xs text-gray-500">Any special requests?</p>
-                        </div>
+                <div className="p-4 bg-white rounded-2xl border space-y-3">
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">Subtotal</span>
+                        <span className="font-semibold text-gray-800">AED {subtotal.toFixed(2)}</span>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-gray-400" />
-                </div>
-
-                <div className="flex items-center bg-white rounded-2xl border p-2 pl-4">
-                    <Input placeholder="Enter discount code" className="border-0 shadow-none focus-visible:ring-0 flex-1 p-0 h-10" />
-                    <Button className="bg-transparent text-teal-600 font-bold hover:bg-teal-50">Apply</Button>
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">Tax (5%)</span>
+                        <span className="font-semibold text-gray-800">AED {tax.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">Service Charge (10%)</span>
+                        <span className="font-semibold text-gray-800">AED {serviceCharge.toFixed(2)}</span>
+                    </div>
                 </div>
             </div>
         </div>
         
         <SheetFooter className="p-4 bg-white border-t border-gray-200/80 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] space-y-4 flex-col items-stretch w-full shrink-0">
-            <div className="p-4 bg-white rounded-2xl border space-y-3">
-                <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span className="font-semibold text-gray-800">AED {subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600">Tax (5%)</span>
-                    <span className="font-semibold text-gray-800">AED {tax.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600">Service Charge (10%)</span>
-                    <span className="font-semibold text-gray-800">AED {serviceCharge.toFixed(2)}</span>
-                </div>
-            </div>
-
             <div className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-100 to-amber-200 rounded-2xl border border-yellow-300/50">
                 <div className="flex items-center gap-3">
                     <div className="relative">
