@@ -123,7 +123,7 @@
     {
       "id": "gift-icon",
       "description": "A wrapped gift icon",
-      "imageUrl": "https://images.unsplash.com/photo-1513201099705-48746811493a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxnaWZ0JTIwYm94fGVufDB8fHx8MTc3MDk5NTg0M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://emojipedia-us.s3.amazonaws.com/source/skype/289/wrapped-gift_1f381.png",
       "imageHint": "gift box"
     }
   ]
