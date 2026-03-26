@@ -11,11 +11,8 @@ function PaymentRedirectContent() {
   const totalAmount = total ? parseFloat(total) : 0;
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      // Redirect to the new checkout page
-      router.push(`/mobile/menu/checkout?total=${totalAmount}`);
-    }, 2000); // Shortened redirect time
-    return () => clearTimeout(timer);
+    // Redirect to the new checkout page immediately.
+    router.push(`/mobile/menu/checkout?total=${totalAmount}`);
   }, [router, totalAmount]);
 
   return (
