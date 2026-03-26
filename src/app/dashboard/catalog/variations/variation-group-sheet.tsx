@@ -188,48 +188,54 @@ const SortableOptionItem = ({
                     </div>
                 </div>
 
-                <div className="md:col-span-2 grid grid-cols-2 gap-4">
-                  <FormField control={form.control} name={`options.${index}.stock`} render={({ field }) => (<FormItem><FormLabel>Stock Quantity</FormLabel><FormControl><Input type="number" placeholder="e.g. 100" {...field} value={field.value ?? ''} /></FormControl></FormItem>)} />
-                  <FormField
-                    control={form.control}
-                    name={`options.${index}.allowMultiQuantity`}
-                    render={({ field }) => (
-                        <FormItem className="space-y-2">
-                            <FormLabel>Allow Quantity</FormLabel>
-                            <div className="flex h-10 items-center justify-between rounded-md border bg-background px-3">
-                                <p className="text-sm font-medium text-muted-foreground">
-                                    Enable
-                                </p>
-                                <FormControl>
-                                    <Switch
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                            </div>
-                        </FormItem>
-                    )}
-                    />
-                  <FormField control={form.control} name={`options.${index}.regularPrice`} render={({ field }) => (<FormItem><FormLabel>Regular Price (AED)*</FormLabel><FormControl><Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value ?? ''} /></FormControl></FormItem>)} />
-                  <FormField control={form.control} name={`options.${index}.salePrice`} render={({ field }) => (<FormItem><FormLabel>Sale Price (AED)</FormLabel><FormControl><Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value ?? ''} /></FormControl></FormItem>)} />
+                <div className="md:col-span-2 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name={`options.${index}.regularPrice`} render={({ field }) => (<FormItem><FormLabel>Regular Price (AED)*</FormLabel><FormControl><Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value ?? ''} /></FormControl></FormItem>)} />
+                    <FormField control={form.control} name={`options.${index}.salePrice`} render={({ field }) => (<FormItem><FormLabel>Sale Price (AED)</FormLabel><FormControl><Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value ?? ''} /></FormControl></FormItem>)} />
+                  </div>
+                  <FormField control={form.control} name={`options.${index}.stock`} render={({ field }) => (<FormItem><FormLabel>Stock Quantity</FormLabel><FormControl><Input type="number" placeholder="e.g. 100" {...field} value={field.value ?? ''} /></FormControl><FormDescription>Leave blank for unlimited stock.</FormDescription></FormItem>)} />
                 </div>
             </div>
 
-            {allowMultiQuantity && (
-                <div className="pt-4 mt-4 border-t">
-                    <FormField
-                        control={form.control}
-                        name={`options.${index}.maxQuantity`}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Maximum Quantity</FormLabel>
-                                <FormControl><Input type="number" placeholder="No limit" {...field} value={field.value ?? ''} /></FormControl>
-                                <FormDescription>Limit the quantity a customer can select for this option. Leave blank for no limit.</FormDescription>
-                            </FormItem>
-                        )}
-                    />
-                </div>
-            )}
+            <div className="space-y-4 rounded-lg border p-4 bg-background">
+                <FormField
+                  control={form.control}
+                  name={`options.${index}.allowMultiQuantity`}
+                  render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between">
+                          <div className="space-y-0.5">
+                              <FormLabel>Allow Multiple Quantities</FormLabel>
+                              <FormDescription>
+                                  Let customers order more than one of this item.
+                              </FormDescription>
+                          </div>
+                          <FormControl>
+                              <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                              />
+                          </FormControl>
+                      </FormItem>
+                  )}
+                  />
+                {allowMultiQuantity && (
+                    <div className="space-y-2 pt-4 border-t">
+                        <FormField
+                            control={form.control}
+                            name={`options.${index}.maxQuantity`}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Maximum Quantity Per Order</FormLabel>
+                                    <FormControl><Input type="number" placeholder="No limit" {...field} value={field.value ?? ''} /></FormControl>
+                                    <FormDescription>
+                                        Set a limit, or leave blank for unlimited.
+                                    </FormDescription>
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                )}
+            </div>
             
             <FormField
               control={form.control}
