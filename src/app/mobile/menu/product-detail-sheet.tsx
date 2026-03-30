@@ -77,10 +77,10 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
     if (product.isCustomisable && product.options?.required && !selectedOption) {
       return;
     }
-    setIsAdding(true);
     
     // Update cart state immediately for visual feedback on the cart icon
     onAddToCart(quantity);
+    setIsAdding(true);
 
     const cartIcon = document.getElementById('floating-cart-icon');
     const sheetElement = sheetContentRef.current;
@@ -106,8 +106,6 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
             transformOrigin: "center center",
             ease: 'power2.in',
             onComplete: () => {
-                // Now that animation is done, tell React to close the sheet.
-                // The component will be unmounted.
                 onOpenChange(false);
             }
         });
