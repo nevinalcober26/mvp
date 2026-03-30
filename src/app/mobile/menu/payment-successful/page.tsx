@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { VipClubSheet } from '../vip-club-sheet';
 import { useCart, useOrders } from '@/firebase';
 import type { Order } from '@/app/dashboard/orders/types';
-import { mockDataStore } from '@/lib/mock-data-store';
+import { mockProducts } from '@/lib/mock-data-store';
 import { Product } from '@/app/dashboard/products/types';
 
 export default function PaymentSuccessfulPage() {
@@ -31,7 +31,7 @@ export default function PaymentSuccessfulPage() {
     if (Object.keys(cart).length > 0 && !orderCreatedRef.current) {
       orderCreatedRef.current = true; // Prevent duplicate order creation on re-render
 
-      const menuItems: Product[] = mockDataStore.products;
+      const menuItems: Product[] = mockProducts;
 
       const cartItems = Object.entries(cart).map(([id, quantity]) => {
           const item = menuItems.find(i => i.id === id);
