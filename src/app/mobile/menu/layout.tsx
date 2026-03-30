@@ -28,7 +28,7 @@ export default function MobileMenuLayout({
               <span className="text-xs font-bold">Menu</span>
             </Link>
             <Link
-              href="#"
+              href="/mobile/orders"
               className="flex flex-col items-center gap-1 text-gray-500"
             >
               <Receipt className="h-6 w-6" />
