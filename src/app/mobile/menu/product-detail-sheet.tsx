@@ -106,7 +106,7 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
         }
 
         gsap.to(clone, {
-            duration: 0.7,
+            duration: 0.4,
             x: cartRect.left - imageRect.left + (cartRect.width / 2 - imageRect.width / 2),
             y: cartRect.top - imageRect.top + (cartRect.height / 2 - imageRect.height / 2),
             scale: 0.1,
@@ -222,7 +222,7 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
                </CardHeader>
                <CardContent className="space-y-3">
                     <p className="text-xs text-gray-500">
-                       We&apos;ll pass your special request to the restaurant, and they&apos;ll do their best to follow it. However, a refund isn&apos;t available if they can&apos;t.
+                       We'll pass your special request to the restaurant, and they'll do their best to follow it. However, a refund isn't available if they can't.
                    </p>
                    <div className="relative">
                        <Textarea
