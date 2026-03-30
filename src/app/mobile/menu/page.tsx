@@ -9,17 +9,19 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ArrowLeft, Search, Flame, Minus, Plus, Trash2, ShoppingCart, Loader2, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ProductDetailSheet } from './product-detail-sheet';
-import { CartSheet } from './cart-sheet';
 import { Card } from '@/components/ui/card';
-import { PaymentSheet } from './payment-sheet';
-import { VipClubSheet } from './vip-club-sheet';
 import { useToast } from '@/hooks/use-toast';
 import gsap from 'gsap';
-import { SearchSheet } from './search-sheet';
 import { useCart } from '@/firebase';
 import { mockDataStore } from '@/lib/mock-data-store';
 import type { Product as SourceProduct } from '@/app/dashboard/products/types';
+import dynamic from 'next/dynamic';
+
+const ProductDetailSheet = dynamic(() => import('./product-detail-sheet').then(mod => mod.ProductDetailSheet));
+const CartSheet = dynamic(() => import('./cart-sheet').then(mod => mod.CartSheet));
+const PaymentSheet = dynamic(() => import('./payment-sheet').then(mod => mod.PaymentSheet));
+const VipClubSheet = dynamic(() => import('./vip-club-sheet').then(mod => mod.VipClubSheet));
+const SearchSheet = dynamic(() => import('./search-sheet').then(mod => mod.SearchSheet));
 
 type MenuItem = {
   id: string;
