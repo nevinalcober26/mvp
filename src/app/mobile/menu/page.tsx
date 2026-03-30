@@ -16,6 +16,8 @@ import { Card } from '@/components/ui/card';
 import { PaymentSheet } from './payment-sheet';
 import { VipClubSheet } from './vip-club-sheet';
 import { useToast } from '@/hooks/use-toast';
+import gsap from 'gsap';
+import { SearchSheet } from './search-sheet';
 
 // Helper to find image URL by ID
 const getImageUrl = (id: string) => {
@@ -171,6 +173,8 @@ export default function MobileMenuPage() {
   const [selectedTip, setSelectedTip] = useState<number | 'custom' | null>(4);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isVip, setIsVip] = useState(false);
+  const [isSignupAndPay, setIsSignupAndPay] = useState(false);
+  const [isSearchSheetOpen, setIsSearchSheetOpen] = useState(false);
 
   useEffect(() => {
     setIsVip(localStorage.getItem('isVip') === 'true');
@@ -288,6 +292,12 @@ export default function MobileMenuPage() {
   };
   
   const handleAddToCart = (item: MenuItem, quantity: number) => {
+    const cartIcon = document.getElementById('floating-cart-icon');
+    if (cartIcon) {
+        cartIcon.classList.remove('animate-in', 'zoom-in-95');
+        void cartIcon.offsetWidth; // Trigger reflow
+        cartIcon.classList.add('animate-in', 'zoom-in-95');
+    }
     setCart(prevCart => ({
       ...prevCart,
       [item.id]: (prevCart[item.id] || 0) + quantity
@@ -347,22 +357,32 @@ export default function MobileMenuPage() {
 
   const handleVipSignupAndPay = () => {
     setIsVipSheetOpen(false);
-
-    toast({
-      title: "You're In!",
-      description: "You're now part of our VIP Dining circle.",
-    });
-
-    localStorage.setItem('isVip', 'true');
-    setIsVip(true);
-
-    setTimeout(() => {
-      setIsRedirecting(true);
-      setTimeout(() => {
-        router.push(`/mobile/menu/checkout?total=${total}`);
-      }, 1500);
-    }, 3000);
+    setIsSignupAndPay(true);
   };
+  
+  useEffect(() => {
+    if (isSignupAndPay) {
+      toast({
+        title: "You're In!",
+        description: "You're now part of our VIP Dining circle.",
+      });
+
+      localStorage.setItem('isVip', 'true');
+      setIsVip(true);
+
+      const timer = setTimeout(() => {
+        setIsRedirecting(true);
+        const redirectTimer = setTimeout(() => {
+          router.push(`/mobile/menu/checkout?total=${total}`);
+        }, 1500);
+        return () => clearTimeout(redirectTimer);
+      }, 3000);
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [isSignupAndPay, router, total, toast]);
 
   const handleBecomeVip = () => {
     setIsCartSheetOpen(false);
@@ -384,7 +404,7 @@ export default function MobileMenuPage() {
               <h1 className="text-xl font-bold text-gray-900">Drinks</h1>
               <p className="text-sm text-teal-600 font-medium">2 items</p>
             </div>
-            <Button size="icon" variant="ghost">
+            <Button size="icon" variant="ghost" onClick={() => setIsSearchSheetOpen(true)}>
               <Search className="h-6 w-6 text-gray-800" />
             </Button>
           </div>
@@ -496,6 +516,10 @@ export default function MobileMenuPage() {
         onPayNow={handleInitiateVipSignup}
         selectedTip={selectedTip}
         onTipChange={setSelectedTip}
+      />
+      <SearchSheet 
+        isOpen={isSearchSheetOpen}
+        onOpenChange={setIsSearchSheetOpen}
       />
       {!isVip && (
         <VipClubSheet
