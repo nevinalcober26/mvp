@@ -22,13 +22,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { mockDataStore } from '@/lib/mock-data-store';
+import { mockVariationGroups } from '@/lib/mock-data-store';
 import type { VariationGroup } from './types';
 import { VariationGroupSheet } from './variation-group-sheet';
 import { useToast } from '@/hooks/use-toast';
 
 export default function VariationsPage() {
-  const [variationGroups, setVariationGroups] = useState<VariationGroup[]>(mockDataStore.variationGroups);
+  const [variationGroups, setVariationGroups] = useState<VariationGroup[]>(mockVariationGroups);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<VariationGroup | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<VariationGroup | null>(null);

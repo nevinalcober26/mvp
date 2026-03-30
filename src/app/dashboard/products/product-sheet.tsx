@@ -80,7 +80,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generateProductDescription } from '@/ai/flows/generate-product-description-flow';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { mockDataStore, mockComboGroups } from '@/lib/mock-data-store';
+import { mockCategories, mockVariationGroups, mockComboGroupNames } from '@/lib/mock-data-store';
 import { getCategoryNameOptions } from '@/app/dashboard/categories/utils';
 import {
   Collapsible,
@@ -174,7 +174,7 @@ export function ProductSheet({
   const [mainImagePreview, setMainImagePreview] = useState<string | null>(null);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
 
-  const categoryOptions = useMemo(() => getCategoryNameOptions(mockDataStore.categories), []);
+  const categoryOptions = useMemo(() => getCategoryNameOptions(mockCategories), []);
 
   const defaultValues = useMemo(() => {
     let discountType: 'none' | 'percentage' | 'fixed' = 'none';
@@ -959,7 +959,7 @@ export function ProductSheet({
                                                 </SelectTrigger>
                                               </FormControl>
                                               <SelectContent>
-                                                {mockComboGroups.map((group) => (
+                                                {mockComboGroupNames.map((group) => (
                                                   <SelectItem key={group} value={group}>
                                                     {group}
                                                   </SelectItem>
@@ -1141,12 +1141,12 @@ export function ProductSheet({
                                                                 <FormLabel>Variation Value*</FormLabel>
                                                                 <Select
                                                                   onValueChange={(groupId) => {
-                                                                      const selectedGroup = mockDataStore.variationGroups.find(g => g.id === groupId);
+                                                                      const selectedGroup = mockVariationGroups.find(g => g.id === groupId);
                                                                       if (selectedGroup) {
                                                                           field.onChange(selectedGroup.name);
                                                                       }
                                                                   }}
-                                                                  value={mockDataStore.variationGroups.find(g => g.name === field.value)?.id}
+                                                                  value={mockVariationGroups.find(g => g.name === field.value)?.id}
                                                                 >
                                                                     <FormControl>
                                                                         <SelectTrigger>
@@ -1154,7 +1154,7 @@ export function ProductSheet({
                                                                         </SelectTrigger>
                                                                     </FormControl>
                                                                     <SelectContent>
-                                                                        {mockDataStore.variationGroups.map((group) => (
+                                                                        {mockVariationGroups.map((group) => (
                                                                             <SelectItem key={group.id} value={group.id}>
                                                                                 {group.name}
                                                                             </SelectItem>

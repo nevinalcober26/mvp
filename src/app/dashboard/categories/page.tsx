@@ -37,7 +37,7 @@ import { CategoriesPageSkeleton } from '@/components/dashboard/skeletons';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 import { QuickSettingsSheet } from './quick-settings-sheet';
 import { useToast } from '@/hooks/use-toast';
-import { mockDataStore, type Branch } from '@/lib/mock-data-store';
+import { mockBranches, type Branch } from '@/lib/mock-data-store';
 import gsap from 'gsap';
 
 const RestaurantCard = ({ 
@@ -277,7 +277,7 @@ export default function ManageRestaurantPage() {
   };
 
   const filteredRestaurants = useMemo(() => {
-    return mockDataStore.branches.filter(r => 
+    return mockBranches.filter(r => 
       r.name.toLowerCase().includes(search.toLowerCase()) || 
       r.location.toLowerCase().includes(search.toLowerCase())
     );
@@ -382,7 +382,7 @@ export default function ManageRestaurantPage() {
 
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t">
             <p className="text-sm text-muted-foreground">
-              Showing <strong>1 to {filteredRestaurants.length}</strong> of <strong>{mockDataStore.branches.length}</strong> branches
+              Showing <strong>1 to {filteredRestaurants.length}</strong> of <strong>{mockBranches.length}</strong> branches
             </p>
             <div className="flex items-center gap-1">
               <Button variant="ghost" size="icon" className="h-9 w-9">

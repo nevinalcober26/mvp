@@ -25,7 +25,7 @@ import { AddCategorySheet, type CategoryFormValues } from '@/app/dashboard/categ
 import { CategorySheet } from '@/app/dashboard/categories/category-sheet';
 import { CategoryScheduleSheet } from '@/app/dashboard/categories/schedule-sheet';
 import type { Column, Item, ScheduleRule } from '@/app/dashboard/categories/types';
-import { mockDataStore } from '@/lib/mock-data-store';
+import { mockCategories } from '@/lib/mock-data-store';
 import { useToast } from '@/hooks/use-toast';
 import { produce } from 'immer';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -75,7 +75,7 @@ const findItemParent = (items: Item[], id: UniqueIdentifier): Item | null => {
 }
 
 export default function CategoriesPage() {
-    const [board, setBoard] = useState<Column[]>(mockDataStore.categories);
+    const [board, setBoard] = useState<Column[]>(mockCategories);
     const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
     const [activeElement, setActiveElement] = useState<'container' | 'item' | null>(null);
     const [overId, setOverId] = useState<UniqueIdentifier | null>(null);

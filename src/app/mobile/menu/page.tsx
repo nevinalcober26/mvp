@@ -13,7 +13,7 @@ import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import gsap from 'gsap';
 import { useCart } from '@/firebase';
-import { mockDataStore } from '@/lib/mock-data-store';
+import { mockProducts } from '@/lib/mock-data-store';
 import type { Product as SourceProduct } from '@/app/dashboard/products/types';
 import dynamic from 'next/dynamic';
 
@@ -157,7 +157,7 @@ export default function MobileMenuPage() {
   const { toast } = useToast();
   const { cart, addToCart, incrementItem, decrementItem } = useCart();
 
-  const menuItems: MenuItem[] = useMemo(() => mockDataStore.products.map((p: SourceProduct) => ({
+  const menuItems: MenuItem[] = useMemo(() => mockProducts.map((p: SourceProduct) => ({
     id: p.id,
     name: p.name,
     description: p.description || p.smallDescription || 'No description available.',
@@ -232,7 +232,7 @@ export default function MobileMenuPage() {
     }
     prevCartTotalRef.current = totalItemsInCart;
   }, [totalItemsInCart]);
-
+  
   useEffect(() => {
     if (isCartAnimating) {
         const timer = setTimeout(() => setIsCartAnimating(false), 500); // Corresponds to animation duration

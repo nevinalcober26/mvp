@@ -29,7 +29,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { ComboGroup } from './types';
 import { useToast } from '@/hooks/use-toast';
-import { mockDataStore } from '@/lib/mock-data-store';
+import { mockProducts } from '@/lib/mock-data-store';
 import { Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -64,7 +64,7 @@ export function ComboGroupSheet({ open, onOpenChange, group, onSave }: ComboGrou
   });
 
   const availableProducts = useMemo(() => {
-    return mockDataStore.products.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()));
+    return mockProducts.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()));
   }, [productSearch]);
 
   useEffect(() => {

@@ -9,7 +9,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { VariationGroup } from '@/app/dashboard/catalog/variations/types';
 import type { ComboGroup } from '@/app/dashboard/catalog/combo-groups/types';
 
-export const mockComboGroups = ['Lunch Special', 'Family Deal', 'Dinner for Two', 'Breakfast Combo'];
+export const mockComboGroupNames = ['Lunch Special', 'Family Deal', 'Dinner for Two', 'Breakfast Combo'];
 
 export const mockVariationGroups: VariationGroup[] = [
   {
@@ -206,6 +206,8 @@ const generateMockProducts = (count: number): Product[] => {
     }
     return products;
 };
+
+export const mockProducts: Product[] = generateMockProducts(30);
 
 // A simple pseudo-random generator for deterministic "randomness"
 const createSeededRandom = (seed: number) => () => {
@@ -467,136 +469,121 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
     return { customers, orders };
 };
 
-class MockDataStore {
-    public products: Product[];
-    public customers: Customer[];
-    public orders: Order[];
-    public categories: Column[];
-    public branches: Branch[];
-    public variationGroups: VariationGroup[];
-    public comboGroups: ComboGroup[];
+const relatedData = generateRelatedMockData(45, 124, mockProducts);
+export const mockCustomers: Customer[] = relatedData.customers;
+export const mockOrders: Order[] = relatedData.orders;
 
-    constructor() {
-        this.branches = mockBranches;
-        this.products = generateMockProducts(30);
-        const { customers, orders } = generateRelatedMockData(45, 124, this.products);
-        this.customers = customers;
-        this.orders = orders;
-        this.variationGroups = mockVariationGroups;
-        this.comboGroups = [
-             {
-                id: 'combo_1',
-                name: 'Lunch Special',
-                description: 'A perfect combo for a quick and satisfying lunch.',
-                price: 25.99,
-                productIds: ['prod_0', 'prod_1', 'prod_11'],
-            },
-            {
-                id: 'combo_2',
-                name: 'Dinner for Two',
-                description: 'Share a romantic dinner with our special selection.',
-                price: 55.00,
-                productIds: ['prod_8', 'prod_4', 'prod_9'],
-            },
-            {
-                id: 'combo_3',
-                name: 'Breakfast Power-Up',
-                description: 'Start your day with energy.',
-                price: 18.00,
-                productIds: ['prod_6', 'prod_10', 'prod_12'],
-            },
-        ];
-        this.categories = [
-          {
-            id: 'food',
-            name: 'Food',
-            description: 'All of our delicious food items.',
-            status: 'Published',
-            items: [
-              {
-                id: 'appetizers',
-                name: 'Appetizers',
-                description: 'Start your meal with a tasty bite.',
-                cardShadow: false,
-                status: 'Published',
-                children: [
-                  { id: 'soups', name: 'Soups', children: [], description: 'Warm and comforting soups.', status: 'Published' },
-                  { id: 'salads', name: 'Salads', children: [], description: 'Fresh and healthy salads.', status: 'Published' },
-                ],
-              },
-              {
-                id: 'main-courses',
-                name: 'Main Courses',
-                description: 'The star of the show.',
-                displayFullwidth: true,
-                status: 'Published',
-                children: [
-                  { id: 'pizza', name: 'Pizza', children: [], status: 'Published' },
-                  { id: 'pasta', name: 'Pasta', children: [], status: 'Published' },
-                  { id: 'burgers', name: 'Burgers', children: [], status: 'Published' },
-                ],
-              },
-              {
-                id: 'desserts',
-                name: 'Desserts',
-                description: 'Sweet treats to end your meal.',
-                status: 'Published',
-                children: [
-                    { id: 'cakes', name: 'Cakes', children: [], status: 'Published' },
-                    { id: 'ice-cream', name: 'Ice Cream', children: [], status: 'Published' },
-                ],
-              },
-            ],
-          },
-          {
-            id: 'beverages',
-            name: 'Beverages',
-            description: 'Quench your thirst.',
-            status: 'Published',
-            items: [
-              {
-                id: 'hot-drinks',
-                name: 'Hot Drinks',
-                status: 'Published',
-                children: [
-                  { id: 'coffee', name: 'Coffee', children: [], status: 'Published' },
-                  { id: 'tea', name: 'Tea', children: [], status: 'Published' },
-                ],
-              },
-              {
-                id: 'cold-drinks',
-                name: 'Cold Drinks',
-                status: 'Published',
-                children: [
-                  { id: 'juices', name: 'Juices', children: [], status: 'Published' },
-                  { id: 'soft-drinks', name: 'Soft Drinks', children: [], status: 'Published' },
-                ],
-              },
-              { id: 'mocktails', name: 'Mocktails', children: [], status: 'Published' },
-            ],
-          },
-          {
-            id: 'specials',
-            name: 'Special Offers',
-            description: 'Great deals for you.',
-            status: 'Published',
-            items: [
-                { id: 'daily-specials', name: 'Daily Specials', children: [], status: 'Published' },
-                { id: 'combo-meals', name: 'Combo Meals', children: [], status: 'Published' },
-            ],
-          },
-          {
-            id: 'breakfast',
-            name: 'Breakfast',
-            status: 'Published',
-            items: [
-                { id: 'pancakes-waffles', name: 'Pancakes & Waffles', children: [], status: 'Published' },
-                { id: 'omelettes', name: 'Omelettes', children: [], status: 'Published' },
-                { id: 'healthy-bowls', name: 'Healthy Bowls', children: [], status: 'Published' },
-            ]
-          }
-        ];
-    }
-}
+export const mockCategories: Column[] = [
+  {
+    id: 'food',
+    name: 'Food',
+    description: 'All of our delicious food items.',
+    status: 'Published',
+    items: [
+      {
+        id: 'appetizers',
+        name: 'Appetizers',
+        description: 'Start your meal with a tasty bite.',
+        cardShadow: false,
+        status: 'Published',
+        children: [
+          { id: 'soups', name: 'Soups', children: [], description: 'Warm and comforting soups.', status: 'Published' },
+          { id: 'salads', name: 'Salads', children: [], description: 'Fresh and healthy salads.', status: 'Published' },
+        ],
+      },
+      {
+        id: 'main-courses',
+        name: 'Main Courses',
+        description: 'The star of the show.',
+        displayFullwidth: true,
+        status: 'Published',
+        children: [
+          { id: 'pizza', name: 'Pizza', children: [], status: 'Published' },
+          { id: 'pasta', name: 'Pasta', children: [], status: 'Published' },
+          { id: 'burgers', name: 'Burgers', children: [], status: 'Published' },
+        ],
+      },
+      {
+        id: 'desserts',
+        name: 'Desserts',
+        description: 'Sweet treats to end your meal.',
+        status: 'Published',
+        children: [
+            { id: 'cakes', name: 'Cakes', children: [], status: 'Published' },
+            { id: 'ice-cream', name: 'Ice Cream', children: [], status: 'Published' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'beverages',
+    name: 'Beverages',
+    description: 'Quench your thirst.',
+    status: 'Published',
+    items: [
+      {
+        id: 'hot-drinks',
+        name: 'Hot Drinks',
+        status: 'Published',
+        children: [
+          { id: 'coffee', name: 'Coffee', children: [], status: 'Published' },
+          { id: 'tea', name: 'Tea', children: [], status: 'Published' },
+        ],
+      },
+      {
+        id: 'cold-drinks',
+        name: 'Cold Drinks',
+        status: 'Published',
+        children: [
+          { id: 'juices', name: 'Juices', children: [], status: 'Published' },
+          { id: 'soft-drinks', name: 'Soft Drinks', children: [], status: 'Published' },
+        ],
+      },
+      { id: 'mocktails', name: 'Mocktails', children: [], status: 'Published' },
+    ],
+  },
+  {
+    id: 'specials',
+    name: 'Special Offers',
+    description: 'Great deals for you.',
+    status: 'Published',
+    items: [
+        { id: 'daily-specials', name: 'Daily Specials', children: [], status: 'Published' },
+        { id: 'combo-meals', name: 'Combo Meals', children: [], status: 'Published' },
+    ],
+  },
+  {
+    id: 'breakfast',
+    name: 'Breakfast',
+    status: 'Published',
+    items: [
+        { id: 'pancakes-waffles', name: 'Pancakes & Waffles', children: [], status: 'Published' },
+        { id: 'omelettes', name: 'Omelettes', children: [], status: 'Published' },
+        { id: 'healthy-bowls', name: 'Healthy Bowls', children: [], status: 'Published' },
+    ]
+  }
+];
 
-export const mockDataStore = new MockDataStore();
+export const mockComboGroups: ComboGroup[] = [
+     {
+        id: 'combo_1',
+        name: 'Lunch Special',
+        description: 'A perfect combo for a quick and satisfying lunch.',
+        price: 25.99,
+        productIds: ['prod_0', 'prod_1', 'prod_11'],
+    },
+    {
+        id: 'combo_2',
+        name: 'Dinner for Two',
+        description: 'Share a romantic dinner with our special selection.',
+        price: 55.00,
+        productIds: ['prod_8', 'prod_4', 'prod_9'],
+    },
+    {
+        id: 'combo_3',
+        name: 'Breakfast Power-Up',
+        description: 'Start your day with energy.',
+        price: 18.00,
+        productIds: ['prod_6', 'prod_10', 'prod_12'],
+    },
+];

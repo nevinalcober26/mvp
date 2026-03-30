@@ -59,7 +59,7 @@ import {
   SelectLabel,
   SelectSeparator,
 } from '@/components/ui/select';
-import { mockDataStore } from '@/lib/mock-data-store';
+import { mockVariationGroups } from '@/lib/mock-data-store';
 
 
 const variationOptionSchema = z.object({

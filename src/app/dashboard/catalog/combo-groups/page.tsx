@@ -22,19 +22,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { mockDataStore } from '@/lib/mock-data-store';
+import { mockComboGroups, mockProducts } from '@/lib/mock-data-store';
 import type { ComboGroup } from './types';
 import { ComboGroupSheet } from './combo-group-sheet';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ComboGroupsPage() {
-  const [comboGroups, setComboGroups] = useState<ComboGroup[]>(mockDataStore.comboGroups);
+  const [comboGroups, setComboGroups] = useState<ComboGroup[]>(mockComboGroups);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<ComboGroup | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ComboGroup | null>(null);
   const { toast } = useToast();
 
-  const getProductById = (id: string) => mockDataStore.products.find(p => p.id === id);
+  const getProductById = (id: string) => mockProducts.find(p => p.id === id);
 
   const handleAdd = () => {
     setEditingGroup(null);
