@@ -10,6 +10,16 @@ import {
   SheetFooter,
   SheetClose,
 } from '@/components/ui/sheet';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -40,6 +50,10 @@ export function QuickSettingsSheet({
   const { toast } = useToast();
   const [isBranchOpen, setIsBranchOpen] = useState(restaurant?.status === 'Open');
   const [isOnlineOrderingEnabled, setIsOnlineOrderingEnabled] = useState(true);
+  
+  const [isConfirmingToggle, setIsConfirmingToggle] = useState(false);
+  const [pendingOnlineState, setPendingOnlineState] = useState(false);
+
 
   useEffect(() => {
     if (open && restaurant) {
@@ -56,7 +70,16 @@ export function QuickSettingsSheet({
     // Note: The branch status change is not persisted here as it's not the primary goal.
     // The main goal is persisting the online ordering status.
     if(restaurant) {
-      localStorage.setItem(`onlineOrderingEnabled_${restaurant.id}`, String(isOnlineOrderingEnabled));
+      const oldValue = localStorage.getItem(`onlineOrderingEnabled_${restaurant.id}`);
+      const newValue = String(isOnlineOrderingEnabled);
+      localStorage.setItem(`onlineOrderingEnabled_${restaurant.id}`, newValue);
+       // Manually dispatch a storage event so other tabs can listen
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: `onlineOrderingEnabled_${restaurant.id}`,
+        newValue: newValue,
+        oldValue: oldValue,
+        storageArea: localStorage,
+      }));
     }
 
     toast({
@@ -65,83 +88,118 @@ export function QuickSettingsSheet({
     });
     onOpenChange(false);
   };
+  
+  const handleToggleConfirmation = (checked: boolean) => {
+    setPendingOnlineState(checked);
+    setIsConfirmingToggle(true);
+  };
+  
+  const handleConfirmToggle = () => {
+    setIsOnlineOrderingEnabled(pendingOnlineState);
+    setIsConfirmingToggle(false);
+  };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-md w-full p-0">
-        <div className="flex flex-col h-full">
-          <SheetHeader className="p-6 border-b bg-muted/20">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <ShieldCheck className="h-5 w-5 text-primary" />
+    <>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent className="sm:max-w-md w-full p-0">
+          <div className="flex flex-col h-full">
+            <SheetHeader className="p-6 border-b bg-muted/20">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <ShieldCheck className="h-5 w-5 text-primary" />
+                </div>
+                <SheetTitle className="text-xl">Quick Settings</SheetTitle>
               </div>
-              <SheetTitle className="text-xl">Quick Settings</SheetTitle>
-            </div>
-            <SheetDescription className="text-base font-medium text-foreground">
-              {restaurant.name}
-            </SheetDescription>
-          </SheetHeader>
+              <SheetDescription className="text-base font-medium text-foreground">
+                {restaurant.name}
+              </SheetDescription>
+            </SheetHeader>
 
-          <div className="flex-grow overflow-y-auto p-6 space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Operational Status</h3>
-              
-              <Card className="border-2">
-                <CardContent className="p-4 space-y-4">
-                  <div className="flex items-center justify-between">
+            <div className="flex-grow overflow-y-auto p-6 space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Operational Status</h3>
+                
+                <Card className="border-2">
+                  <CardContent className="p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Store className="h-5 w-5 text-muted-foreground" />
+                        <div className="grid gap-0.5">
+                          <Label htmlFor="status" className="font-bold">Branch Open</Label>
+                          <p className="text-xs text-muted-foreground">Set if this branch is currently taking orders.</p>
+                        </div>
+                      </div>
+                      <Switch id="status" checked={isBranchOpen} onCheckedChange={setIsBranchOpen} />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">ORDER CHANNELS</h3>
+                
+                <div className="grid gap-3">
+                  <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
                     <div className="flex items-center gap-3">
-                      <Store className="h-5 w-5 text-muted-foreground" />
+                      <ShoppingBag className="h-5 w-5 text-muted-foreground" />
                       <div className="grid gap-0.5">
-                        <Label htmlFor="status" className="font-bold">Branch Open</Label>
-                        <p className="text-xs text-muted-foreground">Set if this branch is currently taking orders.</p>
+                        <Label htmlFor="online-orders" className="font-bold">Online Ordering</Label>
+                        <p className="text-xs text-muted-foreground">Enable web & mobile app ordering.</p>
                       </div>
                     </div>
-                    <Switch id="status" checked={isBranchOpen} onCheckedChange={setIsBranchOpen} />
+                    <Switch 
+                      id="online-orders" 
+                      checked={isOnlineOrderingEnabled} 
+                      onCheckedChange={handleToggleConfirmation}
+                    />
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </div>
 
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">ORDER CHANNELS</h3>
-              
-              <div className="grid gap-3">
-                <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
-                  <div className="flex items-center gap-3">
-                    <ShoppingBag className="h-5 w-5 text-muted-foreground" />
-                    <div className="grid gap-0.5">
-                      <Label htmlFor="online-orders" className="font-bold">Online Ordering</Label>
-                      <p className="text-xs text-muted-foreground">Enable web & mobile app ordering.</p>
-                    </div>
-                  </div>
-                  <Switch id="online-orders" checked={isOnlineOrderingEnabled} onCheckedChange={setIsOnlineOrderingEnabled} />
+              <div className="p-4 rounded-lg bg-orange-50 border border-orange-100 flex items-start gap-3">
+                <Clock className="h-5 w-5 text-orange-600 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold text-orange-900">Auto-Close Warning</p>
+                  <p className="text-xs text-orange-800">
+                    This branch is set to automatically close orders at 11:30 PM. You can change this in full settings.
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="p-4 rounded-lg bg-orange-50 border border-orange-100 flex items-start gap-3">
-              <Clock className="h-5 w-5 text-orange-600 mt-0.5" />
-              <div>
-                <p className="text-sm font-bold text-orange-900">Auto-Close Warning</p>
-                <p className="text-xs text-orange-800">
-                  This branch is set to automatically close orders at 11:30 PM. You can change this in full settings.
-                </p>
+            <SheetFooter className="p-6 border-t bg-background">
+              <div className="flex gap-3 w-full">
+                <SheetClose asChild>
+                  <Button variant="outline" className="flex-1">Cancel</Button>
+                </SheetClose>
+                <Button onClick={handleSave} className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
+                  Save Changes
+                </Button>
               </div>
-            </div>
+            </SheetFooter>
           </div>
-
-          <SheetFooter className="p-6 border-t bg-background">
-            <div className="flex gap-3 w-full">
-              <SheetClose asChild>
-                <Button variant="outline" className="flex-1">Cancel</Button>
-              </SheetClose>
-              <Button onClick={handleSave} className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
-                Save Changes
-              </Button>
-            </div>
-          </SheetFooter>
-        </div>
-      </SheetContent>
-    </Sheet>
+        </SheetContent>
+      </Sheet>
+      
+      <AlertDialog open={isConfirmingToggle} onOpenChange={setIsConfirmingToggle}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                      {pendingOnlineState 
+                        ? "This will enable online ordering for this branch. Customers will be able to place orders from the mobile menu."
+                        : "This will disable online ordering for this branch. Customers will only be able to view the menu, not purchase items."}
+                  </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleConfirmToggle}>
+                      {pendingOnlineState ? 'Enable' : 'Disable'}
+                  </AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
