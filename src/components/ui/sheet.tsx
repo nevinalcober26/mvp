@@ -19,7 +19,7 @@ const Sheet = ({ onOpenChange, ...props }: React.ComponentProps<typeof SheetPrim
     }
   }, [onOpenChange]);
 
-  return <SheetPrimitive.Root modal={false} onOpenChange={handleOpenChange} {...props} />;
+  return <SheetPrimitive.Root onOpenChange={handleOpenChange} {...props} />;
 };
 
 const SheetTrigger = SheetPrimitive.Trigger

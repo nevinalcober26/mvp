@@ -101,7 +101,7 @@ export function QuickSettingsSheet({
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
+      <Sheet open={open} onOpenChange={onOpenChange} modal={!isConfirmingToggle}>
         <SheetContent className="sm:max-w-md w-full p-0">
           <div className="flex flex-col h-full">
             <SheetHeader className="p-6 border-b bg-muted/20">
