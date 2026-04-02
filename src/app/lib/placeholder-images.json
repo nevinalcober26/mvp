@@ -9,83 +9,83 @@
     {
       "id": "restaurant-logo",
       "description": "Bloomsbury's logo reference",
-      "imageUrl": "https://images.unsplash.com/photo-1550367363-ea12860cc124?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwwfHx8fDE3Njk5NzU0NzJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/restaurantfood/400/400",
       "imageHint": "restaurant food"
     },
     {
       "id": "restaurant-1",
       "description": "Bloomsbury's Ras Al Khaimah",
-      "imageUrl": "https://images.unsplash.com/photo-1643879397174-4f10ac503566?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmaW5lJTIwZGluaW5nfGVufDB8fHx8MTc3MDgwODUwMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/finedining/600/400",
       "imageHint": "fine dining"
     },
     {
       "id": "restaurant-2",
       "description": "Bloomsbury's Dubai Mall",
-      "imageUrl": "https://images.unsplash.com/photo-1648808694138-6706c5efc80a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxtb2Rlcm4lMjBjYWZlfGVufDB8fHx8MTc3MDgwODUwMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/moderncafe/600/400",
       "imageHint": "modern cafe"
     },
     {
       "id": "restaurant-3",
       "description": "Bloomsbury's Al Ain",
-      "imageUrl": "https://images.unsplash.com/photo-1511920170033-f8396924c348?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjb2ZmZWUlMjBzaG9wfGVufDB8fHx8MTc3MDcyOTY5MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/coffeeshop/600/400",
       "imageHint": "coffee shop"
     },
     {
       "id": "restaurant-4",
       "description": "Bloomsbury's Abu Dhabi",
-      "imageUrl": "https://images.unsplash.com/photo-1579926545913-448d525562db?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxpdGFsaWFuJTIwcmVzdGF1cmFudHxlbnwwfHx8fDE3NzA3NTE2MDZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/italianrestaurant/600/400",
       "imageHint": "italian restaurant"
     },
     {
       "id": "restaurant-5",
       "description": "Bloomsbury's Sharjah",
-      "imageUrl": "https://images.unsplash.com/photo-1634714434666-ef41b76b9cc9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzdXNoaSUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNzcwNzUxNjA2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/sushirestaurant/600/400",
       "imageHint": "sushi restaurant"
     },
     {
       "id": "restaurant-6",
       "description": "Bloomsbury's Ajman",
-      "imageUrl": "https://images.unsplash.com/photo-1695606392868-b9ed053e1c0c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxidXJnZXIlMjBqb2ludHxlbnwwfHx8fDE3NzA4MDg1MDJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/burgerjoint/600/400",
       "imageHint": "burger joint"
     },
     {
-      "id": "classic-cheese-burger",
+      "id": "classic-cheeseburger",
       "description": "Classic Cheese Burger",
-      "imageUrl": "https://images.unsplash.com/photo-1508736793122-f516e3ba5569?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjaGVlc2UlMjBidXJnZXJ8ZW58MHx8fHwxNzcwOTIxNTA4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/cheeseburger/400/400",
       "imageHint": "cheese burger"
     },
     {
       "id": "caesar-salad",
       "description": "Caesar Salad",
-      "imageUrl": "https://images.unsplash.com/photo-1669283714145-f97867f6c238?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjYWVzYXIlMjBzYWxhZHxlbnwwfHx8fDE3NzA4NTYxMjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/caesarsalad/400/400",
       "imageHint": "caesar salad"
     },
     {
       "id": "red-velvet-cupcake",
       "description": "Red Velvet Cupcake",
-      "imageUrl": "https://images.unsplash.com/photo-1645366188121-2a19e02fcbd5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxyZWQlMjB2ZWx2ZXR8ZW58MHx8fHwxNzcwOTIxNTA4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/redvelvet/400/400",
       "imageHint": "red velvet"
     },
     {
       "id": "red-velvet-cupcake-2",
       "description": "Red Velvet Cupcake Duplicate",
-      "imageUrl": "https://images.unsplash.com/photo-1760124056888-8ae3ec14b978?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxkZXNzZXJ0JTIwZGlzcGxheXxlbnwwfHx8fDE3NzA5MjE1MDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/dessertdisplay/400/400",
       "imageHint": "dessert display"
     },
     {
-      "id": "pizza-margherita",
+      "id": "margherita-pizza",
       "description": "Pizza margherita",
       "imageUrl": "https://picsum.photos/seed/margherita/400/400",
       "imageHint": "margherita pizza"
     },
     {
-      "id": "pizza-alfredo",
+      "id": "alfredo-pizza",
       "description": "Chicken alfredo pizza",
       "imageUrl": "https://picsum.photos/seed/alfredo/400/400",
       "imageHint": "alfredo pizza"
     },
     {
-      "id": "pizza-hawaiian",
+      "id": "hawaiian-pizza",
       "description": "Hawaiian pizza",
       "imageUrl": "https://picsum.photos/seed/hawaiian/400/400",
       "imageHint": "hawaiian pizza"
@@ -105,20 +105,116 @@
     {
       "id": "french-fries",
       "description": "French Fries",
-      "imageUrl": "https://picsum.photos/seed/fries/400/400",
+      "imageUrl": "https://picsum.photos/seed/frenchfries/400/400",
       "imageHint": "french fries"
     },
     {
       "id": "garlic-bread",
       "description": "Garlic Bread Sticks",
-      "imageUrl": "https://images.unsplash.com/photo-1626078298468-52541353f479?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxnYXJsaWMlMjBicmVhZHxlbnwwfHx8fDE3NzA4NTYyMTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/garlicbread/400/400",
       "imageHint": "garlic bread"
     },
     {
       "id": "lava-cake",
       "description": "Chocolate Lava Cake",
-      "imageUrl": "https://images.unsplash.com/photo-1586985289933-60a6d0371447?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsYXZhJTIwY2FrZXxlbnwwfHx8fDE3NzA4NTYzODF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/lavacake/400/400",
       "imageHint": "lava cake"
+    },
+    {
+      "id": "gift-icon",
+      "description": "A wrapped gift icon",
+      "imageUrl": "https://emojipedia-us.s3.amazonaws.com/source/skype/289/wrapped-gift_1f381.png",
+      "imageHint": "gift box"
+    },
+    {
+      "id": "truffle-fries",
+      "description": "Truffle Fries",
+      "imageUrl": "https://picsum.photos/seed/trufflefries/400/400",
+      "imageHint": "truffle fries"
+    },
+    {
+      "id": "seasonal-berry-crumble",
+      "description": "Seasonal Berry Crumble",
+      "imageUrl": "https://picsum.photos/seed/berrycrumble/400/400",
+      "imageHint": "berry crumble"
+    },
+    {
+      "id": "artisanal-pizza",
+      "description": "Artisanal Pizza",
+      "imageUrl": "https://picsum.photos/seed/artisanpizza/400/400",
+      "imageHint": "artisanal pizza"
+    },
+    {
+      "id": "fresh-garden-salad",
+      "description": "Fresh Garden Salad",
+      "imageUrl": "https://picsum.photos/seed/gardensalad/400/400",
+      "imageHint": "garden salad"
+    },
+    {
+      "id": "spicy-chicken-wings",
+      "description": "Spicy Chicken Wings",
+      "imageUrl": "https://picsum.photos/seed/chickenwings/400/400",
+      "imageHint": "chicken wings"
+    },
+    {
+      "id": "avocado-toast",
+      "description": "Avocado Toast",
+      "imageUrl": "https://picsum.photos/seed/avocadotoast/400/400",
+      "imageHint": "avocado toast"
+    },
+    {
+      "id": "ribeye-steak",
+      "description": "Ribeye Steak",
+      "imageUrl": "https://picsum.photos/seed/ribeye/400/400",
+      "imageHint": "ribeye steak"
+    },
+    {
+      "id": "classic-pancakes",
+      "description": "Classic Pancakes",
+      "imageUrl": "https://picsum.photos/seed/pancakes/400/400",
+      "imageHint": "pancakes"
+    },
+    {
+      "id": "orange-juice",
+      "description": "Orange Juice",
+      "imageUrl": "https://picsum.photos/seed/orangejuice/400/400",
+      "imageHint": "orange juice"
+    },
+    {
+      "id": "espresso",
+      "description": "Espresso",
+      "imageUrl": "https://picsum.photos/seed/espresso/400/400",
+      "imageHint": "espresso"
+    },
+    {
+      "id": "latte",
+      "description": "Latte",
+      "imageUrl": "https://picsum.photos/seed/latte/400/400",
+      "imageHint": "latte"
+    },
+    {
+      "id": "cheesecake",
+      "description": "Cheesecake",
+      "imageUrl": "https://picsum.photos/seed/cheesecake/400/400",
+      "imageHint": "cheesecake"
+    },
+    {
+      "id": "template-1",
+      "description": "Abstract red and white template design",
+      "imageUrl": "https://images.unsplash.com/photo-1615714343389-983870d89269?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZWQlMjBhYnN0cmFjdHxlbnwwfHx8fDE3NzA5ODc5MTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract red"
+    },
+    {
+      "id": "template-2",
+      "description": "Dark theme template design",
+      "imageUrl": "https://images.unsplash.com/photo-1542435503-956c469947f6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx3ZWIlMjBkZXNpZ258ZW58MHx8fHwxNzcwOTg3OTQyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dark theme"
+    },
+    {
+      "id": "template-3",
+      "description": "Gray placeholder for a template",
+      "imageUrl": "https://picsum.photos/seed/template3/600/400",
+      "imageHint": "gray placeholder"
     }
   ]
 }

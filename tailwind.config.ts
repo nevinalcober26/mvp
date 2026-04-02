@@ -19,10 +19,6 @@ export default {
     'bg-green-100',
     'text-green-600',
     'text-green-700',
-    'bg-teal-400',
-    'bg-teal-100',
-    'text-teal-600',
-    'text-teal-700',
     'bg-green-50',
     'border-green-500',
     'text-green-700',
@@ -132,6 +128,10 @@ export default {
           '0%': { transform: 'translateX(-100%) skewX(-30deg)' },
           '100%': { transform: 'translateX(200%) skewX(-30deg)' },
         },
+        'loading-bar': {
+          '0%': { transform: 'translateX(-150%)' },
+          '100%': { transform: 'translateX(300%)' },
+        },
         'accordion-down': {
           from: {
             height: '0',
@@ -167,6 +167,7 @@ export default {
       },
       animation: {
         'shine-loop': 'shine-loop 3s ease-in-out infinite',
+        'loading-bar': 'loading-bar 1.5s ease-in-out infinite',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'collapsible-down': 'collapsible-down 0.2s ease-out',
