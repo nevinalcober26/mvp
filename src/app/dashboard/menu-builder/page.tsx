@@ -326,30 +326,27 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                   </div>
                   <div className="col-span-1 bg-muted/30 p-6 overflow-y-auto">
                       <h2 className="text-xl font-bold mb-4 text-center">Live Preview</h2>
-                       <div className="w-full max-w-sm mx-auto bg-white rounded-[40px] shadow-2xl p-4 border-[6px] border-black overflow-hidden">
+                       <div className="w-full max-w-sm mx-auto bg-[#F7F9FB] rounded-[40px] shadow-2xl p-2 border-[6px] border-black overflow-hidden">
                           <div className="h-[600px] overflow-y-auto">
-                              <div className="p-4">
-                                  <h1 className="text-2xl font-bold mb-6">Our Menu</h1>
-                                  <div className="space-y-6">
-                                      {menuSections.map(section => (
-                                          <div key={section.id}>
-                                              <h2 className="text-lg font-bold border-b pb-1 mb-2">{section.name}</h2>
-                                              <div className="space-y-2">
-                                                  {section.items.map(item => (
-                                                      <MenuItemCard
-                                                          key={item.id}
-                                                          item={item}
-                                                          quantity={0}
-                                                          onAdd={() => {}}
-                                                          onIncrement={() => {}}
-                                                          onDecrement={() => {}}
-                                                          isPurchasingEnabled={false}
-                                                      />
-                                                  ))}
-                                              </div>
+                              <div className="p-2 space-y-6">
+                                  {menuSections.map(section => (
+                                      <div key={section.id}>
+                                          <h2 className="text-xl font-bold mb-2 px-2">{section.name}</h2>
+                                          <div className="space-y-2">
+                                              {section.items.map(item => (
+                                                  <MenuItemCard
+                                                      key={item.id}
+                                                      item={item}
+                                                      quantity={0}
+                                                      onAdd={() => {}}
+                                                      onIncrement={() => {}}
+                                                      onDecrement={() => {}}
+                                                      isPurchasingEnabled={false}
+                                                  />
+                                              ))}
                                           </div>
-                                      ))}
-                                  </div>
+                                      </div>
+                                  ))}
                               </div>
                           </div>
                       </div>

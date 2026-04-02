@@ -18,6 +18,8 @@ import { mockProducts } from '@/lib/mock-data-store';
 import type { Product as SourceProduct } from '@/app/dashboard/products/types';
 import dynamic from 'next/dynamic';
 import { MenuItemCard, type MenuItem } from './menu-item-card';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+
 
 const ProductDetailSheet = dynamic(() => import('./product-detail-sheet').then(mod => mod.ProductDetailSheet));
 const CartSheet = dynamic(() => import('./cart-sheet').then(mod => mod.CartSheet));
@@ -25,6 +27,21 @@ const PaymentSheet = dynamic(() => import('./payment-sheet').then(mod => mod.Pay
 const VipClubSheet = dynamic(() => import('./vip-club-sheet').then(mod => mod.VipClubSheet));
 const SearchSheet = dynamic(() => import('./search-sheet').then(mod => mod.SearchSheet));
 
+const getImageUrl = (id: string) => {
+  const image = PlaceHolderImages.find(img => img.id === id);
+  return image?.imageUrl || 'https://picsum.photos/seed/placeholder/400/400';
+};
+
+const screenshotMenuItems: MenuItem[] = [
+  { id: 'pizza-margherita-12', name: 'Pizza Margherita - 12 inches', description: 'Homemade dough, homemade pizza sauce,...', price: 36.00, category: 'Bestsellers', image: getImageUrl('margherita-pizza'), isCustomisable: false },
+  { id: 'chicken-alfredo-pizza-12', name: 'Chicken Alfredo Pizza - 12 inches', description: 'Homemade dough, white sauce base, marinated...', price: 48.00, category: 'Bestsellers', isCustomisable: true, image: getImageUrl('alfredo-pizza') },
+  { id: 'pizza-margherita-10', name: 'Pizza Margherita - 10 inches', description: 'Homemade dough, homemade pizza sauce,...', price: 27.00, category: 'Pizza', image: getImageUrl('margherita-pizza'), isCustomisable: false },
+  { id: 'hawaiian-pizza-10', name: 'Hawaiian Pizza - 10 inches', description: 'Homemade dough, pizza sauce, mozzarella, ham,...', price: 32.00, category: 'Pizza', isCustomisable: true, image: getImageUrl('hawaiian-pizza') },
+  { id: 'soft-drink', name: 'Soft Drink', description: 'Choose your favorite flavor.', price: 3.00, category: 'Drinks', isCustomisable: true, image: getImageUrl('soft-drink') },
+  { id: 'bottled-water', name: 'Bottled Water', description: 'Still or sparkling water.', price: 2.50, category: 'Drinks', image: getImageUrl('bottled-water') },
+  { id: 'steak-frites', name: 'Steak Frites', description: 'Juicy steak served with a side of crispy french fries.', price: 25.00, category: 'Bestsellers', mainImage: getImageUrl('ribeye-steak') } as any,
+  { id: 'classic-cheeseburger', name: 'Classic Cheeseburger', description: 'A succulent beef patty with melted cheddar.', price: 35.00, category: 'Bestsellers', mainImage: getImageUrl('classic-cheeseburger') } as any
+];
 
 const PaymentRedirectContent = ({ totalAmount }: { totalAmount: number }) => (
     <div className="fixed inset-0 z-50 flex flex-col min-h-screen w-full max-w-md mx-auto bg-[#F7F9FB] justify-center items-center text-center p-8">
@@ -106,31 +123,12 @@ export default function MobileMenuPage() {
     };
   }, []);
 
-  const menuItems: MenuItem[] = useMemo(() => mockProducts.map((p: SourceProduct) => ({
-    id: p.id,
-    name: p.name,
-    description: p.description || p.smallDescription || 'No description available.',
-    price: p.price,
-    image: p.mainImage || 'https://picsum.photos/seed/food/400/400',
-    isCustomisable: p.variations && p.variations.length > 0,
-    options: (p.variations && p.variations.length > 0)
-        ? { title: 'Options', required: true, items: p.variations.map(v => v.value) }
-        : undefined,
-    category: p.category,
-  })), []);
+  const menuItems: MenuItem[] = useMemo(() => screenshotMenuItems, []);
   
   const sections = useMemo(() => {
-    const categoriesFromProducts = [...new Set(menuItems.map(p => p.category))];
-    const orderedCategories = ['Burgers', 'Mains', 'Pizza', 'Salads', 'Sides', 'Desserts', 'Breakfast', 'Beverages', 'Drinks'];
-    const sorted = categoriesFromProducts.sort((a, b) => {
-        const indexA = orderedCategories.indexOf(a);
-        const indexB = orderedCategories.indexOf(b);
-        if (indexA > -1 && indexB > -1) return indexA - indexB;
-        if (indexA > -1) return -1;
-        if (indexB > -1) return 1;
-        return a.localeCompare(b);
-    });
-    return ['Bestsellers', ...sorted];
+    const sectionOrder = ['Bestsellers', 'Pizza', 'Sides', 'Desserts', 'Drinks'];
+    const availableCategories = [...new Set(menuItems.map(i => i.category))];
+    return sectionOrder.filter(s => availableCategories.includes(s));
   }, [menuItems]);
   
   const [activeTab, setActiveTab] = useState(sections[0] || '');
@@ -223,7 +221,7 @@ export default function MobileMenuPage() {
     return () => {
       currentObserver.disconnect();
     };
-  }, []); // Re-run only once on mount
+  }, [menuItems]); // Rerun when menuItems changes
   
   useEffect(() => {
     if (isTabClickScrolling.current) return;
@@ -246,7 +244,7 @@ export default function MobileMenuPage() {
         const header = document.querySelector('header');
         const headerHeight = header ? header.offsetHeight : 0;
         const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.scrollY - headerHeight;
+        const offsetPosition = elementPosition + window.scrollY - headerHeight - 10;
 
         window.scrollTo({
             top: offsetPosition,
@@ -355,8 +353,10 @@ export default function MobileMenuPage() {
               <ArrowLeft className="h-6 w-6 text-gray-800" />
             </Link>
             <div className="text-center">
-              <h1 className="text-xl font-bold text-gray-900">Drinks</h1>
-              <p className="text-sm text-teal-600 font-medium">2 items</p>
+              <h1 className="text-xl font-bold text-gray-900">{activeTab}</h1>
+              <p className="text-sm text-teal-600 font-medium">
+                {menuItems.filter(i => i.category === activeTab).length} items
+              </p>
             </div>
             <Button size="icon" variant="ghost" onClick={() => setIsSearchSheetOpen(true)}>
               <Search className="h-6 w-6 text-gray-800" />
@@ -391,9 +391,8 @@ export default function MobileMenuPage() {
         {/* Menu Items */}
         <main className="p-4 space-y-8">
           {sections.map(section => {
-              const itemsForSection = section === 'Bestsellers'
-                ? menuItems.slice(0, 4)
-                : menuItems.filter(item => item.category === section);
+              const itemsForSection = menuItems.filter(item => item.category === section);
+              if (itemsForSection.length === 0) return null;
 
               return (
                   <div 
@@ -403,24 +402,17 @@ export default function MobileMenuPage() {
                   >
                       <h2 className="text-2xl font-bold text-gray-900 mb-4">{section}</h2>
                       <div className="space-y-4">
-                          {itemsForSection.length > 0 ? (
-                            itemsForSection.map(item => (
-                              <MenuItemCard 
-                                key={item.id} 
-                                item={item} 
-                                onAdd={() => handleAddClick(item)}
-                                quantity={cart[item.id] || 0}
-                                onIncrement={handleIncrement}
-                                onDecrement={handleDecrement}
-                                isPurchasingEnabled={isPurchasingEnabled}
-                              />
-                            ))
-                          ) : (
-                            <Card className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground bg-white rounded-2xl shadow-sm border border-gray-100/80">
-                                <p className="font-semibold">No items available in this category yet.</p>
-                                <p className="text-sm mt-1">Please check back later!</p>
-                            </Card>
-                          )}
+                          {itemsForSection.map(item => (
+                            <MenuItemCard 
+                              key={item.id} 
+                              item={item} 
+                              onAdd={() => handleAddClick(item)}
+                              quantity={cart[item.id] || 0}
+                              onIncrement={handleIncrement}
+                              onDecrement={handleDecrement}
+                              isPurchasingEnabled={isPurchasingEnabled}
+                            />
+                          ))}
                       </div>
                   </div>
               );
