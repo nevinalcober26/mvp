@@ -147,10 +147,11 @@ export default function MobileMenuPage() {
   useEffect(() => {
     setIsVip(localStorage.getItem('isVip') === 'true');
   }, []);
-  
+
   const sectionRefs = useRef<{[key: string]: HTMLElement | null}>({});
   const tabRefs = useRef<{[key: string]: HTMLButtonElement | null}>({});
   const isTabClickScrolling = useRef(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
   
   const prevCartTotalRef = useRef(0);
   
@@ -187,8 +188,6 @@ export default function MobileMenuPage() {
     }
   }, [isCartAnimating]);
 
-  const observerRef = useRef<IntersectionObserver | null>(null);
-
   useEffect(() => {
     if (observerRef.current) {
       observerRef.current.disconnect();
@@ -221,8 +220,8 @@ export default function MobileMenuPage() {
     return () => {
       currentObserver.disconnect();
     };
-  }, [menuItems]); // Rerun when menuItems changes
-  
+  }, [menuItems]);
+
   useEffect(() => {
     if (isTabClickScrolling.current) return;
     
@@ -258,7 +257,7 @@ export default function MobileMenuPage() {
         isTabClickScrolling.current = false;
     }
   };
-  
+
   const handleAddToCart = (item: MenuItem, quantity: number) => {
     const cartIcon = document.getElementById('floating-cart-icon');
     if (cartIcon) {
