@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Product, Variation } from '@/app/dashboard/products/types';
@@ -365,7 +366,7 @@ const generateMockProducts = (count: number): Product[] => {
     return products;
 };
 
-export const mockProducts: Product[] = generateMockProducts(50);
+export const mockProducts: Product[] = generateMockProducts(100);
 
 // A simple pseudo-random generator for deterministic "randomness"
 const createSeededRandom = (seed: number) => () => {
@@ -627,7 +628,7 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
     return { customers, orders };
 };
 
-const relatedData = generateRelatedMockData(75, 250, mockProducts);
+const relatedData = generateRelatedMockData(150, 500, mockProducts);
 export const mockCustomers: Customer[] = relatedData.customers;
 export const mockOrders: Order[] = relatedData.orders;
 
