@@ -419,22 +419,20 @@ export function OrderDetailsSheet({
       </SheetContent>
       {order.staffReference && (
         <Dialog open={isStaffInfoOpen} onOpenChange={setIsStaffInfoOpen}>
-            <DialogContent className="bg-white p-0 max-w-sm overflow-hidden rounded-3xl border-0 shadow-2xl">
-                <RadixDialogClose className="absolute top-4 left-4 z-50 h-10 w-10 rounded-full bg-black/20 text-white ring-offset-0 focus:ring-0 focus:outline-none flex items-center justify-center transition-all hover:bg-black/30">
+            <DialogContent className="bg-transparent p-0 max-w-sm overflow-hidden rounded-3xl border-0 shadow-none">
+                <RadixDialogClose className="absolute top-4 right-4 z-50 h-8 w-8 rounded-full bg-black/20 text-white ring-offset-0 focus:ring-0 focus:outline-none flex items-center justify-center transition-all hover:bg-black/30">
                     <X className="h-5 w-5" />
                 </RadixDialogClose>
                 <div className="relative">
-                    <div className="h-64 w-full bg-gradient-to-br from-teal-300 to-cyan-400 p-8 flex flex-col items-center justify-center">
-                        <Avatar className="h-28 w-28 border-4 border-white/30 shadow-xl">
-                            <AvatarFallback className="text-4xl bg-gray-100 text-gray-400">
-                                <User className="h-16 w-16" />
-                            </AvatarFallback>
-                        </Avatar>
-                        <h2 className="mt-4 text-4xl font-bold text-white" style={{textShadow: '0 2px 4px rgba(0,0,0,0.2)'}}>{order.staffName}</h2>
-                        <p className="font-mono text-lg text-white/90 mt-1" style={{textShadow: '0 1px 3px rgba(0,0,0,0.3)'}}>{order.staffReference.employee_reference_code}</p>
+                    <div className="h-56 w-full bg-gradient-to-br from-cyan-300 to-teal-400 p-8 flex flex-col items-center justify-end pb-16">
+                        <div className="h-24 w-24 bg-white/90 rounded-full flex items-center justify-center shadow-lg border-2 border-white/50">
+                            <User className="h-12 w-12 text-gray-400" />
+                        </div>
+                        <h2 className="mt-4 text-3xl font-bold text-white" style={{textShadow: '0 2px 4px rgba(0,0,0,0.2)'}}>{order.staffName}</h2>
+                        <p className="font-mono text-sm text-white/80 mt-1" style={{textShadow: '0 1px 3px rgba(0,0,0,0.3)'}}>{order.staffReference.employee_reference_code}</p>
                     </div>
 
-                    <div className="p-6 -mt-16 space-y-4">
+                    <div className="p-6 -mt-12 space-y-4 bg-transparent">
                         <Card className="rounded-2xl shadow-xl bg-white">
                             <CardContent className="p-6 text-center">
                                 <Badge variant="secondary" className="font-bold text-xs bg-gray-100 text-gray-500 mb-3 border-gray-200 uppercase tracking-wider">
@@ -469,11 +467,11 @@ export function OrderDetailsSheet({
                                         <DollarSign className="h-4 w-4 text-green-500"/>
                                         Total Sales
                                     </div>
-                                     <div>
-                                        <span className="text-sm font-bold text-gray-900">{order.staffReference.currency}</span>
-                                        <p className="text-4xl font-black text-gray-900 leading-none">
-                                            {order.staffReference.total_sale_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                        </p>
+                                    <div className="flex items-baseline gap-1">
+                                      <span className="text-lg font-bold text-gray-900">{order.staffReference.currency}</span>
+                                      <p className="text-4xl font-black text-gray-900 leading-none">
+                                        {Math.floor(order.staffReference.total_sale_amount).toLocaleString('en-US')}<span className="text-2xl">.{order.staffReference.total_sale_amount.toFixed(2).split('.')[1]}</span>
+                                      </p>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -483,7 +481,7 @@ export function OrderDetailsSheet({
                                         <FileText className="h-4 w-4 text-orange-500"/>
                                         Total Orders
                                     </div>
-                                    <p className="text-4xl font-black text-gray-900">
+                                    <p className="text-5xl font-black text-gray-900">
                                         {order.staffReference.order_count}
                                     </p>
                                 </CardContent>
