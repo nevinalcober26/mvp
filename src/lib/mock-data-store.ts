@@ -389,7 +389,7 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
     
     const seed = 12345;
     const random = createSeededRandom(seed);
-    const baseDate = new Date(2024, 5, 20, 14, 0, 0);
+    const baseDate = new Date(); // Use current date as base
 
     // Generate Customers
     for (let i = 0; i < customerCount; i++) {
@@ -424,30 +424,53 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
             };
         });
 
-        const totalAmount = currentItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const totalAmount = parseFloat(currentItems.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2));
         
-        let orderTimestamp: number, paymentState: Order['paymentState'], orderStatus: Order['orderStatus'];
-        let paidAmount = 0;
-        
-        const isRecentOutstanding = i % 5 === 0 && random() > 0.5;
-        
-        if (isRecentOutstanding) {
-            orderTimestamp = subMinutes(baseDate, Math.floor(random() * 180) + 5).getTime();
-            orderStatus = 'Open';
-            if (random() > 0.4) {
-                paymentState = 'Partial';
-                paidAmount = totalAmount * (random() * 0.6 + 0.1);
-            } else {
-                paymentState = 'Unpaid';
-                paidAmount = 0;
+        let orderTimestamp: number;
+        let branch: string;
+        let paymentState: Order['paymentState'];
+        let orderStatus: Order['orderStatus'];
+        let paidAmount: number;
+        let isSplit = false;
+        let hasTip = false;
+
+        // Force recent, relevant data for the first ~100 items
+        if (i < 150) {
+            branch = branchNames[i % branchNames.length]; // Cycle through branches for recent data too
+            orderTimestamp = subDays(endOfDay(baseDate), Math.floor(random() * 28)).getTime(); // definitely within last 30 days
+            
+            // Focus RAK branch for default filter
+            if (i % 3 === 0) {
+                branch = "Bloomsbury's - Ras Al Khaimah";
             }
-        } else {
-            orderTimestamp = subDays(endOfDay(baseDate), Math.floor(random() * 30) + 1).getTime();
+            
+            // Ensure variety in recent data
+            isSplit = i % 4 === 0; // More frequent split bills
+            hasTip = random() > 0.3; // 70% chance of tip
+            paymentState = 'Fully Paid';
+            orderStatus = 'Completed';
             paidAmount = totalAmount;
 
-            const finalStatuses: Order['orderStatus'][] = ['Completed', 'Paid'];
-            if (i % 10 === 0) finalStatuses.push('Cancelled');
-            if (i % 15 === 0) finalStatuses.push('Refunded');
+            // Add some recent outstanding orders
+            if (i % 7 === 0) {
+                orderStatus = 'Open';
+                if (random() > 0.4) {
+                    paymentState = 'Partial';
+                    paidAmount = parseFloat((totalAmount * (random() * 0.6 + 0.1)).toFixed(2));
+                } else {
+                    paymentState = 'Unpaid';
+                    paidAmount = 0;
+                }
+                isSplit = false;
+                hasTip = false;
+            }
+
+        } else {
+            // Original more random logic for older data
+            branch = branchNames[i % branchNames.length];
+            orderTimestamp = subDays(endOfDay(baseDate), Math.floor(random() * 365) + 30).getTime(); // Older than 30 days
+            
+            const finalStatuses: Order['orderStatus'][] = ['Completed', 'Paid', 'Cancelled', 'Refunded'];
             orderStatus = finalStatuses[Math.floor(random() * finalStatuses.length)];
 
             if (orderStatus === 'Cancelled') {
@@ -455,82 +478,79 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
                 paidAmount = 0;
             } else if (orderStatus === 'Refunded') {
                 paymentState = 'Returned';
+                paidAmount = totalAmount;
             } else {
                 paymentState = 'Fully Paid';
+                paidAmount = totalAmount;
             }
+
+            isSplit = paidAmount > 0.01 && i % 10 === 0; // Less frequent splits for older data
+            hasTip = random() > 0.6; // 40% chance of tip
         }
 
         const randomDate = new Date(orderTimestamp);
         
         const customerPayments: CustomerPayment[] = [];
-        const isSplit = paidAmount > 0.01 && paymentState === 'Fully Paid' && i % 4 === 0 && currentItems.length >= 2;
-        
         let splitType: 'byItem' | 'equally' | undefined = undefined;
-        if (isSplit) {
+        
+        if (isSplit && paymentState === 'Fully Paid') {
             splitType = i % 8 === 0 ? 'byItem' : 'equally';
-        }
-
-        if (isSplit) {
+            paidAmount = totalAmount; // Ensure it's fully paid if split
             orderStatus = 'Completed';
-            paymentState = 'Fully Paid';
-            paidAmount = totalAmount;
 
             if (splitType === 'byItem') {
-                const itemsToPay = [...currentItems];
+                let itemsToPay = [...currentItems];
                 let guestIndex = 0;
-                let payersCount = Math.floor(random() * 5) + 2; 
-                
-                if (itemsToPay.length < payersCount) payersCount = itemsToPay.length;
+                let payersCount = Math.min(itemsToPay.length, Math.floor(random() * 4) + 2); // 2-5 payers, but not more than items
                 if (payersCount < 2 && itemsToPay.length > 1) payersCount = 2;
 
                 while(itemsToPay.length > 0 && guestIndex < payersCount) {
                     const isLastPayer = guestIndex === payersCount - 1;
-                    let itemsForThisPayer: OrderItem[];
+                    let itemsForThisPayer: OrderItem[] = [];
 
                     if (isLastPayer) {
                         itemsForThisPayer = [...itemsToPay];
-                        itemsToPay.length = 0;
+                        itemsToPay = [];
                     } else {
-                        const itemsCountForPayer = Math.max(1, Math.floor(random() * (itemsToPay.length - (payersCount - guestIndex -1) ) ));
-                        itemsForThisPayer = itemsToPay.splice(0, itemsCountForPayer);
+                        const itemsCountForPayer = Math.max(1, Math.floor(random() * (itemsToPay.length - (payersCount - guestIndex - 1))));
+                        if(itemsToPay.length > itemsCountForPayer) {
+                          itemsForThisPayer = itemsToPay.splice(0, itemsCountForPayer);
+                        } else {
+                           itemsForThisPayer = [...itemsToPay];
+                           itemsToPay = [];
+                        }
                     }
 
                     if(itemsForThisPayer.length === 0) continue;
 
                     const paymentAmount = itemsForThisPayer.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                    const tip = paymentAmount * (random() * 0.1 + 0.05);
+                    const tip = parseFloat((paymentAmount * (random() * 0.1 + 0.05)).toFixed(2));
 
                     customerPayments.push({
                         id: `txn_${12345 + i}_${guestIndex}`,
                         amount: paymentAmount,
-                        tip: parseFloat(tip.toFixed(2)),
+                        tip: tip,
                         method: 'Credit Card',
                         status: 'Paid',
-                        date: format(subMinutes(randomDate, random() * 5), 'PPpp'),
+                        date: format(subMinutes(randomDate, Math.floor(random() * 5)), 'PPpp'),
                         items: itemsForThisPayer.map(it => ({ name: it.name, quantity: it.quantity })),
                     });
                     guestIndex++;
                 }
 
             } else { // 'equally'
-                const numPayers = Math.floor(random() * 5) + 2;
+                const numPayers = Math.floor(random() * 4) + 2; // 2-5 payers
                 const totalTip = parseFloat((totalAmount * (random() * 0.1 + 0.1)).toFixed(2));
                 let remainingAmount = totalAmount;
                 let remainingTip = totalTip;
                 
                 for (let j = 0; j < numPayers; j++) {
                     const isLastPayer = j === numPayers - 1;
-                    let paymentAmount, tipAmount;
+                    let paymentAmount = isLastPayer ? remainingAmount : parseFloat((totalAmount / numPayers).toFixed(2));
+                    let tipAmount = isLastPayer ? remainingTip : parseFloat((totalTip / numPayers).toFixed(2));
                     
-                    if (isLastPayer) {
-                        paymentAmount = remainingAmount;
-                        tipAmount = remainingTip;
-                    } else {
-                        paymentAmount = parseFloat((totalAmount / numPayers).toFixed(2));
-                        tipAmount = parseFloat((totalTip / numPayers).toFixed(2));
-                        remainingAmount -= paymentAmount;
-                        remainingTip -= tipAmount;
-                    }
+                    remainingAmount -= paymentAmount;
+                    remainingTip -= tipAmount;
 
                     customerPayments.push({
                         id: `txn_${12345 + i}_${j}`,
@@ -538,16 +558,16 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
                         tip: tipAmount,
                         method: j % 2 === 0 ? 'Credit Card' : 'Online',
                         status: 'Paid',
-                        date: format(subMinutes(randomDate, random() * 5), 'PPpp'),
+                        date: format(subMinutes(randomDate, Math.floor(random() * 5)), 'PPpp'),
                     });
                 }
             }
         } else if (paidAmount > 0) {
-            const tip = paymentState === 'Fully Paid' ? paidAmount * (random() > 0.5 ? 0.1 : 0.15) : 0;
+            const tip = hasTip ? parseFloat((paidAmount * (random() > 0.5 ? 0.1 : 0.15)).toFixed(2)) : 0;
             customerPayments.push({
                 id: `txn_${12345 + i}`,
                 amount: paidAmount,
-                tip: tip,
+                tip,
                 method: i % 3 === 0 ? 'Cash' : 'Credit Card',
                 status: 'Paid',
                 date: format(subHours(randomDate, random() > 0.5 ? 0 : 1), 'PPpp'),
@@ -566,7 +586,7 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
         
         const order: Order = {
             orderId: `#${3210 + i}`,
-            branch: branchNames[i % branchNames.length],
+            branch,
             table: `T${(i % 24) + 1}`,
             orderType: i % 2 === 0 ? 'Post-Paid' : 'Prepaid',
             orderStatus,
@@ -628,7 +648,7 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
     return { customers, orders };
 };
 
-const relatedData = generateRelatedMockData(150, 500, mockProducts);
+const relatedData = generateRelatedMockData(200, 800, mockProducts);
 export const mockCustomers: Customer[] = relatedData.customers;
 export const mockOrders: Order[] = relatedData.orders;
 
