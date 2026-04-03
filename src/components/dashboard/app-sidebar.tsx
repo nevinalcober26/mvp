@@ -17,6 +17,7 @@ import {
   BarChart,
   TrendingUp,
   Palette,
+  Users,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -84,7 +85,7 @@ interface SidebarItem {
 
 const OVERVIEW: SidebarItem[] = [
   { label: 'Dashboard', id: 'dashboard', path: '/dashboard', icon: PieChart },
-  { label: 'Analytics', id: 'analytics', path: '/dashboard/reports/staff-performance', icon: BarChart },
+  { label: 'Analytics', id: 'analytics', path: '/dashboard/reports/analytics', icon: BarChart },
   { 
     label: 'Reports', 
     id: 'reports', 
@@ -93,6 +94,7 @@ const OVERVIEW: SidebarItem[] = [
       { label: 'Order Report', path: '/dashboard/reports/payments' },
       { label: 'Split Bill Report', path: '/dashboard/reports/split-bills' },
       { label: 'Tips Report', path: '/dashboard/reports/tips-and-charges' },
+      { label: 'Staff Performance', path: '/dashboard/reports/staff-performance' },
     ] 
   },
 ];
