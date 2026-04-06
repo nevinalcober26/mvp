@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, FormDescription } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -31,7 +31,7 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 
 const TemplateCard = ({ name, imageHint }: { name: string; imageHint: string }) => {
@@ -538,7 +538,7 @@ const AddSectionSheet = ({
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            <SheetContent className="sm:max-w-[90vw] lg:max-w-5xl w-full p-0 flex flex-col">
+            <SheetContent className="sm:max-w-[90vw] w-full p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
                     <SheetTitle>Add New Menu Section</SheetTitle>
                     <SheetDescription>Build a new category by selecting items from your library.</SheetDescription>
@@ -1243,5 +1243,3 @@ export default function MenuBuilderPage() {
 
   return <MenuBuilderMainPage onClose={handleClose} />;
 }
-
-    
