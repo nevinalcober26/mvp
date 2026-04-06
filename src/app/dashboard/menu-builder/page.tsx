@@ -24,6 +24,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFo
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 
 
 const TemplateCard = ({ name, imageHint }: { name: string; imageHint: string }) => {
@@ -138,8 +139,22 @@ const SortableProductRow = ({ item, onUpdate, onImageUpload, onAvailabilityChang
                     )}
                 </div>
             </TableCell>
-            <TableCell className="font-medium">{item.name}</TableCell>
-            <TableCell>
+            <TableCell className="font-medium align-top py-4">
+                <Input
+                    value={item.name}
+                    onChange={(e) => onUpdate(item.id, 'name', e.target.value)}
+                    className="font-bold border-transparent focus:border-input p-1 h-auto text-base"
+                    placeholder="Product Name"
+                />
+                <Textarea
+                    value={item.description}
+                    onChange={(e) => onUpdate(item.id, 'description', e.target.value)}
+                    placeholder="Short description..."
+                    className="mt-1 text-xs border-transparent focus:border-input p-1 h-auto resize-none"
+                    rows={2}
+                />
+            </TableCell>
+            <TableCell className="align-top py-4">
                 <Input
                     type="number"
                     value={item.price}
@@ -147,7 +162,7 @@ const SortableProductRow = ({ item, onUpdate, onImageUpload, onAvailabilityChang
                     className="w-24"
                 />
             </TableCell>
-            <TableCell>
+            <TableCell className="align-top py-4">
                 <Switch
                     checked={item.available ?? true} // Assuming available if not specified
                     onCheckedChange={(checked) => onAvailabilityChange(item.id, checked)}
@@ -223,7 +238,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
                                 <TableRow>
                                     <TableHead className="w-10"></TableHead>
                                     <TableHead>Image</TableHead>
-                                    <TableHead>Product</TableHead>
+                                    <TableHead>Details</TableHead>
                                     <TableHead>Price</TableHead>
                                     <TableHead>Available</TableHead>
                                 </TableRow>
