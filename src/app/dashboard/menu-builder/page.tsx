@@ -240,7 +240,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
           <ScrollArea className="flex-1">
             <div className="p-8 space-y-10">
               <section>
-                <h2 className="text-2xl font-bold mb-4">Templates</h2>
+                <h2 className="text-2xl font-bold mb-4">Default</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {templates.map(t => <TemplateCard key={t.name} name={t.name} imageHint={t.imageHint} />)}
                 </div>
