@@ -107,9 +107,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const sensors = useSensors(useSensor(PointerSensor));
 
   // State for the interactive preview
-  const [previewCart, setPreviewCart] = useState<Record<string, number>>({
-    'pizza-margherita-12': 1,
-  });
+  const [previewCart, setPreviewCart] = useState<Record<string, number>>({});
   const [isCartAnimating, setIsCartAnimating] = useState(false);
   const prevCartTotalRef = useRef(0);
 
@@ -193,11 +191,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
     }
   }
 
-  const templates = [
-    { name: 'Template 1', imageHint: 'abstract red' },
-    { name: 'Template 2', imageHint: 'dark theme' },
-    { name: 'Template 3', imageHint: 'gray placeholder' },
-  ];
+  const templates = [{ name: 'Default', imageHint: 'abstract red' }];
 
   const userMenus = [
     { name: 'My Ramadan Menu', imageHint: 'abstract red' },
@@ -383,7 +377,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                   </div>
                   <div className="col-span-1 bg-muted/30 p-6 overflow-y-auto">
                       <h2 className="text-xl font-bold mb-4 text-center">Live Preview</h2>
-                       <div className="w-full max-w-sm mx-auto bg-gray-50 rounded-[40px] shadow-2xl p-2 border-[6px] border-black overflow-hidden">
+                       <div className="w-full max-w-sm mx-auto bg-white rounded-[40px] shadow-2xl p-4 border-[6px] border-black overflow-hidden">
                           {/* Replicate the full mobile layout here */}
                           <div className="relative h-[600px] overflow-hidden bg-[#F7F9FB] flex flex-col">
                             {/* 1. Header */}
@@ -391,8 +385,8 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                                 <div className="flex items-center justify-between mb-4">
                                     <ArrowLeft className="h-6 w-6 text-gray-800" />
                                     <div className="text-center">
-                                        <h1 className="text-xl font-bold text-gray-900">Drinks</h1>
-                                        <p className="text-sm text-teal-600 font-medium">2 items</p>
+                                        <h1 className="text-xl font-bold text-gray-900">Bestsellers</h1>
+                                        <p className="text-sm text-teal-600 font-medium">{mockMenuItems.filter(i => i.category === 'Bestsellers').length} items</p>
                                     </div>
                                     <Search className="h-6 w-6 text-gray-800" />
                                 </div>
@@ -401,11 +395,11 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                                         {['Bestsellers', 'Pizza', 'Sides', 'Desserts', 'Drinks'].map(cat => (
                                             <button key={cat} className={cn(
                                                 "flex items-center gap-1.5 whitespace-nowrap px-4 py-3 text-sm font-bold transition-colors relative",
-                                                cat === 'Drinks' ? 'text-teal-600' : 'text-gray-500'
+                                                cat === 'Bestsellers' ? 'text-teal-600' : 'text-gray-500'
                                             )}>
                                                 {cat === 'Bestsellers' && <Flame className="h-4 w-4 text-red-500" />}
                                                 {cat}
-                                                {cat === 'Drinks' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500 rounded-full" />}
+                                                {cat === 'Bestsellers' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500 rounded-full" />}
                                             </button>
                                         ))}
                                     </div>
@@ -416,7 +410,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                             {/* 2. Scrollable Body */}
                             <div className="flex-1 overflow-y-auto">
                                 <main className="p-4 space-y-8">
-                                    {menuSections.map(section => (
+                                    {mockMenuData.map(section => (
                                         <div key={section.id}>
                                             <h2 className="text-2xl font-bold text-gray-900 mb-4">{section.name}</h2>
                                             <div className="space-y-4">
@@ -439,7 +433,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
 
                             {/* 3. Floating Cart Icon */}
                             {totalItemsInCart > 0 && (
-                                <div className="absolute bottom-24 right-6 z-20">
+                                <div id="floating-cart-icon" className="absolute bottom-24 right-6 z-20">
                                     <div className="relative">
                                         <div className={cn(
                                             "rounded-full w-16 h-16 bg-red-500 flex items-center justify-center shadow-lg",
