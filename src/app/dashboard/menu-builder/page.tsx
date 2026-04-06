@@ -87,7 +87,7 @@ const mockMenuData = [
 ];
 
 
-const SortableSectionItem = ({ id, name, onEditClick }: { id: string; name: string; onEditClick: () => void }) => {
+const SortableSectionItem = ({ id, name, onEditClick, itemCount }: { id: string; name: string; onEditClick: () => void; itemCount: number; }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -103,6 +103,7 @@ const SortableSectionItem = ({ id, name, onEditClick }: { id: string; name: stri
           </div>
           <span className="font-semibold text-sm">{name}</span>
         </div>
+        <Badge variant="secondary">{itemCount} items</Badge>
       </Card>
     </div>
   );
@@ -237,7 +238,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
     const [searchQuery, setSearchQuery] = useState('');
     const sensors = useSensors(useSensor(PointerSensor));
     const { toast } = useToast();
-    
+
     useEffect(() => {
         if (category && isOpen) {
           setItems(category.items.map((item: any) => ({ ...item, available: item.available ?? true })));
@@ -247,11 +248,9 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
           setSelectedItem(null);
         }
     }, [category, isOpen]);
-    
+
     const filteredItems = useMemo(() => {
-        if (!searchQuery) {
-            return items;
-        }
+        if (!searchQuery) return items;
         return items.filter(item =>
             item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -314,14 +313,25 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
         setSelectedItem(item);
     };
 
-    return (
-        <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            <SheetContent className="sm:max-w-6xl w-full p-0 flex flex-col">
-                {!category ? (
+    if (!isOpen) {
+        return null;
+    }
+    
+    if (!category) {
+        return (
+            <Sheet open={isOpen} onOpenChange={onOpenChange}>
+                <SheetContent className="sm:max-w-6xl w-full p-0 flex flex-col">
                     <div className="flex-1 flex items-center justify-center">
                         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     </div>
-                ) : (
+                </SheetContent>
+            </Sheet>
+        );
+    }
+
+    return (
+        <Sheet open={isOpen} onOpenChange={onOpenChange}>
+            <SheetContent className="sm:max-w-6xl w-full p-0 flex flex-col">
                     <>
                         <SheetHeader className="p-6 border-b shrink-0">
                             <SheetTitle>Manage: {category.name}</SheetTitle>
@@ -388,7 +398,6 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
                             <Button onClick={handleSaveChanges}>Save Changes</Button>
                         </SheetFooter>
                     </>
-                )}
             </SheetContent>
         </Sheet>
     );
@@ -404,7 +413,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [isSyncComplete, setIsSyncComplete] = useState(false);
 
   const [menuSections, setMenuSections] = useState(mockMenuData);
-  const [editingCategory, setEditingCategory] = useState(null);
+  const [editingCategory, setEditingCategory] = useState<any>(null);
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor));
@@ -679,7 +688,13 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                           <SortableContext items={menuSections.map(s => s.id)} strategy={verticalListSortingStrategy}>
                               <div className="space-y-3 max-w-lg">
                                   {menuSections.map(section => (
-                                      <SortableSectionItem key={section.id} id={section.id} name={section.name} onEditClick={() => handleEditCategory(section)} />
+                                      <SortableSectionItem
+                                          key={section.id}
+                                          id={section.id}
+                                          name={section.name}
+                                          itemCount={section.items.length}
+                                          onEditClick={() => handleEditCategory(section)}
+                                        />
                                   ))}
                               </div>
                           </SortableContext>
