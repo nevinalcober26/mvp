@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -34,18 +34,19 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 
-const TemplateCard = ({ name, imageHint }: { name: string; imageHint: string }) => {
+const TemplateCard = ({ name, imageHint, isLocked }: { name: string; imageHint: string; isLocked?: boolean; }) => {
   const image = PlaceHolderImages.find(img => img.imageHint === imageHint);
   return (
-    <Card className="overflow-hidden shadow-sm hover:shadow-lg transition-shadow cursor-pointer group">
-      <CardHeader className="p-3 border-b">
+    <Card className={cn("overflow-hidden shadow-sm transition-shadow group", isLocked ? "cursor-not-allowed" : "hover:shadow-lg cursor-pointer")}>
+      <CardHeader className="p-3 border-b flex-row justify-between items-center">
         <p className="text-xs font-semibold flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-gray-300 group-hover:bg-primary transition-colors" />
+          <span className={cn("h-2 w-2 rounded-full bg-gray-300", !isLocked && "group-hover:bg-primary transition-colors")} />
           {name}
         </p>
+        {isLocked && <Lock className="h-3 w-3 text-muted-foreground" />}
       </CardHeader>
       <CardContent className="p-3">
-        <div className="aspect-[4/3] w-full bg-muted rounded-md overflow-hidden">
+        <div className={cn("aspect-[4/3] w-full bg-muted rounded-md overflow-hidden", isLocked && "filter grayscale opacity-70")}>
           {image && <Image src={image.imageUrl} alt={name} width={600} height={400} className="object-cover h-full w-full" data-ai-hint={image.imageHint} />}
         </div>
       </CardContent>
@@ -974,7 +975,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
               <section>
                 <h2 className="text-2xl font-bold mb-4">Default</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <TemplateCard name='Default' imageHint='abstract red' />
+                  <TemplateCard name='Default' imageHint='abstract red' isLocked />
                 </div>
               </section>
               <section>
@@ -1255,3 +1256,5 @@ export default function MenuBuilderPage() {
 
   return <MenuBuilderMainPage onClose={handleClose} />;
 }
+
+    
