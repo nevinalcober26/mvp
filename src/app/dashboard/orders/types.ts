@@ -15,6 +15,7 @@ export type Payment = {
   tip?: number;
   items?: { name: string; quantity: number }[];
   status: 'Paid' | 'Pending';
+  note?: string;
 };
 
 export type Customer = {

@@ -13,20 +13,11 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogTitle as DialogTitleComponent, // Renamed to avoid conflict
-  DialogDescription as DialogDescriptionComponent, // Renamed
-  DialogClose as RadixDialogClose,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -61,6 +52,9 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SplitPaymentDialog } from './split-payment-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 
 interface OrderDetailsSheetProps {
@@ -78,6 +72,8 @@ export function OrderDetailsSheet({
   const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
   const [localOrder, setLocalOrder] = useState<Order | null>(order);
   const [settlingPayment, setSettlingPayment] = useState<Payment | null>(null);
+  const [settlementData, setSettlementData] = useState<{ tip: string; note: string }>({ tip: '', note: '' });
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -93,7 +89,10 @@ export function OrderDetailsSheet({
 
   const pendingAmount = useMemo(() => {
     if (!localOrder) return 0;
-    return totalWithTax - localOrder.paidAmount;
+    const billPaid = localOrder.payments
+      .filter(p => p.status === 'Paid')
+      .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+    return totalWithTax - billPaid;
   }, [localOrder, totalWithTax]);
 
   const handleOrderUpdate = (updatedOrder: Order) => {
@@ -101,11 +100,14 @@ export function OrderDetailsSheet({
   };
   
   const handleOpenSettleDialog = (payment: Payment) => {
+    setSettlementData({ tip: '', note: '' });
     setSettlingPayment(payment);
   };
 
   const handleConfirmSettle = (method: 'Card' | 'Cash') => {
     if (!settlingPayment || !localOrder) return;
+
+    const tipAmount = parseFloat(settlementData.tip) || 0;
 
     const updatedPayments = localOrder.payments.map(p => {
         if (p.transactionId === settlingPayment.transactionId) {
@@ -114,15 +116,17 @@ export function OrderDetailsSheet({
                 status: 'Paid' as const,
                 method: method,
                 date: new Date().toLocaleString(),
+                tip: tipAmount > 0 ? tipAmount : undefined,
+                note: settlementData.note || undefined,
             };
         }
         return p;
     });
-
+    
     const newPaidAmount = updatedPayments
         .filter(p => p.status === 'Paid')
         .reduce((sum, p) => sum + parseFloat(p.amount), 0);
-    
+
     const newPaymentState: Order['paymentState'] =
         newPaidAmount >= totalWithTax - 0.01 ? 'Fully Paid' : 'Partial';
 
@@ -135,6 +139,7 @@ export function OrderDetailsSheet({
 
     setLocalOrder(updatedOrder);
     setSettlingPayment(null);
+    setSettlementData({ tip: '', note: '' });
     toast({ title: 'Payment Settled', description: `Payment for ${settlingPayment.guestName} has been recorded.` });
   };
   
@@ -147,7 +152,7 @@ export function OrderDetailsSheet({
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent className="sm:max-w-4xl w-full p-0">
-          <DialogTitleComponent className="sr-only">Order Details</DialogTitleComponent>
+          <DialogTitle className="sr-only">Order Details</DialogTitle>
           <SheetDescription className="sr-only">A detailed view of the selected order, including items, payment status, and customer information.</SheetDescription>
           <div className="flex flex-col h-full">
             <SheetHeader className="p-6 border-b bg-muted/50">
@@ -262,14 +267,13 @@ export function OrderDetailsSheet({
                           <div className="flow-root">
                             <ul>
                               {localOrder.payments.map((payment, index) => {
-                                  const isLastPayment = index === localOrder.payments.length - 1;
-                                  const showLine = !isLastPayment || (isLastPayment && pendingAmount > 0.01 && localOrder.payments.some(p => p.status === 'Paid'));
+                                  const showLine = index < localOrder.payments.length - 1 || pendingAmount > 0.01;
 
                                   if (payment.status === 'Pending') {
                                     return (
                                         <li key={payment.transactionId}>
                                             <div className="relative pb-8">
-                                                {index < localOrder.payments.length - 1 && <span className="absolute left-2.5 top-4 -ml-px h-full w-0.5 bg-border" aria-hidden="true" />}
+                                                {showLine && <span className="absolute left-2.5 top-4 -ml-px h-full w-0.5 bg-border" aria-hidden="true" />}
                                                 <div className="relative flex items-start space-x-3">
                                                     <div>
                                                         <span className="h-5 w-5 rounded-full bg-yellow-500 flex items-center justify-center ring-4 ring-background">
@@ -328,7 +332,7 @@ export function OrderDetailsSheet({
                                                 Success
                                                 </Badge>
                                             </div>
-                                            {(localOrder.splitType || payment.tip) && (
+                                            {(localOrder.splitType || payment.tip || localOrder.staffReference) && (
                                                 <Card className="mt-3 bg-card border overflow-hidden">
                                                     <CardContent className="p-0 divide-y">
                                                         {localOrder.splitType === 'byItem' && payment.items && payment.items.length > 0 && (
@@ -367,7 +371,7 @@ export function OrderDetailsSheet({
                                 );
                               })}
 
-                              {pendingAmount > 0.01 && !localOrder.payments.some(p => p.status === 'Pending') && (
+                              {pendingAmount > 0.01 && (
                                 <li key="pending">
                                   <div className="relative">
                                     <div className="relative flex items-start space-x-3">
@@ -516,9 +520,11 @@ export function OrderDetailsSheet({
       {localOrder.staffReference && (
         <Dialog open={isStaffInfoOpen} onOpenChange={setIsStaffInfoOpen}>
           <DialogContent className="bg-transparent p-0 max-w-sm overflow-visible border-0 shadow-none">
-            <RadixDialogClose className="absolute top-0 left-0 z-50 h-9 w-9 rounded-full bg-black/20 text-white flex items-center justify-center transition-all hover:bg-black/30">
-              <X className="h-5 w-5" />
-            </RadixDialogClose>
+            <DialogClose asChild>
+                <button className="absolute top-0 left-0 z-50 h-9 w-9 rounded-full bg-black/20 text-white flex items-center justify-center transition-all hover:bg-black/30">
+                <X className="h-5 w-5" />
+                </button>
+            </DialogClose>
             
             <div className="relative pt-20">
               <div className="absolute top-0 left-0 right-0 h-44 bg-gradient-to-br from-green-200 via-teal-200 to-cyan-300 rounded-b-[40px]" />
@@ -604,23 +610,44 @@ export function OrderDetailsSheet({
           </DialogContent>
         </Dialog>
       )}
-      <AlertDialog open={!!settlingPayment} onOpenChange={() => setSettlingPayment(null)}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Settle Payment for {settlingPayment?.guestName}?</AlertDialogTitle>
-                <AlertDialogDescription>
-                    Confirm payment of <strong>${settlingPayment?.amount}</strong>. Choose the method used.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+      <Dialog open={!!settlingPayment} onOpenChange={(open) => !open && setSettlingPayment(null)}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Settle Payment for {settlingPayment?.guestName}?</DialogTitle>
+                <DialogDescription>
+                    Record payment of <strong>${settlingPayment?.amount}</strong>. Add notes or tips.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="tip-amount">Tip Amount (Optional)</Label>
+                <Input 
+                  id="tip-amount" 
+                  type="number" 
+                  placeholder="e.g., 5.00"
+                  value={settlementData.tip}
+                  onChange={(e) => setSettlementData(prev => ({...prev, tip: e.target.value}))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="payment-note">Note (Optional)</Label>
+                <Textarea 
+                  id="payment-note"
+                  placeholder="e.g., Customer paid part in cash, rest on card."
+                  value={settlementData.note}
+                  onChange={(e) => setSettlementData(prev => ({...prev, note: e.target.value}))}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setSettlingPayment(null)}>Cancel</Button>
                 <div className="flex gap-2">
                     <Button onClick={() => handleConfirmSettle('Card')}><CreditCard className="mr-2 h-4 w-4" /> Card</Button>
                     <Button onClick={() => handleConfirmSettle('Cash')} variant="secondary"><Banknote className="mr-2 h-4 w-4" /> Cash</Button>
                 </div>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <SplitPaymentDialog
         order={localOrder}
         totalWithTax={totalWithTax}
