@@ -41,7 +41,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const TemplateCard = ({ name, imageHint, isLocked, status, onDelete }: { name: string; imageHint: string; isLocked?: boolean; status?: 'Draft' | 'Published' | 'Online', onDelete?: () => void; }) => {
-  const image = PlaceHolderImages.find(img => img.imageHint === imageHint);
+  const image = PlaceHolderImages.find(img => img.id === imageHint);
   return (
     <Card className={cn("overflow-hidden shadow-sm transition-shadow group", isLocked ? "cursor-not-allowed" : "hover:shadow-lg cursor-pointer")}>
       <CardHeader className="p-3 border-b flex-row justify-between items-center">
@@ -829,6 +829,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isAddSectionSheetOpen, setIsAddSectionSheetOpen] = useState(false);
   const [userMenus, setUserMenus] = useState<any[]>([]);
+  const [importedMenuName, setImportedMenuName] = useState('');
   
   const { toast } = useToast();
   const sensors = useSensors(useSensor(PointerSensor));
@@ -856,9 +857,14 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
     });
   };
 
-  const handleSaveImportedMenu = (status: 'Published' | 'Draft') => {
+  const handleStartCustomization = () => {
     const providerName = SUPPORTED_POS.find(p => p.id === selectedPos)?.name || 'Imported Menu';
-    const newName = `${providerName} Menu`;
+    setImportedMenuName(`${providerName} Menu`);
+    setPosFlowStep('customize');
+  };
+
+  const handleSaveImportedMenu = (status: 'Published' | 'Draft') => {
+    const newName = importedMenuName.trim() || 'Imported Menu';
     
     const newMenu = {
       name: newName,
@@ -1180,7 +1186,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
           </div>
           <DialogFooter>
             {isSyncComplete ? (
-              <Button className="w-full" onClick={() => setPosFlowStep('customize')}>Customize Menu</Button>
+              <Button className="w-full" onClick={handleStartCustomization}>Customize Menu</Button>
             ) : (
               <Button variant="outline" className="w-full" onClick={() => setPosFlowStep('')}>Cancel Sync</Button>
             )}
@@ -1192,7 +1198,13 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
       <Dialog open={posFlowStep === 'customize'} onOpenChange={() => setPosFlowStep('')}>
           <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
               <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0">
-                  <DialogTitle>Customize Imported Menu</DialogTitle>
+                  <DialogTitle className="sr-only">Customize Imported Menu</DialogTitle>
+                  <Input
+                    value={importedMenuName}
+                    onChange={(e) => setImportedMenuName(e.target.value)}
+                    className="text-xl font-bold border-0 shadow-none focus-visible:ring-0 p-0 h-auto flex-1"
+                    aria-label="Menu Name"
+                  />
                   <div className="flex items-center gap-2">
                       <Button variant="outline" onClick={() => handleSaveImportedMenu('Draft')}>Save Draft</Button>
                       <Button onClick={() => handleSaveImportedMenu('Published')}>Save & Close</Button>
