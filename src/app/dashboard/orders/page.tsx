@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
@@ -98,9 +99,6 @@ const OrderStatusBadge = ({ status }: { status: Order['orderStatus'] }) => {
       break;
     case 'Refunded':
         className = 'bg-orange-100 text-orange-700';
-        break;
-    case 'Paid':
-        className = 'bg-green-100 text-green-700';
         break;
   }
 
@@ -370,7 +368,7 @@ export default function OrdersPage() {
               typeof page === 'number' ? (
                 <Button
                   key={index}
-                  variant={currentPage === page ? 'default' : 'ghost'}
+                  variant={currentPage === page ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setCurrentPage(page)}
                   className="h-8 w-8 p-0"
@@ -452,7 +450,6 @@ export default function OrdersPage() {
                         <SelectItem value="Completed">Completed</SelectItem>
                         <SelectItem value="Draft">Draft</SelectItem>
                         <SelectItem value="Open">Open</SelectItem>
-                        <SelectItem value="Paid">Paid</SelectItem>
                         <SelectItem value="Cancelled">Cancelled</SelectItem>
                         <SelectItem value="Refunded">Refunded</SelectItem>
                     </SelectContent>

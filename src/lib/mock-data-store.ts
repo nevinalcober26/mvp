@@ -470,7 +470,7 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
             branch = branchNames[i % branchNames.length];
             orderTimestamp = subDays(endOfDay(baseDate), Math.floor(random() * 365) + 30).getTime(); // Older than 30 days
             
-            const finalStatuses: Order['orderStatus'][] = ['Completed', 'Paid', 'Cancelled', 'Refunded'];
+            const finalStatuses: Order['orderStatus'][] = ['Completed', 'Cancelled', 'Refunded'];
             orderStatus = finalStatuses[Math.floor(random() * finalStatuses.length)];
 
             if (orderStatus === 'Cancelled') {
