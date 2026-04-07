@@ -41,7 +41,7 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormMessage } from '@/components/ui/form';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,12 +66,11 @@ const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: {
     >
       <CardHeader className="p-3 border-b flex-row justify-between items-center">
         <p className="text-xs font-semibold flex items-center gap-1.5">
-          {isLocked ? <Lock className="h-3 w-3 text-muted-foreground mr-1" /> : (
-            <span className={cn(
-              "h-2 w-2 rounded-full",
-              status === 'Online' ? 'bg-green-500' : 'bg-red-500'
-            )} />
-          )}
+          <span className={cn(
+            "h-2 w-2 rounded-full",
+            status === 'Online' ? 'bg-green-500' : 'bg-red-500'
+          )} />
+          {isLocked && <Lock className="h-3 w-3 text-muted-foreground" />}
           {name}
         </p>
         <div className="flex items-center gap-2">
@@ -631,7 +630,7 @@ const AddSectionSheet = ({
                                                     <FormItem className="flex items-center justify-between rounded-lg border p-3">
                                                         <div className="space-y-0.5">
                                                             <FormLabel>Mark as Special</FormLabel>
-                                                            <FormDescription className="text-xs">Highlight this section on the menu.</FormDescription>
+                                                            <p className="text-xs text-muted-foreground">Highlight this section on the menu.</p>
                                                         </div>
                                                         <FormControl>
                                                             <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -670,7 +669,7 @@ const AddSectionSheet = ({
                                                     <FormItem className="flex items-center justify-between rounded-lg border p-3">
                                                         <div className="space-y-0.5">
                                                             <FormLabel>Enable Category Link</FormLabel>
-                                                             <FormDescription className="text-xs">Link to a URL instead of showing items.</FormDescription>
+                                                             <p className="text-xs text-muted-foreground">Link to a URL instead of showing items.</p>
                                                         </div>
                                                         <FormControl>
                                                             <Switch checked={field.value} onCheckedChange={field.onChange} />
