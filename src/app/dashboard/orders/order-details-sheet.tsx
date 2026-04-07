@@ -249,7 +249,7 @@ export function OrderDetailsSheet({
                                                 Success
                                                 </Badge>
                                             </div>
-                                            {localOrder.splitType && (
+                                            {(localOrder.splitType || payment.tip) && (
                                                 <Card className="mt-3 bg-card border overflow-hidden">
                                                     <CardContent className="p-0 divide-y">
                                                         {localOrder.splitType === 'byItem' && payment.items && payment.items.length > 0 && (
@@ -275,10 +275,7 @@ export function OrderDetailsSheet({
                                                         <div className="p-4 space-y-1 text-xs text-muted-foreground">
                                                             <p>Transaction ID: {payment.transactionId}</p>
                                                             {localOrder.staffReference?.employee_reference_code && (
-                                                                <p>Terminal ID: {localOrder.staffReference.employee_reference_code}</p>
-                                                            )}
-                                                            {localOrder.source && (
-                                                                <p>Source: {localOrder.source === 'POS' ? 'POS Machine' : localOrder.source}</p>
+                                                                <p>Staff Ref: {localOrder.staffReference.employee_reference_code}</p>
                                                             )}
                                                         </div>
                                                     </CardContent>
