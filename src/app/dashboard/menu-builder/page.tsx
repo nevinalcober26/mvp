@@ -598,7 +598,7 @@ const AddSectionSheet = ({
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>Section Name</FormLabel>
-                                                    <Input placeholder="e.g., Summer Specials" {...field} />
+                                                    <FormControl><Input placeholder="e.g., Summer Specials" {...field} /></FormControl>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
@@ -627,7 +627,7 @@ const AddSectionSheet = ({
                                                         render={({ field }) => (
                                                             <FormItem>
                                                                 <FormLabel>Tag Name</FormLabel>
-                                                                <Input placeholder="e.g., Hot, New" {...field} />
+                                                                <FormControl><Input placeholder="e.g., Hot, New" {...field} /></FormControl>
                                                             </FormItem>
                                                         )}
                                                     />
@@ -666,7 +666,7 @@ const AddSectionSheet = ({
                                                         render={({ field }) => (
                                                             <FormItem>
                                                                 <FormLabel>External URL</FormLabel>
-                                                                <Input placeholder="https://example.com" {...field} />
+                                                                <FormControl><Input placeholder="https://example.com" {...field} /></FormControl>
                                                                  <FormMessage />
                                                             </FormItem>
                                                         )}
@@ -838,17 +838,36 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const prevCartTotalRef = useRef(0);
 
   const handleAddMenu = (type: 'scratch' | 'pos') => {
-    const newName = type === 'scratch' ? `My New Menu #${userMenus.length + 1}` : `POS Imported Menu #${userMenus.length + 1}`;
+    if (type === 'pos') {
+      handleImportFromPos();
+      return;
+    }
+    const newName = `My New Menu #${userMenus.length + 1}`;
     const newMenu = {
         name: newName,
-        imageHint: type === 'scratch' ? 'gray placeholder' : 'dark theme',
-        status: type === 'scratch' ? 'Draft' : 'Published'
+        imageHint: 'gray placeholder',
+        status: 'Draft'
     };
     setUserMenus(prev => [...prev, newMenu]);
     setIsAddMenuModalOpen(false);
     toast({
-        title: type === 'scratch' ? "Draft Menu Created" : "Menu Imported",
+        title: "Draft Menu Created",
         description: `${newName} has been added.`
+    });
+  };
+
+  const handleSaveImportedMenu = (status: 'Published' | 'Draft') => {
+    const newName = `POS Imported Menu #${userMenus.length + 1}`;
+    const newMenu = {
+      name: newName,
+      imageHint: 'dark theme',
+      status: status,
+    };
+    setUserMenus((prev) => [...prev, newMenu]);
+    setPosFlowStep(''); // Close the dialog
+    toast({
+      title: status === 'Published' ? "Menu Saved" : "Draft Saved",
+      description: `${newName} has been added to Your Menus.`,
     });
   };
 
@@ -1099,7 +1118,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg hover:border-primary transition-all cursor-pointer" onClick={handleImportFromPos}>
+            <Card className="hover:shadow-lg hover:border-primary transition-all cursor-pointer" onClick={() => handleAddMenu('pos')}>
               <CardHeader className="flex-row items-center gap-4 space-y-0 pb-4">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <Database className="h-6 w-6 text-primary" />
@@ -1173,8 +1192,8 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
               <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0">
                   <DialogTitle>Customize Imported Menu</DialogTitle>
                   <div className="flex items-center gap-2">
-                      <Button variant="outline">Save Draft</Button>
-                      <Button onClick={() => setPosFlowStep('')}>Save & Close</Button>
+                      <Button variant="outline" onClick={() => handleSaveImportedMenu('Draft')}>Save Draft</Button>
+                      <Button onClick={() => handleSaveImportedMenu('Published')}>Save & Close</Button>
                   </div>
               </DialogHeader>
               <div className="flex-1 grid grid-cols-3 overflow-hidden">
