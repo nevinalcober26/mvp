@@ -815,7 +815,6 @@ const AddSectionSheet = ({
     );
 };
 
-
 const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [isAddMenuModalOpen, setIsAddMenuModalOpen] = useState(false);
   const [posFlowStep, setPosFlowStep] = useState<'select' | 'sync' | 'customize' | ''>('');
@@ -864,7 +863,15 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   };
 
   const handleSaveImportedMenu = (status: 'Published' | 'Draft') => {
-    const newName = importedMenuName.trim() || 'Imported Menu';
+    const newName = importedMenuName.trim();
+    if (!newName) {
+      toast({
+        variant: 'destructive',
+        title: 'Cannot Save Menu',
+        description: 'Please name your menu.',
+      });
+      return;
+    }
     
     const newMenu = {
       name: newName,
@@ -1198,7 +1205,6 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
       <Dialog open={posFlowStep === 'customize'} onOpenChange={() => setPosFlowStep('')}>
           <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
               <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0">
-                  <DialogTitle className="sr-only">Customize Imported Menu</DialogTitle>
                   <Input
                     value={importedMenuName}
                     onChange={(e) => setImportedMenuName(e.target.value)}
