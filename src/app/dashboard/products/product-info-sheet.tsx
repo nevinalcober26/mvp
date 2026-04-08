@@ -41,7 +41,6 @@ interface ProductInfoSheetProps {
 }
 
 const initialNutritionItems: { id: string; name: string; unit: 'g' | 'mg' | 'kcal'; enabled: boolean; }[] = [
-  { id: '1', name: 'Calories', unit: 'kcal', enabled: true },
   { id: '2', name: 'Protein', unit: 'g', enabled: true },
   { id: '3', name: 'Fat', unit: 'g', enabled: true },
   { id: '4', name: 'Carbohydrates', unit: 'g', enabled: true },
