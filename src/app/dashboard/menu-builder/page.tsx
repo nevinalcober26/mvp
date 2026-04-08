@@ -50,6 +50,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Upload } from 'lucide-react';
 
 const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: { 
   name: string; 
@@ -505,6 +506,8 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
 
 const addSectionSchema = z.object({
     name: z.string().min(1, 'Section name is required'),
+    description: z.string().optional(),
+    imageUrl: z.string().optional(),
     enableSpecial: z.boolean().default(false),
     specialTagName: z.string().optional(),
     specialTagIcon: z.string().optional(),
@@ -531,11 +534,16 @@ const AddSectionSheet = ({
     const [searchQuery, setSearchQuery] = useState('');
     const sensors = useSensors(useSensor(PointerSensor));
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRefForSection = useRef<HTMLInputElement>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+
 
     const form = useForm<AddSectionFormValues>({
         resolver: zodResolver(addSectionSchema),
         defaultValues: { 
             name: '',
+            description: '',
+            imageUrl: '',
             enableSpecial: false,
             specialTagName: '',
             specialTagIcon: '',
@@ -550,6 +558,8 @@ const AddSectionSheet = ({
             setAddedProducts([]);
             setEditingProduct(null);
             setSearchQuery('');
+            setImagePreview(null);
+            if (fileInputRefForSection.current) fileInputRefForSection.current.value = '';
         }
     }, [isOpen, form]);
 
@@ -604,6 +614,26 @@ const AddSectionSheet = ({
             reader.readAsDataURL(file);
         }
     };
+    
+    const handleImageUploadForSection = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const result = reader.result as string;
+                setImagePreview(result);
+                form.setValue('imageUrl', result, { shouldDirty: true });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    
+    const clearImageForSection = () => {
+        setImagePreview(null);
+        form.setValue('imageUrl', '', { shouldDirty: true });
+        if (fileInputRefForSection.current) fileInputRefForSection.current.value = '';
+    };
+
 
     const handleAvailabilityChange = (available: boolean) => {
         if (editingProduct) {
@@ -641,6 +671,42 @@ const AddSectionSheet = ({
                                                 </FormItem>
                                             )}
                                         />
+                                        <FormField
+                                            control={form.control}
+                                            name="description"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Description</FormLabel>
+                                                    <FormControl><Textarea placeholder="A short description for this section." rows={3} {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormItem>
+                                            <FormLabel>Category Image</FormLabel>
+                                            <div className="mt-2 flex items-center gap-4">
+                                                <div className="w-24 h-24 rounded-lg border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                                                    {imagePreview ? (
+                                                        <Image src={imagePreview} alt="Category preview" width={96} height={96} className="object-cover" />
+                                                    ) : (
+                                                        <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                                                    )}
+                                                </div>
+                                                <div className="flex flex-col gap-2">
+                                                    <Button type="button" variant="outline" size="sm" asChild>
+                                                        <label htmlFor="category-image-upload" className="cursor-pointer">
+                                                            <Upload className="mr-2 h-4 w-4" /> Upload
+                                                        </label>
+                                                    </Button>
+                                                    <Input id="category-image-upload" type="file" ref={fileInputRefForSection} className="sr-only" accept="image/*" onChange={handleImageUploadForSection} />
+                                                    {imagePreview && (
+                                                        <Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive h-auto" onClick={clearImageForSection}>
+                                                            Clear
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </FormItem>
                                         <div className="space-y-4 pt-6">
                                             <FormField
                                                 control={form.control}
@@ -1114,7 +1180,6 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const handleAddNewSection = (data: AddSectionFormValues, productIds: string[]) => {
     const newSection = {
         id: `section_${Date.now()}`,
-        name: data.name,
         items: menuItems.filter(item => productIds.includes(item.id)),
         ...data,
     };
