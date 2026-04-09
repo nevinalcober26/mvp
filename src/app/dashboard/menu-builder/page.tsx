@@ -944,12 +944,6 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [isCartAnimating, setIsCartAnimating] = useState(false);
   const prevCartTotalRef = useRef(0);
 
-  const defaultMenuStatus = useMemo(() => {
-    if (userMenus.length === 0) return 'Online';
-    const isAnyCustomMenuOnline = userMenus.some(menu => menu.status === 'Online');
-    return isAnyCustomMenuOnline ? 'Offline' : 'Online';
-  }, [userMenus]);
-
   const handleAddMenu = (type: 'scratch' | 'pos') => {
     if (type === 'pos') {
       handleImportFromPos();
@@ -1225,12 +1219,6 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
           {/* Main Content */}
           <ScrollArea className="flex-1">
             <div className="p-8 space-y-10">
-              <section>
-                <h2 className="text-2xl font-bold mb-4">Default</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <TemplateCard name='Default' imageHint='template-1' isLocked status={defaultMenuStatus} />
-                </div>
-              </section>
               <section>
                 <h2 className="text-2xl font-bold mb-4">Your Menus</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
