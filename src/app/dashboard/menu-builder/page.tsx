@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as DialogDescriptionComponent, DialogFooter } from '@/components/ui/dialog';
@@ -58,6 +58,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
 
 const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: { 
   name: string; 
@@ -169,21 +171,21 @@ const mockMenuItems: MenuItem[] = [
     { 
         id: 'pizza-margherita-12', 
         name: 'Pizza Margherita - 12 inches', 
-        description: 'Homemade dough, homemade pizza sauce,...', 
+        description: 'Homemade dough, homemade pizza sauce, shredded mozzarella cheese, and shredded cheddar cheese.', 
         price: 36.00, 
         category: 'Bestsellers', 
         image: getImageUrl('margherita-pizza'), 
         isCustomisable: true, 
-        properties: ['Vegetarian'],
+        properties: ['Vegetarian', 'Gluten', 'Dairy'],
         variations: [
             { id: 'var_pm12_1', value: 'Thin Crust', priceMode: 'override', priceValue: 36.00, hidden: false, categoryPage: true, productPage: true },
             { id: 'var_pm12_2', value: 'Thick Crust', priceMode: 'add', priceValue: 5.00, hidden: false, categoryPage: true, productPage: true },
         ],
         nutrition: {
-            protein: 25,
-            fat: 20,
-            carbohydrates: 80,
-            sugar: 10
+            kcal: 892,
+            protein: 32,
+            carbs: 98,
+            fat: 38
         }
     },
     { 
@@ -202,7 +204,7 @@ const mockMenuItems: MenuItem[] = [
         nutrition: {
             protein: 45,
             fat: 30,
-            carbohydrates: 75,
+            carbs: 75,
             sugar: 8
         }
     },
@@ -214,11 +216,11 @@ const mockMenuItems: MenuItem[] = [
         category: 'Pizza', 
         image: getImageUrl('margherita-pizza'), 
         isCustomisable: false, 
-        properties: ['Vegetarian'],
+        properties: ['Vegetarian', 'Gluten', 'Dairy'],
         nutrition: {
             protein: 18,
             fat: 15,
-            carbohydrates: 60,
+            carbs: 60,
             sugar: 7
         }
     },
@@ -230,11 +232,17 @@ const mockMenuItems: MenuItem[] = [
         category: 'Pizza', 
         isCustomisable: true, 
         image: getImageUrl('hawaiian-pizza'),
-        properties: [],
+        properties: ['Gluten', 'Dairy'],
         variations: [
             { id: 'var_hawaiian_1', value: 'Regular', priceMode: 'override', priceValue: 32.00, hidden: false, categoryPage: true, productPage: true },
             { id: 'var_hawaiian_2', value: 'Extra Pineapple', priceMode: 'add', priceValue: 3.00, hidden: false, categoryPage: true, productPage: true },
-        ]
+        ],
+        nutrition: {
+            protein: 22,
+            fat: 18,
+            carbs: 70,
+            sugar: 25
+        }
     },
     { 
         id: 'soft-drink', 
@@ -253,7 +261,7 @@ const mockMenuItems: MenuItem[] = [
         nutrition: {
             protein: 0,
             fat: 0,
-            carbohydrates: 39,
+            carbs: 39,
             sugar: 39
         }
     },
@@ -269,7 +277,7 @@ const mockMenuItems: MenuItem[] = [
         nutrition: {
             protein: 0,
             fat: 0,
-            carbohydrates: 0,
+            carbs: 0,
             sugar: 0
         }
     },
@@ -289,7 +297,7 @@ const mockMenuItems: MenuItem[] = [
         nutrition: {
             protein: 50,
             fat: 35,
-            carbohydrates: 40
+            carbs: 40
         }
     } as any,
     { 
@@ -299,11 +307,11 @@ const mockMenuItems: MenuItem[] = [
         price: 35.00, 
         category: 'Bestsellers', 
         image: getImageUrl('classic-cheeseburger'),
-        properties: ['Halal'],
+        properties: ['Halal', 'Gluten', 'Dairy'],
         nutrition: {
             protein: 30,
             fat: 25,
-            carbohydrates: 40,
+            carbs: 40,
             sugar: 8
         },
         variations: [
@@ -322,7 +330,7 @@ const mockMenuItems: MenuItem[] = [
         nutrition: {
             protein: 4,
             fat: 15,
-            carbohydrates: 35,
+            carbs: 35,
             sodium: 350
         }
     } as any,
@@ -333,11 +341,11 @@ const mockMenuItems: MenuItem[] = [
         price: 22.00, 
         category: 'Desserts', 
         image: getImageUrl('lava-cake'), 
-        properties: ['Vegetarian'],
+        properties: ['Vegetarian', 'Gluten', 'Dairy'],
         nutrition: {
             protein: 6,
             fat: 22,
-            carbohydrates: 50,
+            carbs: 50,
             sugar: 35
         }
     } as any
@@ -362,7 +370,7 @@ const initialNutritionItems: { id: string; name: string; unit: 'g' | 'mg' | 'kca
   { id: '7', name: 'Fiber', unit: 'g', enabled: true },
 ];
 
-const mockProperties = ['Spicy', 'Vegetarian', 'Gluten-Free', 'New', 'Halal', 'Organic'];
+const mockProperties = ['Spicy', 'Vegetarian', 'Gluten-Free', 'New', 'Halal', 'Organic', 'Gluten', 'Dairy'];
 
 
 const SortableSectionItem = ({ id, name, onEditClick, itemCount }: { id: string; name: string; onEditClick: () => void; itemCount: number; }) => {
@@ -410,7 +418,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
     const totalKcal = useMemo(() => {
         if (!isNutritionEnabled) return 0;
         const protein = localNutrition.protein || 0;
-        const carbs = localNutrition.carbohydrates || 0;
+        const carbs = localNutrition.carbohydrates || localNutrition.carbs || 0;
         const fat = localNutrition.fat || 0;
         return Math.round((protein * 4) + (carbs * 4) + (fat * 9));
     }, [localNutrition, isNutritionEnabled]);
@@ -674,7 +682,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                     {isNutritionEnabled && (
                         <div className="space-y-4 pt-4 border-t">
                             {Object.entries(localNutrition).map(([key, value]) => {
-                                const nutritionItem = initialNutritionItems.find(i => i.name.toLowerCase().replace(/\s/g, '_') === key);
+                                const nutritionItem = initialNutritionItems.find(i => i.name.toLowerCase().replace(/\s/g, '_') === key || i.name.toLowerCase() === key);
                                 return (
                                     <div key={key} className="flex items-end gap-2">
                                         <div className="flex-1">
@@ -777,6 +785,131 @@ const SortableProductRow = ({ item, onAvailabilityChange, onRowClick, isSelected
     );
 };
 
+const allergenIcons: { [key: string]: React.ElementType } = {
+  'Gluten': Wheat,
+  'Dairy': Milk,
+  'Vegetarian': Leaf,
+  'Spicy': Flame,
+  'Vegan': Sprout
+};
+
+const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
+    const [quantity, setQuantity] = useState(1);
+    const [selectedVariation, setSelectedVariation] = useState<string | null>(null);
+
+    useEffect(() => {
+        setQuantity(1);
+        setSelectedVariation(item?.variations?.[0]?.value || null);
+    }, [item]);
+
+    const totalKcal = useMemo(() => {
+        if (!item?.nutrition) return 0;
+        const { protein = 0, carbs = 0, carbohydrates = 0, fat = 0 } = item.nutrition;
+        return Math.round((protein * 4) + ((carbohydrates || carbs) * 4) + (fat * 9));
+    }, [item?.nutrition]);
+
+    if (!item) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8 w-full max-w-sm">
+                <ImageIcon className="h-12 w-12 mb-4 opacity-30" />
+                <h3 className="font-semibold">Live Preview</h3>
+                <p className="text-sm">Click on an item from the list to see a live preview of its details here.</p>
+            </div>
+        );
+    }
+    
+    return (
+        <div className="w-full max-w-[340px] h-[720px] bg-gray-100 rounded-[32px] shadow-2xl p-3 border-[6px] border-black overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto bg-white rounded-t-[20px]">
+                <div className="relative h-52">
+                    <Image src={item.image} alt={item.name} fill className="object-cover rounded-t-[20px]" />
+                    <div className="absolute top-3 right-3 h-8 w-8 rounded-full bg-black/40 flex items-center justify-center text-white cursor-pointer"><X size={18} /></div>
+                </div>
+
+                <div className="p-4 space-y-4">
+                    <h2 className="text-2xl font-bold">{item.name}</h2>
+                    <p className="text-sm text-gray-500">{item.description}</p>
+                    <p className="text-xl font-bold">AED {item.price.toFixed(2)} <span className="text-base text-gray-400 font-normal">(Base Price)</span></p>
+                    
+                    {item.nutrition && (
+                        <Card className="bg-gray-50 rounded-xl">
+                            <CardHeader className="flex-row items-center gap-2 space-y-0 p-3">
+                                <Flame className="h-5 w-5 text-orange-500"/>
+                                <h3 className="font-bold">Nutritional Info</h3>
+                                <span className="text-xs text-gray-400 ml-auto">Per serving</span>
+                            </CardHeader>
+                            <CardContent className="p-3 pt-0 grid grid-cols-4 gap-2 text-center">
+                                {totalKcal > 0 && <div className="p-2 bg-white rounded-lg border"><p className="font-bold text-lg">{totalKcal}</p><p className="text-xs text-gray-500">Kcal</p></div>}
+                                {item.nutrition.protein && <div className="p-2 bg-white rounded-lg border"><p className="font-bold text-lg">{item.nutrition.protein}g</p><p className="text-xs text-gray-500">Protein</p></div>}
+                                {(item.nutrition.carbs || item.nutrition.carbohydrates) && <div className="p-2 bg-white rounded-lg border"><p className="font-bold text-lg">{item.nutrition.carbs || item.nutrition.carbohydrates}g</p><p className="text-xs text-gray-500">Carbs</p></div>}
+                                {item.nutrition.fat && <div className="p-2 bg-white rounded-lg border"><p className="font-bold text-lg">{item.nutrition.fat}g</p><p className="text-xs text-gray-500">Fat</p></div>}
+                            </CardContent>
+                        </Card>
+                    )}
+                    
+                    {item.properties && item.properties.length > 0 && (
+                         <Card className="bg-yellow-50 border-yellow-200 rounded-xl">
+                            <CardHeader className="flex-row items-center gap-2 space-y-0 p-3">
+                                <AlertTriangle className="h-5 w-5 text-yellow-600"/>
+                                <h3 className="font-bold">Allergen Information</h3>
+                            </CardHeader>
+                            <CardContent className="p-3 pt-0 flex flex-wrap gap-2">
+                                {item.properties.map(prop => {
+                                    const Icon = allergenIcons[prop];
+                                    return Icon ? (
+                                        <Badge key={prop} variant="outline" className="bg-white gap-1.5 font-semibold text-gray-600 border-gray-200 py-1 px-2"><Icon className="h-4 w-4"/> {prop}</Badge>
+                                    ) : null;
+                                })}
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {item.variations && item.variations.length > 0 && (
+                        <Card className="bg-gray-50 rounded-xl">
+                            <CardHeader className="p-3">
+                                <h3 className="font-bold">Flavor</h3>
+                                <p className="text-sm text-gray-500">Select one option <span className="text-red-500 font-semibold">(Required)</span></p>
+                            </CardHeader>
+                            <CardContent className="p-3 pt-0">
+                                <RadioGroup value={selectedVariation ?? ''} onValueChange={setSelectedVariation}>
+                                    <div className="space-y-2">
+                                        {item.variations.map((v, i) => (
+                                        <div key={v.id} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-3 last:pb-0">
+                                            <Label htmlFor={`preview-opt-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{v.value}</Label>
+                                            <RadioGroupItem value={v.value} id={`preview-opt-${i}`} className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500" />
+                                        </div>
+                                        ))}
+                                    </div>
+                                </RadioGroup>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    <Card className="bg-gray-50 rounded-xl">
+                        <CardHeader className="flex-row items-center gap-2 space-y-0 p-3">
+                            <Edit className="h-5 w-5 text-gray-500"/>
+                            <h3 className="font-bold">Special requests</h3>
+                        </CardHeader>
+                        <CardContent className="p-3 pt-0">
+                             <p className="text-xs text-gray-400 mb-2">We'll pass your special request to the restaurant... a refund isn't available if they can't.</p>
+                             <Textarea placeholder="For example: less spicy, no sugar, etc." className="bg-white"/>
+                        </CardContent>
+                    </Card>
+
+                </div>
+            </div>
+            <div className="sticky bottom-0 bg-white p-3 border-t shadow-inner rounded-b-[20px] flex items-center gap-3">
+                <div className="flex items-center justify-between rounded-lg p-1 border w-28">
+                    <Button size="icon" variant="ghost" className="h-9 w-9 text-gray-700" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus className="h-5 w-5" /></Button>
+                    <span className="font-bold text-lg text-gray-800">{quantity}</span>
+                    <Button size="icon" variant="ghost" className="h-9 w-9 text-gray-700" onClick={() => setQuantity(q => q + 1)}><Plus className="h-5 w-5" /></Button>
+                </div>
+                <Button className="flex-1 h-12 text-white font-bold text-base bg-teal-500 hover:bg-teal-600">Add • AED {(item.price * quantity).toFixed(2)}</Button>
+            </div>
+        </div>
+    );
+};
+
 const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => {
     
     const [items, setItems] = useState<MenuItem[]>([]);
@@ -788,7 +921,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
     useEffect(() => {
         if (category && isOpen) {
           setItems(category.items.map((item: any) => ({ ...item, available: item.available ?? true })));
-          setSelectedItem(null);
+          setSelectedItem(category.items.length > 0 ? category.items[0] : null);
           setSearchQuery('');
         }
     }, [category, isOpen]);
@@ -883,7 +1016,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            <SheetContent className="sm:max-w-6xl w-full p-0 flex flex-col">
+            <SheetContent className="sm:max-w-[90vw] w-[90vw] p-0 flex flex-col">
                 {!category ? (
                     <div className="flex-1 flex items-center justify-center">
                         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -894,17 +1027,9 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
                         <SheetTitle>Manage: {category.name} ({items.length} items)</SheetTitle>
                         <SheetDescription>Drag to reorder, click a row to edit details, and toggle availability.</SheetDescription>
                     </SheetHeader>
-                    <div className="grid grid-cols-1 md:grid-cols-3 flex-1 overflow-hidden">
-                        <div className="md:col-span-1 border-r bg-muted/30 overflow-y-auto">
-                            <ItemEditor 
-                                item={selectedItem}
-                                onUpdate={handleItemUpdate}
-                                onImageUpload={handleImageUpload}
-                                onAvailabilityChange={handleAvailabilityChange}
-                            />
-                        </div>
-                        <div className="md:col-span-2 flex flex-col overflow-hidden">
-                            <div className="p-6 pb-4 border-b shrink-0">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 overflow-hidden">
+                        <div className="lg:col-span-3 border-r bg-muted/30 flex flex-col overflow-hidden">
+                           <div className="p-4 border-b shrink-0">
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input
@@ -918,13 +1043,11 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
                             <div className="flex-1 overflow-y-auto">
                                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                                     <Table>
-                                        <TableHeader>
+                                        <TableHeader className="sr-only">
                                             <TableRow>
                                                 <TableHead className="w-10"></TableHead>
                                                 <TableHead>Image</TableHead>
                                                 <TableHead>Details</TableHead>
-                                                <TableHead>Price</TableHead>
-                                                <TableHead>Available</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
@@ -948,6 +1071,19 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
                                     )}
                                 </DndContext>
                             </div>
+                        </div>
+                        <div className="lg:col-span-5 flex flex-col overflow-hidden border-r">
+                           <div className="flex-1 overflow-y-auto">
+                             <ItemEditor 
+                                item={selectedItem}
+                                onUpdate={handleItemUpdate}
+                                onImageUpload={handleImageUpload}
+                                onAvailabilityChange={handleAvailabilityChange}
+                             />
+                           </div>
+                        </div>
+                        <div className="lg:col-span-4 bg-muted/30 flex items-center justify-center p-4">
+                           <ItemPreviewer item={selectedItem} />
                         </div>
                     </div>
                     <SheetFooter className="p-6 border-t shrink-0">
