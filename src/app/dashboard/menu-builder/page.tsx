@@ -11,7 +11,7 @@ import { EMenuIcon } from '@/components/dashboard/app-sidebar';
 import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Minus, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as DialogDescriptionComponent, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1197,6 +1197,14 @@ const AddSectionSheet = ({
         setAddedProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
         onProductUpdate(updatedProduct);
     };
+    
+    const handleAvailabilityChange = (itemId: string, available: boolean) => {
+        if (!selectedProduct || itemId !== selectedProduct.id) return;
+        const updatedProduct = { ...selectedProduct, available };
+        setSelectedProduct(updatedProduct);
+        setAddedProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+        onProductUpdate(updatedProduct);
+    }
 
     const handleImageUpload = (itemId: string, event: React.ChangeEvent<HTMLInputElement>) => {
         if (!selectedProduct || itemId !== selectedProduct.id) return;
@@ -1238,7 +1246,7 @@ const AddSectionSheet = ({
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            <SheetContent className="w-[90vw] max-w-[90vw] p-0 flex flex-col">
+            <SheetContent className="w-full max-w-full p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
                     <SheetTitle>Add New Menu Section</SheetTitle>
                     <SheetDescription>Build a new category by selecting items from your library.</SheetDescription>
@@ -1246,125 +1254,42 @@ const AddSectionSheet = ({
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
                         <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 overflow-hidden relative">
-                            {/* Settings Column */}
                              <div className="lg:col-span-3 flex flex-col overflow-hidden border-r">
                                 <ScrollArea className="flex-1">
                                     <div className="p-6 space-y-6">
-                                        <FormField
-                                            control={form.control}
-                                            name="name"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Section Name</FormLabel>
-                                                    <FormControl><Input placeholder="e.g., Summer Specials" {...field} /></FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="description"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Description</FormLabel>
-                                                    <FormControl><Textarea placeholder="A short description for this section." rows={3} {...field} /></FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
+                                        <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Section Name</FormLabel><FormControl><Input placeholder="e.g., Summer Specials" {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                                        <FormField control={form.control} name="description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="A short description for this section." rows={3} {...field} /></FormControl><FormMessage /></FormItem>)}/>
                                         <FormItem>
                                             <FormLabel>Category Image</FormLabel>
                                             <div className="mt-2 flex items-center gap-4">
                                                 <div className="w-24 h-24 rounded-lg border border-dashed flex items-center justify-center bg-muted overflow-hidden">
-                                                    {imagePreview ? (
-                                                        <Image src={imagePreview} alt="Category preview" width={96} height={96} className="object-cover" />
-                                                    ) : (
-                                                        <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                                                    )}
+                                                    {imagePreview ? (<Image src={imagePreview} alt="Category preview" width={96} height={96} className="object-cover" />) : (<ImageIcon className="h-8 w-8 text-muted-foreground" />)}
                                                 </div>
                                                 <div className="flex flex-col gap-2">
-                                                    <Button type="button" variant="outline" size="sm" asChild>
-                                                        <label htmlFor="category-image-upload" className="cursor-pointer">
-                                                            <Upload className="mr-2 h-4 w-4" /> Upload
-                                                        </label>
-                                                    </Button>
+                                                    <Button type="button" variant="outline" size="sm" asChild><label htmlFor="category-image-upload" className="cursor-pointer"><Upload className="mr-2 h-4 w-4" /> Upload</label></Button>
                                                     <Input id="category-image-upload" type="file" ref={fileInputRefForSection} className="sr-only" accept="image/*" onChange={handleImageUploadForSection} />
-                                                    {imagePreview && (
-                                                        <Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive h-auto" onClick={clearImageForSection}>
-                                                            Clear
-                                                        </Button>
-                                                    )}
+                                                    {imagePreview && (<Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive h-auto" onClick={clearImageForSection}>Clear</Button>)}
                                                 </div>
                                             </div>
                                         </FormItem>
                                         <div className="space-y-4 pt-6">
-                                            <FormField
-                                                control={form.control}
-                                                name="enableSpecial"
-                                                render={({ field }) => (
-                                                    <FormItem className="flex items-center justify-between rounded-lg border p-3">
-                                                        <div className="space-y-0.5">
-                                                            <FormLabel>Mark as Special</FormLabel>
-                                                            <FormDescription className="text-xs">Highlight this section on the menu.</FormDescription>
-                                                        </div>
-                                                        <FormControl>
-                                                            <Switch checked={field.value} onCheckedChange={field.onChange} />
-                                                        </FormControl>
-                                                    </FormItem>
-                                                )}
-                                            />
+                                            <FormField control={form.control} name="enableSpecial" render={({ field }) => (<FormItem className="flex items-center justify-between rounded-lg border p-3"><div className="space-y-0.5"><FormLabel>Mark as Special</FormLabel><FormDescription className="text-xs">Highlight this section on the menu.</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>)}/>
                                             {form.watch('enableSpecial') && (
                                                 <div className="space-y-4 p-4 border rounded-lg ml-4 bg-muted/30">
-                                                     <FormField
-                                                        control={form.control}
-                                                        name="specialTagName"
-                                                        render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel>Tag Name</FormLabel>
-                                                                <FormControl><Input placeholder="e.g., Hot, New" {...field} /></FormControl>
-                                                            </FormItem>
-                                                        )}
-                                                    />
+                                                     <FormField control={form.control} name="specialTagName" render={({ field }) => (<FormItem><FormLabel>Tag Name</FormLabel><FormControl><Input placeholder="e.g., Hot, New" {...field} /></FormControl></FormItem>)}/>
                                                      <div className="space-y-2">
                                                         <FormLabel>Tag Icon</FormLabel>
                                                          <div className="flex items-center gap-2">
-                                                            <div className="w-10 h-10 rounded-md bg-background flex items-center justify-center border">
-                                                                <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                                                            </div>
+                                                            <div className="w-10 h-10 rounded-md bg-background flex items-center justify-center border"><ImageIcon className="h-5 w-5 text-muted-foreground" /></div>
                                                             <Button type="button" variant="outline" size="sm">Upload</Button>
                                                         </div>
                                                      </div>
                                                 </div>
                                             )}
-
-                                            <FormField
-                                                control={form.control}
-                                                name="enableCategoryLink"
-                                                render={({ field }) => (
-                                                    <FormItem className="flex items-center justify-between rounded-lg border p-3">
-                                                        <div className="space-y-0.5">
-                                                            <FormLabel>Enable Category Link</FormLabel>
-                                                             <FormDescription className="text-xs">Link to a URL instead of showing items.</FormDescription>
-                                                        </div>
-                                                        <FormControl>
-                                                            <Switch checked={field.value} onCheckedChange={field.onChange} />
-                                                        </FormControl>
-                                                    </FormItem>
-                                                )}
-                                            />
+                                            <FormField control={form.control} name="enableCategoryLink" render={({ field }) => (<FormItem className="flex items-center justify-between rounded-lg border p-3"><div className="space-y-0.5"><FormLabel>Enable Category Link</FormLabel><FormDescription className="text-xs">Link to a URL instead of showing items.</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>)}/>
                                             {form.watch('enableCategoryLink') && (
                                                 <div className="space-y-4 p-4 border rounded-lg ml-4 bg-muted/30">
-                                                     <FormField
-                                                        control={form.control}
-                                                        name="externalLink"
-                                                        render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel>External URL</FormLabel>
-                                                                <FormControl><Input placeholder="https://example.com" {...field} /></FormControl>
-                                                                 <FormMessage />
-                                                            </FormItem>
-                                                        )}
-                                                    />
+                                                     <FormField control={form.control} name="externalLink" render={({ field }) => (<FormItem><FormLabel>External URL</FormLabel><FormControl><Input placeholder="https://example.com" {...field} /></FormControl><FormMessage /></FormItem>)}/>
                                                 </div>
                                             )}
                                         </div>
@@ -1381,76 +1306,85 @@ const AddSectionSheet = ({
                                 </div>
                             )}
 
-                            {/* Item Selection & Previewer Columns */}
-                            <div className="lg:col-span-9 grid grid-cols-1 md:grid-cols-3 flex-1 overflow-hidden">
-                                {/* Available Items */}
-                                <div className="md:col-span-1 flex flex-col overflow-hidden border-r">
-                                    <div className="p-4 border-b">
-                                        <div className="relative">
-                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            <Input placeholder="Search all products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
+                            <div className="lg:col-span-9 grid grid-cols-1 xl:grid-cols-12 flex-1 overflow-hidden">
+                                <div className="xl:col-span-4 flex flex-col overflow-hidden border-r">
+                                    <div className="flex-1 flex flex-col min-h-0">
+                                        <div className="p-4 border-b shrink-0">
+                                            <h3 className="font-semibold">Available Products</h3>
+                                            <div className="relative mt-2">
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                <Input placeholder="Search all products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
+                                            </div>
                                         </div>
-                                    </div>
-                                    <ScrollArea className="flex-1">
-                                        <div className="p-2 space-y-1">
-                                            {availableProducts.map(product => (
-                                                <div key={product.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-muted">
-                                                    <Image src={product.image!} alt={product.name} width={40} height={40} className="rounded object-cover" />
-                                                    <div className="flex-1">
-                                                        <p className="text-sm font-semibold line-clamp-1">{product.name}</p>
-                                                        <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
+                                        <ScrollArea className="flex-1">
+                                            <div className="p-2 space-y-1">
+                                                {availableProducts.map(product => (
+                                                    <div key={product.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-muted">
+                                                        <Image src={product.image!} alt={product.name} width={40} height={40} className="rounded object-cover" />
+                                                        <div className="flex-1">
+                                                            <p className="text-sm font-semibold line-clamp-1">{product.name}</p>
+                                                            <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
+                                                        </div>
+                                                        <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => handleAddProduct(product)}>
+                                                            <Plus className="h-4 w-4" />
+                                                        </Button>
                                                     </div>
-                                                    <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => handleAddProduct(product)}>
-                                                        <Plus className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </ScrollArea>
-                                </div>
-                                {/* Added Items List */}
-                                <div className="md:col-span-1 flex flex-col overflow-hidden border-r">
-                                    <div className="p-4 border-b shrink-0">
-                                        <h3 className="font-semibold text-lg">{form.watch('name') || 'New Section'} ({addedProducts.length} items)</h3>
-                                        <p className="text-sm text-muted-foreground">Drag to reorder. Click to preview.</p>
+                                                ))}
+                                            </div>
+                                        </ScrollArea>
                                     </div>
+                                    <div className="border-t"></div>
+                                    <div className="flex-1 flex flex-col min-h-0">
+                                        <div className="p-4 border-b shrink-0">
+                                            <h3 className="font-semibold text-lg">{form.watch('name') || 'New Section'} ({addedProducts.length} items)</h3>
+                                            <p className="text-sm text-muted-foreground">Drag to reorder. Click to edit.</p>
+                                        </div>
+                                        <ScrollArea className="flex-1">
+                                             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                                                <SortableContext items={addedProductIds} strategy={verticalListSortingStrategy}>
+                                                    <div className="p-2 space-y-1">
+                                                        {addedProducts.map(product => {
+                                                            const SortableWrapper = ({ children }: { children: React.ReactNode }) => {
+                                                                const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: product.id });
+                                                                const style = { transform: CSS.Transform.toString(transform), transition };
+                                                                return <div ref={setNodeRef} style={style} className="touch-none flex items-center gap-2 p-2 rounded-md bg-background border" {...attributes} >
+                                                                    <button {...listeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></button>
+                                                                    {children}
+                                                                </div>;
+                                                            };
+                                                            return (
+                                                                <SortableWrapper key={product.id}>
+                                                                    <div className="flex-1 cursor-pointer" onClick={() => setSelectedProduct(product)}>
+                                                                        <p className={cn("text-sm font-semibold line-clamp-1", selectedProduct?.id === product.id && "text-primary")}>{product.name}</p>
+                                                                        <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
+                                                                    </div>
+                                                                    <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => handleRemoveProduct(product.id)}>
+                                                                        <X className="h-4 w-4" />
+                                                                    </Button>
+                                                                </SortableWrapper>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                </SortableContext>
+                                             </DndContext>
+                                        </ScrollArea>
+                                    </div>
+                                </div>
+                                <div className="xl:col-span-5 flex flex-col overflow-hidden border-r">
                                     <ScrollArea className="flex-1">
-                                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                                            <SortableContext items={addedProductIds} strategy={verticalListSortingStrategy}>
-                                                <div className="p-2 space-y-1">
-                                                    {addedProducts.map(product => {
-                                                        const SortableWrapper = ({ children }: { children: React.ReactNode }) => {
-                                                            const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: product.id });
-                                                            const style = { transform: CSS.Transform.toString(transform), transition };
-                                                            return <div ref={setNodeRef} style={style} className="touch-none flex items-center gap-2 p-2 rounded-md bg-background border" {...attributes} >
-                                                                <button {...listeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></button>
-                                                                {children}
-                                                            </div>;
-                                                        };
-                                                        return (
-                                                            <SortableWrapper key={product.id}>
-                                                                <div className="flex-1 cursor-pointer" onClick={() => setSelectedProduct(product)}>
-                                                                    <p className={cn("text-sm font-semibold line-clamp-1", selectedProduct?.id === product.id && "text-primary")}>{product.name}</p>
-                                                                    <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
-                                                                </div>
-                                                                <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => handleRemoveProduct(product.id)}>
-                                                                    <X className="h-4 w-4" />
-                                                                </Button>
-                                                            </SortableWrapper>
-                                                        )
-                                                    })}
-                                                </div>
-                                            </SortableContext>
-                                         </DndContext>
+                                        <ItemEditor
+                                            item={selectedProduct}
+                                            onUpdate={handleEditorChange}
+                                            onImageUpload={handleImageUpload}
+                                            onAvailabilityChange={handleAvailabilityChange}
+                                        />
                                     </ScrollArea>
                                 </div>
-                                {/* Item Previewer */}
-                                <div className="md:col-span-1 bg-muted/30 flex items-center justify-center p-4 overflow-y-auto">
-                                   <ItemPreviewer item={selectedProduct} />
+                                <div className="xl:col-span-3 bg-muted/30 flex items-center justify-center p-4 overflow-y-auto">
+                                    <ItemPreviewer item={selectedProduct} />
                                 </div>
                             </div>
                         </div>
-
                         <SheetFooter className="p-6 border-t shrink-0">
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                             <Button type="submit">Create Section</Button>
@@ -1825,9 +1759,9 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-center text-2xl font-bold">How would you like to build your menu?</DialogTitle>
-            <DialogDescriptionComponent className="text-center max-w-md mx-auto">
+            <DialogDescription>
               Choose how you want to set up your menu. You can manage multiple versions and publish anytime.
-            </DialogDescriptionComponent>
+            </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
             <Card className="hover:shadow-lg hover:border-primary transition-all cursor-pointer" onClick={() => handleAddMenu('scratch')}>
@@ -1866,11 +1800,11 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>Import from POS</DialogTitle>
-                <DialogDescriptionComponent>
+                <DialogDescription>
                 {connectedPos.length > 0
                     ? 'Choose a connected POS system to import your menu from.'
                     : "First, connect your Point-of-Sale system to import your menu automatically."}
-                </DialogDescriptionComponent>
+                </DialogDescription>
             </DialogHeader>
             {connectedPos.length > 0 ? (
                 <>
@@ -1930,9 +1864,9 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                     Connect Your POS
                     </Button>
                 </div>
-                <div className="sm:justify-center">
+                <DialogFooter className="sm:justify-center">
                     <Button variant="outline" onClick={() => setPosFlowStep('')}>Cancel</Button>
-                </div>
+                </DialogFooter>
                 </>
             )}
         </DialogContent>
@@ -1943,9 +1877,9 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-center">{isSyncComplete ? 'Sync Complete!' : 'Syncing Menu from POS'}</DialogTitle>
-            <DialogDescriptionComponent className="text-center">
+            <DialogDescription className="text-center">
               {isSyncComplete ? `${menuItems.length} items imported successfully.` : 'Please wait while we securely import your menu data.'}
-            </DialogDescriptionComponent>
+            </DialogDescription>
           </DialogHeader>
           <div className="py-8 flex flex-col items-center justify-center gap-4">
             {isSyncComplete ? (
@@ -1971,9 +1905,9 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
           <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
               <DialogTitle className="sr-only">Customize Imported Menu</DialogTitle>
-              <DialogDescriptionComponent className="sr-only">
+              <DialogDescription>
                   Here you can reorder menu sections and customize items imported from your Point-of-Sale system.
-              </DialogDescriptionComponent>
+              </DialogDescription>
               <div className="p-4 border-b flex-row items-center justify-between space-y-0 flex">
                   <Input
                     value={editingMenuName}
