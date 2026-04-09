@@ -5,13 +5,13 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { MenuBuilderPreloader } from '@/components/dashboard/menu-builder/preloader';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as DialogDescriptionComponent, DialogFooter } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -141,8 +141,21 @@ const getImageUrl = (id: string) => {
     return image?.imageUrl || 'https://picsum.photos/seed/placeholder/400/400';
 };
 
+export type Variation = {
+  id: string;
+  value: string;
+  matrix?: string;
+  priceMode: 'override' | 'add' | 'subtract';
+  priceValue: number;
+  hidden: boolean;
+  categoryPage?: boolean;
+  productPage?: boolean;
+};
+
 interface MenuItem extends BaseMenuItem {
   available?: boolean;
+  nutrition?: Record<string, number>;
+  variations?: Variation[];
 }
 
 const mockMenuItems: MenuItem[] = [
@@ -152,8 +165,37 @@ const mockMenuItems: MenuItem[] = [
     { id: 'hawaiian-pizza-10', name: 'Hawaiian Pizza - 10 inches', description: 'Homemade dough, pizza sauce, mozzarella, ham,...', price: 32.00, category: 'Pizza', isCustomisable: true, image: getImageUrl('hawaiian-pizza') },
     { id: 'soft-drink', name: 'Soft Drink', description: 'Choose your favorite flavor.', price: 3.00, category: 'Drinks', isCustomisable: true, image: getImageUrl('soft-drink') },
     { id: 'bottled-water', name: 'Bottled Water', description: 'Still or sparkling water.', price: 2.50, category: 'Drinks', image: getImageUrl('bottled-water') },
-    { id: 'steak-frites', name: 'Steak Frites', description: 'Juicy steak served with a side of crispy french fries.', price: 25.00, category: 'Main Courses', image: getImageUrl('ribeye-steak') } as any,
-    { id: 'classic-cheeseburger', name: 'Classic Cheeseburger', description: 'A succulent beef patty with melted cheddar.', price: 35.00, category: 'Bestsellers', image: getImageUrl('classic-cheeseburger') } as any,
+    { 
+        id: 'steak-frites', 
+        name: 'Steak Frites', 
+        description: 'Juicy steak served with a side of crispy french fries.', 
+        price: 25.00, 
+        category: 'Main Courses', 
+        image: getImageUrl('ribeye-steak'),
+        variations: [
+            { id: 'var_steak_1', value: 'Rare', priceMode: 'override', priceValue: 25.00, hidden: false },
+            { id: 'var_steak_2', value: 'Medium Rare', priceMode: 'override', priceValue: 25.00, hidden: false },
+            { id: 'var_steak_3', value: 'Medium', priceMode: 'override', priceValue: 25.00, hidden: false },
+        ]
+    } as any,
+    { 
+        id: 'classic-cheeseburger', 
+        name: 'Classic Cheeseburger', 
+        description: 'A succulent beef patty with melted cheddar.', 
+        price: 35.00, 
+        category: 'Bestsellers', 
+        image: getImageUrl('classic-cheeseburger'),
+        nutrition: {
+            protein: 30,
+            fat: 25,
+            carbohydrates: 40,
+            sugar: 8
+        },
+        variations: [
+            { id: 'var_cb_1', value: 'Single Patty', priceMode: 'override', priceValue: 35.00, hidden: false },
+            { id: 'var_cb_2', value: 'Double Patty', priceMode: 'add', priceValue: 10.00, hidden: false },
+        ]
+    } as any,
     { id: 'truffle-fries', name: 'Truffle Fries', description: 'Crispy fries with a truffle twist.', price: 15.00, category: 'Sides', image: getImageUrl('truffle-fries') } as any,
     { id: 'lava-cake', name: 'Chocolate Lava Cake', description: 'A chocolate lover\'s dream.', price: 22.00, category: 'Desserts', image: getImageUrl('lava-cake') } as any
 ];
@@ -166,6 +208,14 @@ const mockMenuData = [
     { id: 'drinks', name: 'Drinks', items: mockMenuItems.filter(i => i.category === 'Drinks') },
 ];
 
+const initialNutritionItems: { id: string; name: string; unit: 'g' | 'mg' | 'kcal'; enabled: boolean; }[] = [
+  { id: '2', name: 'Protein', unit: 'g', enabled: true },
+  { id: '3', name: 'Fat', unit: 'g', enabled: true },
+  { id: '4', name: 'Carbohydrates', unit: 'g', enabled: true },
+  { id: '5', name: 'Sugar', unit: 'g', enabled: true },
+  { id: '6', name: 'Sodium', unit: 'mg', enabled: true },
+  { id: '7', name: 'Fiber', unit: 'g', enabled: true },
+];
 
 const SortableSectionItem = ({ id, name, onEditClick, itemCount }: { id: string; name: string; onEditClick: () => void; itemCount: number; }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
@@ -207,6 +257,14 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
         );
     }
     
+    const availableNutritionItems = (currentNutrition: Record<string, number>) => {
+        const addedKeys = Object.keys(currentNutrition);
+        return initialNutritionItems.filter(item => 
+            item.enabled && 
+            !addedKeys.includes(item.name.toLowerCase().replace(/\s/g, '_'))
+        );
+    };
+
     return (
         <div className="p-6 space-y-6">
             <div>
@@ -270,6 +328,105 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                     onCheckedChange={(checked) => onAvailabilityChange(item.id, checked)}
                 />
             </div>
+
+            {item.variations && item.variations.length > 0 && (
+                <Card className="mt-6">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg"><Package className="h-5 w-5" /> Variations</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        {item.variations.map(variation => (
+                            <div key={variation.id} className="flex justify-between items-center text-sm p-2 rounded-md bg-muted/50">
+                                <div>
+                                    <p className="font-medium">{variation.value}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-mono font-semibold">
+                                        {variation.priceMode === 'override' ? '' : variation.priceMode === 'add' ? '+' : '-'}${variation.priceValue.toFixed(2)}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            )}
+
+            <Card className="mt-6">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg"><Leaf className="h-5 w-5" /> Nutritional Facts</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between rounded-lg border p-3">
+                        <Label htmlFor="enableNutrition" className="font-medium">Enable Info</Label>
+                        <Switch
+                            id="enableNutrition"
+                            checked={item.nutrition !== undefined}
+                            onCheckedChange={(checked) => {
+                                if (checked) {
+                                    onUpdate(item.id, 'nutrition', {});
+                                } else {
+                                    onUpdate(item.id, 'nutrition', undefined);
+                                }
+                            }}
+                        />
+                    </div>
+                    {item.nutrition !== undefined && (
+                        <div className="space-y-4 pt-4 border-t">
+                            {Object.keys(item.nutrition).map(key => {
+                                const nutritionItem = initialNutritionItems.find(i => i.name.toLowerCase().replace(/\s/g, '_') === key);
+                                return (
+                                    <div key={key} className="flex items-end gap-2">
+                                        <div className="flex-1">
+                                            <Label htmlFor={`nutrition-${key}`} className="text-sm text-muted-foreground">{nutritionItem?.name || key}</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    id={`nutrition-${key}`}
+                                                    type="number"
+                                                    step="0.1"
+                                                    value={item.nutrition?.[key] ?? ''}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value === '' ? undefined : parseFloat(e.target.value);
+                                                        const newNutrition = { ...item.nutrition, [key]: value };
+                                                        onUpdate(item.id, 'nutrition', newNutrition);
+                                                    }}
+                                                    className="pr-12"
+                                                />
+                                                <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-muted-foreground text-sm uppercase">{nutritionItem?.unit}</span>
+                                            </div>
+                                        </div>
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => {
+                                            const { [key]: _, ...rest } = item.nutrition || {};
+                                            onUpdate(item.id, 'nutrition', rest);
+                                        }}>
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </div>
+                                )
+                            })}
+                            {availableNutritionItems(item.nutrition || {}).length > 0 && (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="sm" className="mt-2">
+                                            <PlusCircle className="mr-2 h-4 w-4" />
+                                            Add Fact
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                        {availableNutritionItems(item.nutrition || {}).map(ni => (
+                                            <DropdownMenuItem key={ni.id} onSelect={() => {
+                                                const newNutrition = { ...item.nutrition, [ni.name.toLowerCase().replace(/\s/g, '_')]: 0 };
+                                                onUpdate(item.id, 'nutrition', newNutrition);
+                                            }}>
+                                                {ni.name}
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            )}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     );
 };
@@ -897,6 +1054,87 @@ const AddSectionSheet = ({
                                                 <Label htmlFor="itemAvailability" className="font-medium">Available</Label>
                                                 <Switch id="itemAvailability" checked={editingProduct.available ?? true} onCheckedChange={handleAvailabilityChange} />
                                             </div>
+                                            
+                                            {editingProduct.variations && editingProduct.variations.length > 0 && (
+                                                <Card className="mt-6">
+                                                    <CardHeader className="p-4">
+                                                        <CardTitle className="flex items-center gap-2 text-base"><Package className="h-4 w-4" /> Variations</CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent className="p-4 pt-0 space-y-2">
+                                                        {editingProduct.variations.map(variation => (
+                                                            <div key={variation.id} className="flex justify-between items-center text-sm p-2 rounded-md bg-muted/50">
+                                                                <p className="font-medium">{variation.value}</p>
+                                                                <p className="font-mono font-semibold">
+                                                                    {variation.priceMode === 'override' ? '' : variation.priceMode === 'add' ? '+' : '-'}${variation.priceValue.toFixed(2)}
+                                                                </p>
+                                                            </div>
+                                                        ))}
+                                                    </CardContent>
+                                                </Card>
+                                            )}
+
+                                            <Card className="mt-6">
+                                                <CardHeader className="p-4">
+                                                    <CardTitle className="flex items-center gap-2 text-base"><Leaf className="h-4 w-4" /> Nutritional Facts</CardTitle>
+                                                </CardHeader>
+                                                <CardContent className="p-4 pt-0 space-y-4">
+                                                     <div className="flex items-center justify-between rounded-lg border p-3 bg-background">
+                                                        <Label htmlFor="enableNutrition" className="font-medium">Enable Info</Label>
+                                                        <Switch
+                                                            id="enableNutrition"
+                                                            checked={editingProduct.nutrition !== undefined}
+                                                            onCheckedChange={(checked) => handleEditorChange('nutrition', checked ? {} : undefined)}
+                                                        />
+                                                    </div>
+                                                     {editingProduct.nutrition !== undefined && (
+                                                        <div className="space-y-4 pt-4 border-t">
+                                                            {Object.keys(editingProduct.nutrition).map(key => {
+                                                                const nutritionItem = initialNutritionItems.find(i => i.name.toLowerCase().replace(/\s/g, '_') === key);
+                                                                return (
+                                                                    <div key={key} className="flex items-end gap-2">
+                                                                        <div className="flex-1">
+                                                                            <Label htmlFor={`nutrition-${key}`} className="text-sm text-muted-foreground">{nutritionItem?.name || key}</Label>
+                                                                            <div className="relative">
+                                                                                <Input
+                                                                                    id={`nutrition-${key}`}
+                                                                                    type="number" step="0.1"
+                                                                                    value={editingProduct.nutrition?.[key] ?? ''}
+                                                                                    onChange={(e) => handleEditorChange('nutrition', { ...editingProduct.nutrition, [key]: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
+                                                                                    className="pr-12"
+                                                                                />
+                                                                                <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-muted-foreground text-sm uppercase">{nutritionItem?.unit}</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <Button type="button" variant="ghost" size="icon" onClick={() => {
+                                                                            const { [key]: _, ...rest } = editingProduct.nutrition || {};
+                                                                            handleEditorChange('nutrition', rest);
+                                                                        }}>
+                                                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                                                        </Button>
+                                                                    </div>
+                                                                )
+                                                            })}
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button variant="outline" size="sm" className="mt-2">
+                                                                        <PlusCircle className="mr-2 h-4 w-4" /> Add Fact
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent>
+                                                                    {initialNutritionItems.filter(i => !Object.keys(editingProduct.nutrition || {}).includes(i.name.toLowerCase().replace(/\s/g, '_'))).map(ni => (
+                                                                        <DropdownMenuItem key={ni.id} onSelect={() => {
+                                                                            const newNutrition = { ...editingProduct.nutrition, [ni.name.toLowerCase().replace(/\s/g, '_')]: 0 };
+                                                                            handleEditorChange('nutrition', newNutrition);
+                                                                        }}>
+                                                                            {ni.name}
+                                                                        </DropdownMenuItem>
+                                                                    ))}
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        </div>
+                                                    )}
+                                                </CardContent>
+                                            </Card>
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
@@ -1283,9 +1521,9 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-center text-2xl font-bold">How would you like to build your menu?</DialogTitle>
-            <DialogDescription className="text-center max-w-md mx-auto">
+            <DialogDescriptionComponent className="text-center max-w-md mx-auto">
               Choose how you want to set up your menu. You can manage multiple versions and publish anytime.
-            </DialogDescription>
+            </DialogDescriptionComponent>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
             <Card className="hover:shadow-lg hover:border-primary transition-all cursor-pointer" onClick={() => handleAddMenu('scratch')}>
@@ -1324,11 +1562,11 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>Import from POS</DialogTitle>
-                <DialogDescription>
+                <DialogDescriptionComponent>
                 {connectedPos.length > 0
                     ? 'Choose a connected POS system to import your menu from.'
                     : "First, connect your Point-of-Sale system to import your menu automatically."}
-                </DialogDescription>
+                </DialogDescriptionComponent>
             </DialogHeader>
             {connectedPos.length > 0 ? (
                 <>
@@ -1401,9 +1639,9 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-center">{isSyncComplete ? 'Sync Complete!' : 'Syncing Menu from POS'}</DialogTitle>
-            <DialogDescription className="text-center">
+            <DialogDescriptionComponent className="text-center">
               {isSyncComplete ? `${menuItems.length} items imported successfully.` : 'Please wait while we securely import your menu data.'}
-            </DialogDescription>
+            </DialogDescriptionComponent>
           </DialogHeader>
           <div className="py-8 flex flex-col items-center justify-center gap-4">
             {isSyncComplete ? (
@@ -1429,9 +1667,9 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
           <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
               <DialogTitle className="sr-only">Customize Imported Menu</DialogTitle>
-              <DialogDescription className="sr-only">
+              <DialogDescriptionComponent className="sr-only">
                   Here you can reorder menu sections and customize items imported from your Point-of-Sale system.
-              </DialogDescription>
+              </DialogDescriptionComponent>
               <div className="p-4 border-b flex-row items-center justify-between space-y-0 flex">
                   <Input
                     value={editingMenuName}
@@ -1441,7 +1679,10 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                   />
                   <div className="flex items-center gap-2">
                       <Button variant="outline" onClick={() => handleSaveImportedMenu('Draft')}>Save as Draft</Button>
-                      <Button onClick={() => handleSaveImportedMenu('Online')}>Save & Publish</Button>
+                      <Button onClick={() => handleSaveImportedMenu('Online')}>
+                        <Rocket className="mr-2 h-4 w-4" />
+                        Publish
+                      </Button>
                   </div>
               </div>
               <div className="flex-1 grid grid-cols-3 overflow-hidden">
