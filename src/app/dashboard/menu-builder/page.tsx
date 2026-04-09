@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash, Trash2, PlusCircle, Plug, Leaf, Package, Rocket } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as DialogDescriptionComponent, DialogFooter } from '@/components/ui/dialog';
@@ -48,6 +48,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Upload } from 'lucide-react';
@@ -161,12 +162,13 @@ interface MenuItem extends BaseMenuItem {
   available?: boolean;
   nutrition?: Record<string, number>;
   variations?: Variation[];
+  properties?: string[];
 }
 
 const mockMenuItems: MenuItem[] = [
-    { id: 'pizza-margherita-12', name: 'Pizza Margherita - 12 inches', description: 'Homemade dough, homemade pizza sauce,...', price: 36.00, category: 'Bestsellers', image: getImageUrl('margherita-pizza'), isCustomisable: false },
-    { id: 'chicken-alfredo-pizza-12', name: 'Chicken Alfredo Pizza - 12 inches', description: 'Homemade dough, white sauce base, marinated...', price: 48.00, category: 'Bestsellers', isCustomisable: true, image: getImageUrl('alfredo-pizza') },
-    { id: 'pizza-margherita-10', name: 'Pizza Margherita - 10 inches', description: 'Homemade dough, homemade pizza sauce,...', price: 27.00, category: 'Pizza', image: getImageUrl('margherita-pizza'), isCustomisable: false },
+    { id: 'pizza-margherita-12', name: 'Pizza Margherita - 12 inches', description: 'Homemade dough, homemade pizza sauce,...', price: 36.00, category: 'Bestsellers', image: getImageUrl('margherita-pizza'), isCustomisable: false, properties: ['Vegetarian'] },
+    { id: 'chicken-alfredo-pizza-12', name: 'Chicken Alfredo Pizza - 12 inches', description: 'Homemade dough, white sauce base, marinated...', price: 48.00, category: 'Bestsellers', isCustomisable: true, image: getImageUrl('alfredo-pizza'), properties: ['Halal'] },
+    { id: 'pizza-margherita-10', name: 'Pizza Margherita - 10 inches', description: 'Homemade dough, homemade pizza sauce,...', price: 27.00, category: 'Pizza', image: getImageUrl('margherita-pizza'), isCustomisable: false, properties: ['Vegetarian'] },
     { id: 'hawaiian-pizza-10', name: 'Hawaiian Pizza - 10 inches', description: 'Homemade dough, pizza sauce, mozzarella, ham,...', price: 32.00, category: 'Pizza', isCustomisable: true, image: getImageUrl('hawaiian-pizza') },
     { id: 'soft-drink', name: 'Soft Drink', description: 'Choose your favorite flavor.', price: 3.00, category: 'Drinks', isCustomisable: true, image: getImageUrl('soft-drink') },
     { id: 'bottled-water', name: 'Bottled Water', description: 'Still or sparkling water.', price: 2.50, category: 'Drinks', image: getImageUrl('bottled-water') },
@@ -177,6 +179,7 @@ const mockMenuItems: MenuItem[] = [
         price: 25.00, 
         category: 'Main Courses', 
         image: getImageUrl('ribeye-steak'),
+        properties: ['Halal'],
         variations: [
             { id: 'var_steak_1', value: 'Rare', priceMode: 'override', priceValue: 25.00, hidden: false },
             { id: 'var_steak_2', value: 'Medium Rare', priceMode: 'override', priceValue: 25.00, hidden: false },
@@ -190,6 +193,7 @@ const mockMenuItems: MenuItem[] = [
         price: 35.00, 
         category: 'Bestsellers', 
         image: getImageUrl('classic-cheeseburger'),
+        properties: ['Halal'],
         nutrition: {
             protein: 30,
             fat: 25,
@@ -201,8 +205,8 @@ const mockMenuItems: MenuItem[] = [
             { id: 'var_cb_2', value: 'Double Patty', priceMode: 'add', priceValue: 10.00, hidden: false },
         ]
     } as any,
-    { id: 'truffle-fries', name: 'Truffle Fries', description: 'Crispy fries with a truffle twist.', price: 15.00, category: 'Sides', image: getImageUrl('truffle-fries') } as any,
-    { id: 'lava-cake', name: 'Chocolate Lava Cake', description: 'A chocolate lover\'s dream.', price: 22.00, category: 'Desserts', image: getImageUrl('lava-cake') } as any
+    { id: 'truffle-fries', name: 'Truffle Fries', description: 'Crispy fries with a truffle twist.', price: 15.00, category: 'Sides', image: getImageUrl('truffle-fries'), properties: ['Vegetarian'] } as any,
+    { id: 'lava-cake', name: 'Chocolate Lava Cake', description: 'A chocolate lover\'s dream.', price: 22.00, category: 'Desserts', image: getImageUrl('lava-cake'), properties: ['Vegetarian'] } as any
 ];
 
 const mockMenuData = [
@@ -221,6 +225,9 @@ const initialNutritionItems: { id: string; name: string; unit: 'g' | 'mg' | 'kca
   { id: '6', name: 'Sodium', unit: 'mg', enabled: true },
   { id: '7', name: 'Fiber', unit: 'g', enabled: true },
 ];
+
+const mockProperties = ['Spicy', 'Vegetarian', 'Gluten-Free', 'New', 'Halal', 'Organic'];
+
 
 const SortableSectionItem = ({ id, name, onEditClick, itemCount }: { id: string; name: string; onEditClick: () => void; itemCount: number; }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
@@ -253,65 +260,72 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [localVariations, setLocalVariations] = useState<Variation[]>([]);
     const [localNutrition, setLocalNutrition] = useState<Record<string, number>>({});
+    const [isNutritionEnabled, setIsNutritionEnabled] = useState(false);
 
     useEffect(() => {
         if (item) {
             setLocalVariations(item.variations || []);
-            setLocalNutrition(item.nutrition || {});
+            const nutritionData = item.nutrition || {};
+            setLocalNutrition(nutritionData);
+            setIsNutritionEnabled(Object.keys(nutritionData).length > 0 || item.nutrition === undefined);
         }
     }, [item]);
 
+    const handleUpdate = (field: keyof MenuItem, value: any) => {
+        if (item) onUpdate(item.id, field, value);
+    };
+
     const handleVariationChange = (index: number, field: keyof Variation, value: any) => {
-        if (!item) return;
         const newVariations = [...localVariations];
         if (field === 'priceValue' && typeof value === 'string') {
             value = parseFloat(value) || 0;
         }
         newVariations[index] = { ...newVariations[index], [field]: value };
         setLocalVariations(newVariations);
-        onUpdate(item.id, 'variations', newVariations);
+        handleUpdate('variations', newVariations);
     };
 
     const handleAddVariation = () => {
-        if (!item) return;
         const newVariation: Variation = {
-            id: `var_${Date.now()}`,
-            value: '',
-            priceMode: 'override',
-            priceValue: 0,
-            hidden: false
+            id: `var_${Date.now()}`, value: '', priceMode: 'override', priceValue: 0, hidden: false
         };
         const newVariations = [...localVariations, newVariation];
         setLocalVariations(newVariations);
-        onUpdate(item.id, 'variations', newVariations);
+        handleUpdate('variations', newVariations);
     };
 
     const handleRemoveVariation = (index: number) => {
-        if (!item) return;
         const newVariations = localVariations.filter((_, i) => i !== index);
         setLocalVariations(newVariations);
-        onUpdate(item.id, 'variations', newVariations);
+        handleUpdate('variations', newVariations);
     };
 
     const handleNutritionChange = (key: string, value: string) => {
-        if (!item) return;
         const newNutrition = { ...localNutrition, [key]: parseFloat(value) || 0 };
         setLocalNutrition(newNutrition);
-        onUpdate(item.id, 'nutrition', newNutrition);
+        handleUpdate('nutrition', newNutrition);
     };
     
     const handleAddNutritionField = (key: string) => {
-        if (!item) return;
         const newNutrition = { ...localNutrition, [key]: 0 };
         setLocalNutrition(newNutrition);
-        onUpdate(item.id, 'nutrition', newNutrition);
+        handleUpdate('nutrition', newNutrition);
     };
 
     const handleRemoveNutritionField = (key: string) => {
-        if (!item) return;
         const { [key]: _, ...rest } = localNutrition;
         setLocalNutrition(rest);
-        onUpdate(item.id, 'nutrition', rest);
+        handleUpdate('nutrition', rest);
+    };
+
+    const handleNutritionToggle = (enabled: boolean) => {
+        setIsNutritionEnabled(enabled);
+        if (!enabled) {
+            setLocalNutrition({});
+            handleUpdate('nutrition', undefined);
+        } else if (item && !item.nutrition) {
+            handleUpdate('nutrition', {});
+        }
     };
 
 
@@ -362,7 +376,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                 <Input
                     id="itemName"
                     value={item.name}
-                    onChange={(e) => onUpdate(item.id, 'name', e.target.value)}
+                    onChange={(e) => handleUpdate('name', e.target.value)}
                     className="font-bold text-base"
                 />
             </div>
@@ -371,7 +385,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                 <Textarea
                     id="itemDescription"
                     value={item.description}
-                    onChange={(e) => onUpdate(item.id, 'description', e.target.value)}
+                    onChange={(e) => handleUpdate('description', e.target.value)}
                     placeholder="Short description..."
                     rows={3}
                 />
@@ -382,7 +396,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                     id="itemPrice"
                     type="number"
                     value={item.price}
-                    onChange={(e) => onUpdate(item.id, 'price', parseFloat(e.target.value) || 0)}
+                    onChange={(e) => handleUpdate('price', parseFloat(e.target.value) || 0)}
                 />
             </div>
             <div className="flex items-center justify-between rounded-lg border p-4">
@@ -393,8 +407,46 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                     onCheckedChange={(checked) => onAvailabilityChange(item.id, checked)}
                 />
             </div>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg"><Tag className="h-5 w-5" /> Allergens & Properties</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="w-full justify-between font-normal">
+                                <span className="truncate">
+                                    {(item.properties && item.properties.length > 0)
+                                        ? item.properties.join(', ')
+                                        : "Select properties"}
+                                </span>
+                                <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                            {mockProperties.map((prop) => (
+                                <DropdownMenuCheckboxItem
+                                    key={prop}
+                                    checked={item.properties?.includes(prop)}
+                                    onSelect={(e) => e.preventDefault()}
+                                    onCheckedChange={(checked) => {
+                                        const currentProps = item.properties || [];
+                                        const newProps = checked
+                                            ? [...currentProps, prop]
+                                            : currentProps.filter((p) => p !== prop);
+                                        handleUpdate('properties', newProps);
+                                    }}
+                                >
+                                    {prop}
+                                </DropdownMenuCheckboxItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </CardContent>
+            </Card>
 
-            <Card className="mt-6">
+            <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg"><Package className="h-5 w-5" /> Variations</CardTitle>
                 </CardHeader>
@@ -407,7 +459,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                     <span className="font-semibold">{variation.value || 'New Variation'}</span>
                                 </CollapsibleTrigger>
                                 <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveVariation(index)} className="ml-4 shrink-0">
-                                    <Trash className="h-4 w-4 text-destructive" />
+                                    <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
                             </div>
                             <CollapsibleContent>
@@ -462,7 +514,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                 </CardContent>
             </Card>
 
-            <Card className="mt-6">
+            <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg"><Leaf className="h-5 w-5" /> Nutritional Facts</CardTitle>
                 </CardHeader>
@@ -471,13 +523,11 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                         <Label htmlFor="enableNutrition" className="font-medium">Enable Info</Label>
                         <Switch
                             id="enableNutrition"
-                            checked={item.nutrition !== undefined}
-                            onCheckedChange={(checked) => {
-                                onUpdate(item.id, 'nutrition', checked ? {} : undefined);
-                            }}
+                            checked={isNutritionEnabled}
+                            onCheckedChange={handleNutritionToggle}
                         />
                     </div>
-                    {item.nutrition !== undefined && (
+                    {isNutritionEnabled && (
                         <div className="space-y-4 pt-4 border-t">
                             {Object.entries(localNutrition).map(([key, value]) => {
                                 const nutritionItem = initialNutritionItems.find(i => i.name.toLowerCase().replace(/\s/g, '_') === key);
