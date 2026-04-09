@@ -11,7 +11,7 @@ import { EMenuIcon } from '@/components/dashboard/app-sidebar';
 import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as DialogDescriptionComponent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as DialogDescriptionComponent, DialogFooter } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1885,7 +1885,8 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                           </SortableContext>
                       </DndContext>
                       <Button variant="outline" className="mt-4" onClick={() => setIsAddSectionSheetOpen(true)}>
-                          <Plus className="mr-2 h-4 w-4" /> Add Section
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Section
                       </Button>
                   </div>
                   <div className="col-span-2 bg-muted/30 p-6 overflow-y-auto">
