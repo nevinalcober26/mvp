@@ -51,6 +51,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Upload } from 'lucide-react';
+import type { PosConnection } from '@/app/dashboard/integration/pos/types';
 
 const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: { 
   name: string; 
@@ -937,8 +938,18 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [editingMenuName, setEditingMenuName] = useState('');
   const [editingMenuIndex, setEditingMenuIndex] = useState<number | null>(null);
   
-  // Simulate no connected POS systems initially
-  const [connectedPos, setConnectedPos] = useState<any[]>([]);
+  const [connectedPos, setConnectedPos] = useState<PosConnection[]>([]);
+
+  useEffect(() => {
+    try {
+        const storedConnections = localStorage.getItem('posConnections');
+        if (storedConnections) {
+            setConnectedPos(JSON.parse(storedConnections));
+        }
+    } catch (e) {
+        console.error("Failed to parse POS connections from localStorage", e);
+    }
+  }, []);
 
   const router = useRouter();
   const { toast } = useToast();

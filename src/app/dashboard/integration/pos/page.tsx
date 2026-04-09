@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { DashboardHeader } from "@/components/dashboard/header";
 import { 
   Card, 
@@ -92,19 +92,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  type PosConnection,
+  type PosStatus,
+} from '@/app/dashboard/integration/pos/types';
 
-type PosStatus = 'active' | 'error' | 'syncing' | 'disconnected';
-
-interface PosConnection {
-  id: string;
-  brand: string;
-  label: string;
-  status: PosStatus;
-  lastSync: string;
-  terminalId: string;
-  location?: string;
-  revenueCenter?: string;
-}
 
 const SUPPORTED_POS = [
   { id: 'oracle-simphony', name: 'Oracle Micros Simphony', description: 'Enterprise hospitality platform', color: 'bg-red-50 text-red-600' },
@@ -184,6 +176,27 @@ export default function PosIntegrationPage() {
 
   // Settings Temp State
   const [tempSettings, setTempSettings] = useState<Partial<PosConnection>>({});
+
+  useEffect(() => {
+    try {
+        const storedConnections = localStorage.getItem('posConnections');
+        if (storedConnections) {
+            setConnections(JSON.parse(storedConnections));
+        }
+    } catch (e) {
+        console.error("Failed to parse POS connections from localStorage", e);
+    }
+  }, []);
+
+  const updateConnections = (newConnections: PosConnection[] | ((prev: PosConnection[]) => PosConnection[])) => {
+    const updated = typeof newConnections === 'function' ? newConnections(connections) : newConnections;
+    setConnections(updated);
+    try {
+        localStorage.setItem('posConnections', JSON.stringify(updated));
+    } catch (e) {
+        console.error("Failed to save POS connections to localStorage", e);
+    }
+  }
 
   // Unique categories for filtering
   const uniqueCategories = useMemo(() => {
@@ -303,9 +316,10 @@ export default function PosIntegrationPage() {
       terminalId: `${selectedProvider?.substring(0, 3).toUpperCase() || 'POS'}-${Math.floor(1000 + Math.random() * 9000)}`,
       location: locationValue || undefined,
       revenueCenter: revenueCenterValue || undefined,
+      providerId: selectedProvider || undefined,
     };
 
-    setConnections([newConnection]);
+    updateConnections([newConnection]);
     setIsVerificationModalOpen(false);
     setShowSuccessDialog(true);
     resetWorkflow();
@@ -335,7 +349,7 @@ export default function PosIntegrationPage() {
   };
 
   const handleDeleteConnection = (id: string) => {
-    setConnections([]);
+    updateConnections([]);
     toast({
       title: "Connection Removed",
       description: "The POS terminal has been disconnected."
@@ -356,7 +370,7 @@ export default function PosIntegrationPage() {
   const handleSaveSettings = () => {
     if (connections.length > 0) {
       const updated = { ...connections[0], ...tempSettings };
-      setConnections([updated]);
+      updateConnections([updated]);
       setIsSettingsDrawerOpen(false);
       toast({
         title: "Configuration Saved",
