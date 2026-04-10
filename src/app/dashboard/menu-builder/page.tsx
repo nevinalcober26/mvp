@@ -62,6 +62,46 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import NextLink from 'next/link';
 
+const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
+
+const BuilderSidebar = ({ onClose, onAddMenu }: { onClose: () => void, onAddMenu: () => void }) => {
+  return (
+    <aside className="w-80 bg-white border-r flex flex-col">
+      <div className="h-16 border-b flex items-center justify-between px-4 shrink-0">
+        <h2 className="text-lg font-bold">Menu Builder</h2>
+        <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
+      </div>
+      <div className="p-4 border-b">
+        <Button className="w-full" onClick={onAddMenu}><Plus className="h-4 w-4 mr-2"/> Create Menu</Button>
+      </div>
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-4">
+          <h3 className="text-sm font-semibold text-muted-foreground px-2">Brand Settings</h3>
+          <Card className="bg-muted/50">
+            <CardHeader>
+              <CardTitle className="text-base">Bloomsbury's</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-3">
+                {userAvatar && (
+                  <Image src={userAvatar.imageUrl} alt="Brand Logo" width={48} height={48} className="rounded-full border" data-ai-hint={userAvatar.imageHint} />
+                )}
+                <div>
+                  <p className="text-sm font-semibold">Alex Thompson</p>
+                  <p className="text-xs text-muted-foreground">Admin</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </ScrollArea>
+      <div className="p-4 border-t">
+        {/* Footer content if any */}
+      </div>
+    </aside>
+  );
+};
+
 
 const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: { 
   name: string; 
@@ -122,8 +162,10 @@ const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: {
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 className="text-destructive cursor-pointer" 
-                onSelect={onDelete}
-                onPointerDown={(e) => e.stopPropagation()}
+                onSelect={(e) => {
+                  e.preventDefault();
+                  if (onDelete) onDelete();
+                }}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
@@ -1782,25 +1824,29 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       
       <Dialog open={posFlowStep === 'sync'}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-center">{isSyncComplete ? 'Sync Complete!' : 'Syncing Menu from POS'}</DialogTitle>
-            <DialogDescription className="text-center">
-              {isSyncComplete ? `${menuItems.length} items imported successfully.` : 'Please wait while we securely import your menu data.'}
-            </DialogDescription>
+          <DialogHeader className="sr-only">
+             <DialogTitle>Syncing</DialogTitle>
           </DialogHeader>
           <div className="py-8 flex flex-col items-center justify-center gap-4">
             {isSyncComplete ? (
-              <Check className="h-12 w-12 text-green-600 animate-in zoom-in duration-300" />
+              <CheckCircle2 className="h-12 w-12 text-green-600 animate-in zoom-in duration-300" />
             ) : (
-              <>
-                <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                <Progress value={syncProgress} className="w-full" />
-              </>
+              <Loader2 className="h-12 w-12 text-primary animate-spin" />
+            )}
+             <DialogTitle className="text-center">{isSyncComplete ? 'Sync Complete!' : 'Syncing Menu from POS'}</DialogTitle>
+            <DialogDescription className="text-center">
+              {isSyncComplete ? `${menuItems.length} items imported successfully.` : 'Please wait while we securely import your menu data.'}
+            </DialogDescription>
+            {!isSyncComplete && (
+                <Progress value={syncProgress} className="w-full mt-2" />
             )}
           </div>
           <DialogFooter>
             {isSyncComplete ? (
-              <Button className="w-full" onClick={handleStartCustomization}>Customize Menu</Button>
+              <Button className="w-full" onClick={handleStartCustomization}>
+                Customize Menu
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
             ) : (
               <Button variant="outline" className="w-full" onClick={() => setPosFlowStep('')}>Cancel Sync</Button>
             )}
@@ -1991,45 +2037,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
     </>
   );
 };
-const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
 
-const BuilderSidebar = ({ onClose, onAddMenu }: { onClose: () => void, onAddMenu: () => void }) => {
-  return (
-    <aside className="w-80 bg-white border-r flex flex-col">
-      <div className="h-16 border-b flex items-center justify-between px-4 shrink-0">
-        <h2 className="text-lg font-bold">Menu Builder</h2>
-        <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
-      </div>
-      <div className="p-4 border-b">
-        <Button className="w-full" onClick={onAddMenu}><Plus className="h-4 w-4 mr-2"/> Create Menu</Button>
-      </div>
-      <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-muted-foreground px-2">Brand Settings</h3>
-          <Card className="bg-muted/50">
-            <CardHeader>
-              <CardTitle className="text-base">Bloomsbury's</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                {userAvatar && (
-                  <Image src={userAvatar.imageUrl} alt="Brand Logo" width={48} height={48} className="rounded-full border" data-ai-hint={userAvatar.imageHint} />
-                )}
-                <div>
-                  <p className="text-sm font-semibold">Alex Thompson</p>
-                  <p className="text-xs text-muted-foreground">Admin</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </ScrollArea>
-      <div className="p-4 border-t">
-        {/* Footer content if any */}
-      </div>
-    </aside>
-  );
-};
 
 export default function MenuBuilderPage() {
   const router = useRouter();
