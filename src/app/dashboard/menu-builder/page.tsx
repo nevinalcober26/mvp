@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, Check } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -119,7 +119,11 @@ const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: {
               <DropdownMenuItem disabled>Set as Offline</DropdownMenuItem>
               <DropdownMenuItem disabled>Deactivate</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive" onSelect={onDelete}>
+              <DropdownMenuItem 
+                className="text-destructive cursor-pointer" 
+                onSelect={onDelete}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
               </DropdownMenuItem>
@@ -1307,8 +1311,13 @@ const addSectionSchema = z.object({
 });
 type AddSectionFormValues = z.infer<typeof addSectionSchema>;
 
-const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
-  const [isAddMenuModalOpen, setIsAddMenuModalOpen] = useState(false);
+const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpen, handleImportFromPos, handleAddMenu }: { 
+    onClose: () => void,
+    isAddMenuModalOpen: boolean,
+    setIsAddMenuModalOpen: (isOpen: boolean) => void,
+    handleImportFromPos: () => void,
+    handleAddMenu: (type: 'scratch' | 'pos') => void,
+ }) => {
   const [posFlowStep, setPosFlowStep] = useState<'select' | 'sync' | 'customize' | ''>('');
   const [selectedPos, setSelectedPos] = useState('');
   const [syncProgress, setSyncProgress] = useState(0);
@@ -1326,6 +1335,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [editingMenuIndex, setEditingMenuIndex] = useState<number | null>(null);
   
   const [connectedPos, setConnectedPos] = useState<PosConnection[]>([]);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ index: number; name: string } | null>(null);
 
   useEffect(() => {
     try {
@@ -1345,32 +1355,6 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [previewCart, setPreviewCart] = useState<Record<string, number>>({});
   const [isCartAnimating, setIsCartAnimating] = useState(false);
   const prevCartTotalRef = useRef(0);
-
-  const handleAddMenu = (type: 'scratch' | 'pos') => {
-    if (type === 'pos') {
-      handleImportFromPos();
-      return;
-    }
-    const newName = `My New Menu #${userMenus.length + 1}`;
-    const newMenu = {
-        name: newName,
-        imageHint: 'template-3',
-        status: 'Offline',
-        sections: [],
-    };
-    setUserMenus(prev => [...prev, newMenu]);
-    setIsAddMenuModalOpen(false);
-    toast({
-        title: "Offline Menu Created",
-        description: `${newName} has been added.`
-    });
-  };
-
-  const handleImportFromPos = () => {
-    setIsAddMenuModalOpen(false);
-    setEditingMenuIndex(null);
-    setPosFlowStep('select');
-  };
 
   const handleEditMenu = (menu: any, index: number) => {
     setEditingMenuIndex(index);
@@ -1415,9 +1399,11 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
       return;
     }
     
+    const menuToSave = editingMenuIndex !== null ? userMenus[editingMenuIndex] : null;
+
     const menuData = {
       name: newName,
-      imageHint: editingMenuIndex !== null ? userMenus[editingMenuIndex].imageHint : 'template-2',
+      imageHint: menuToSave ? menuToSave.imageHint : 'template-2',
       status: status,
       sections: menuSections,
     };
@@ -1588,8 +1574,8 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-background flex flex-col animate-in fade-in duration-500">
-        {/* Header */}
+      <div className="flex-1 flex flex-col bg-muted/40">
+        {/* Main Header */}
         <div className="flex-shrink-0 h-16 border-b flex items-center px-4 justify-between bg-card">
           <div className="flex items-center gap-4">
             <EMenuIcon />
@@ -1635,7 +1621,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                       name={m.name}
                       imageHint={m.imageHint}
                       status={m.status}
-                      onDelete={() => handleDeleteMenu(index)}
+                      onDelete={() => setDeleteConfirmation({ index, name: m.name })}
                       onEdit={() => handleEditMenu(m, index)}
                     />
                   ))}
@@ -1655,7 +1641,6 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
         </ScrollArea>
       </div>
       
-      {/* Add Menu Choice Modal */}
       <Dialog open={isAddMenuModalOpen} onOpenChange={setIsAddMenuModalOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
@@ -1696,7 +1681,6 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
         </DialogContent>
       </Dialog>
       
-      {/* POS Selection Modal */}
       <Dialog open={posFlowStep === 'select'} onOpenChange={() => setPosFlowStep('')}>
         <DialogContent>
             <DialogHeader>
@@ -1771,9 +1755,8 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                 </>
             )}
         </DialogContent>
-        </Dialog>
-
-      {/* Syncing Modal */}
+      </Dialog>
+      
       <Dialog open={posFlowStep === 'sync'}>
         <DialogContent>
           <DialogHeader>
@@ -1784,10 +1767,10 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
           </DialogHeader>
           <div className="py-8 flex flex-col items-center justify-center gap-4">
             {isSyncComplete ? (
-              <CheckCircle2 className="h-16 w-16 text-green-500 animate-in zoom-in duration-300" />
+              <Check className="h-12 w-12 text-green-600 animate-in zoom-in duration-300" />
             ) : (
               <>
-                <Loader2 className="h-16 w-16 text-primary animate-spin" />
+                <Loader2 className="h-12 w-12 text-primary animate-spin" />
                 <Progress value={syncProgress} className="w-full" />
               </>
             )}
@@ -1802,14 +1785,9 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
         </DialogContent>
       </Dialog>
       
-      {/* Customize Full-Screen Modal */}
       <Dialog open={posFlowStep === 'customize'}>
           <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
-              <DialogTitle className="sr-only">Customize Imported Menu</DialogTitle>
-              <DialogDescription>
-                  Here you can reorder menu sections and customize items imported from your Point-of-Sale system.
-              </DialogDescription>
-              <div className="p-4 border-b flex-row items-center justify-between space-y-0 flex">
+              <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex">
                   <Input
                     value={editingMenuName}
                     onChange={(e) => setEditingMenuName(e.target.value)}
@@ -1823,7 +1801,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                         Publish
                       </Button>
                   </div>
-              </div>
+              </DialogHeader>
               <div className="flex-1 grid grid-cols-3 overflow-hidden">
                   <div className="col-span-1 p-6 overflow-y-auto border-r">
                       <h2 className="text-xl font-bold mb-4">Menu Structure</h2>
@@ -1967,7 +1945,71 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+       <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the menu: <strong>{deleteConfirmation?.name}</strong>.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setDeleteConfirmation(null)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                    className="bg-destructive hover:bg-destructive/90"
+                    onClick={() => {
+                        if (deleteConfirmation !== null) {
+                            handleDeleteMenu(deleteConfirmation.index);
+                        }
+                        setDeleteConfirmation(null);
+                    }}
+                >
+                    Delete
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
+  );
+};
+
+const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
+
+const BuilderSidebar = ({ onClose, onAddMenu }: { onClose: () => void, onAddMenu: () => void }) => {
+  return (
+    <aside className="w-80 bg-white border-r flex flex-col">
+      <div className="h-16 border-b flex items-center justify-between px-4 shrink-0">
+        <h2 className="text-lg font-bold">Menu Builder</h2>
+        <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
+      </div>
+      <div className="p-4 border-b">
+        <Button className="w-full" onClick={onAddMenu}><Plus className="h-4 w-4 mr-2"/> Create Menu</Button>
+      </div>
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-4">
+          <h3 className="text-sm font-semibold text-muted-foreground px-2">Brand Settings</h3>
+          <Card className="bg-muted/50">
+            <CardHeader>
+              <CardTitle className="text-base">Bloomsbury's</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-3">
+                {userAvatar && (
+                  <Image src={userAvatar.imageUrl} alt="Brand Logo" width={48} height={48} className="rounded-full border" data-ai-hint={userAvatar.imageHint} />
+                )}
+                <div>
+                  <p className="text-sm font-semibold">Alex Thompson</p>
+                  <p className="text-xs text-muted-foreground">Admin</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </ScrollArea>
+      <div className="p-4 border-t">
+        {/* Footer content if any */}
+      </div>
+    </aside>
   );
 };
 
@@ -1975,7 +2017,8 @@ export default function MenuBuilderPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [showBuilder, setShowBuilder] = useState(false);
-
+  const [isAddMenuModalOpen, setIsAddMenuModalOpen] = useState(false);
+  
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -1988,12 +2031,34 @@ export default function MenuBuilderPage() {
   };
 
   const handleClose = () => {
-    router.back();
+    router.push('/dashboard');
+  };
+
+  const handleImportFromPos = () => {
+    setIsAddMenuModalOpen(false); // Close the 'add' modal
+    // Here you would trigger the POS flow. We'll set the state in the main component.
+    // This function will be passed down to MenuBuilderMainPage
+  };
+
+  const handleAddMenu = (type: 'scratch' | 'pos') => {
+    setIsAddMenuModalOpen(false);
+    // Logic to add a menu, potentially opening another dialog/view
   };
 
   if (!showBuilder) {
     return <MenuBuilderPreloader onLoaded={handleLoaded} />;
   }
 
-  return <MenuBuilderMainPage onClose={handleClose} />;
+  return (
+    <div className="fixed inset-0 z-40 bg-background flex animate-in fade-in duration-500">
+      <BuilderSidebar onClose={handleClose} onAddMenu={() => setIsAddMenuModalOpen(true)} />
+      <MenuBuilderMainPage
+        onClose={handleClose}
+        isAddMenuModalOpen={isAddMenuModalOpen}
+        setIsAddMenuModalOpen={setIsAddMenuModalOpen}
+        handleImportFromPos={handleImportFromPos}
+        handleAddMenu={handleAddMenu}
+      />
+    </div>
+  );
 }
