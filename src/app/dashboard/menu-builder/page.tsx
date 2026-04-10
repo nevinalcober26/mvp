@@ -30,7 +30,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -1059,17 +1059,6 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
     );
 };
 
-const addSectionSchema = z.object({
-    name: z.string().min(1, 'Section name is required'),
-    description: z.string().optional(),
-    imageUrl: z.string().optional(),
-    enableSpecial: z.boolean().default(false),
-    specialTagName: z.string().optional(),
-    enableCategoryLink: z.boolean().default(false),
-    externalLink: z.string().url().optional().or(z.literal('')),
-});
-type AddSectionFormValues = z.infer<typeof addSectionSchema>;
-
 const AddSectionSheet = ({ 
     isOpen, 
     onOpenChange, 
@@ -1168,15 +1157,33 @@ const AddSectionSheet = ({
         onOpenChange(false);
     };
 
+    const SortableAddedProductRow = ({ product, isSelected, onClick }: { product: MenuItem; isSelected: boolean; onClick: () => void; }) => {
+        const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: product.id });
+        const style = { transform: CSS.Transform.toString(transform), transition };
+        return (
+            <div ref={setNodeRef} style={style} className={cn("flex items-center gap-2 p-2 rounded-md bg-background border touch-none cursor-default", isSelected && "border-primary bg-primary/5")} onClick={onClick}>
+                <button {...listeners} className="cursor-grab p-1" onClick={e => e.stopPropagation()}><GripVertical className="h-5 w-5 text-muted-foreground" /></button>
+                <Image src={product.image || 'https://picsum.photos/seed/placeholder/100/100'} alt={product.name} width={40} height={40} className="rounded-md object-cover" />
+                <div className="flex-1">
+                    <p className="text-sm font-semibold line-clamp-1">{product.name}</p>
+                    <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
+                </div>
+                <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={(e) => { e.stopPropagation(); handleRemoveProduct(product.id); }}>
+                    <X className="h-4 w-4" />
+                </Button>
+            </div>
+        );
+    };
+
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="w-full max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0 flex flex-col">
-                 <SheetHeader className="p-6 border-b shrink-0">
+                <SheetHeader className="p-6 border-b shrink-0">
                     <SheetTitle className="text-xl">Create a New Menu Section</SheetTitle>
                     <SheetDescription>Build a new section by adding and customizing products.</SheetDescription>
                 </SheetHeader>
                 <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
-                    <Panel defaultSize={25} minSize={20} className="flex flex-col overflow-hidden border-r bg-muted/30">
+                    <Panel defaultSize={20} minSize={15} className="flex flex-col overflow-hidden border-r bg-muted/30">
                         <Form {...form}>
                            <form onSubmit={form.handleSubmit(onSubmit)} id="add-section-form" className="flex-1 flex flex-col overflow-hidden">
                               <div className="p-4 space-y-4 border-b">
@@ -1210,7 +1217,7 @@ const AddSectionSheet = ({
                         </Form>
                     </Panel>
                     <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary" />
-                    <Panel defaultSize={25} minSize={20} className="flex flex-col overflow-hidden border-r">
+                    <Panel defaultSize={20} minSize={15} className="flex flex-col overflow-hidden border-r">
                          <div className="p-4 border-b shrink-0">
                             <h3 className="font-semibold">Items in this Section ({addedProducts.length})</h3>
                             <p className="text-xs text-muted-foreground">Drag to reorder items</p>
@@ -1219,28 +1226,9 @@ const AddSectionSheet = ({
                              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleReorderProducts}>
                                 <SortableContext items={addedProductIds} strategy={verticalListSortingStrategy}>
                                     <div className="space-y-2">
-                                        {addedProducts.map(product => {
-                                            const SortableItemWrapper = ({ children }: { children: React.ReactNode }) => {
-                                                const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: product.id });
-                                                const style = { transform: CSS.Transform.toString(transform), transition };
-                                                return <div ref={setNodeRef} style={style} className={cn("flex items-center gap-2 p-2 rounded-md bg-background border touch-none cursor-default", selectedItem?.id === product.id && "border-primary bg-primary/5")} {...attributes} onClick={() => handleRowClick(product)}>
-                                                    <button {...listeners} className="cursor-grab p-1" onClick={e => e.stopPropagation()}><GripVertical className="h-5 w-5 text-muted-foreground" /></button>
-                                                    {children}
-                                                </div>;
-                                            };
-                                            return (
-                                                <SortableItemWrapper key={product.id}>
-                                                    <Image src={product.image || 'https://picsum.photos/seed/placeholder/100/100'} alt={product.name} width={40} height={40} className="rounded-md object-cover" />
-                                                    <div className="flex-1">
-                                                        <p className="text-sm font-semibold line-clamp-1">{product.name}</p>
-                                                        <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
-                                                    </div>
-                                                    <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={(e) => { e.stopPropagation(); handleRemoveProduct(product.id); }}>
-                                                        <X className="h-4 w-4" />
-                                                    </Button>
-                                                </SortableItemWrapper>
-                                            )
-                                        })}
+                                        {addedProducts.map(product => (
+                                            <SortableAddedProductRow key={product.id} product={product} isSelected={selectedItem?.id === product.id} onClick={() => handleRowClick(product)} />
+                                        ))}
                                     </div>
                                 </SortableContext>
                             </DndContext>
@@ -1248,7 +1236,7 @@ const AddSectionSheet = ({
                         </ScrollArea>
                     </Panel>
                     <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary" />
-                    <Panel defaultSize={25} minSize={20} className="flex flex-col overflow-hidden border-r">
+                    <Panel defaultSize={35} minSize={25} className="flex flex-col overflow-hidden border-r">
                         <div className="flex-1 overflow-y-auto">
                             <ItemEditor 
                                 item={selectedItem}
@@ -1271,6 +1259,53 @@ const AddSectionSheet = ({
         </Sheet>
     );
 };
+
+const SortableProductRow = ({ item, isSelected, onAvailabilityChange, onRowClick }: {
+    item: MenuItem;
+    isSelected: boolean;
+    onAvailabilityChange: (id: string, available: boolean) => void;
+    onRowClick: (item: MenuItem) => void;
+}) => {
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item.id });
+    const style = { transform: CSS.Transform.toString(transform), transition };
+
+    return (
+        <TableRow ref={setNodeRef} style={style} onClick={() => onRowClick(item)} data-state={isSelected ? 'selected' : undefined} className="cursor-pointer">
+            <TableCell className="w-12 px-2" onClick={e => e.stopPropagation()}>
+                <div className="cursor-grab touch-none p-2" {...attributes} {...listeners}>
+                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                </div>
+            </TableCell>
+            <TableCell className="w-16 p-2">
+                <div className="relative w-12 h-12 rounded-md bg-muted overflow-hidden">
+                    <Image src={item.image} alt={item.name} fill className="object-cover" />
+                </div>
+            </TableCell>
+            <TableCell>
+                <p className="font-semibold">{item.name}</p>
+                <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>
+            </TableCell>
+            <TableCell className="text-right">
+                <Switch 
+                    checked={item.available}
+                    onCheckedChange={(checked) => onAvailabilityChange(item.id, checked)}
+                    onClick={e => e.stopPropagation()}
+                />
+            </TableCell>
+        </TableRow>
+    );
+};
+
+const addSectionSchema = z.object({
+    name: z.string().min(1, 'Section name is required'),
+    description: z.string().optional(),
+    imageUrl: z.string().optional(),
+    enableSpecial: z.boolean().default(false),
+    specialTagName: z.string().optional(),
+    enableCategoryLink: z.boolean().default(false),
+    externalLink: z.string().url().optional().or(z.literal('')),
+});
+type AddSectionFormValues = z.infer<typeof addSectionSchema>;
 
 const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [isAddMenuModalOpen, setIsAddMenuModalOpen] = useState(false);
