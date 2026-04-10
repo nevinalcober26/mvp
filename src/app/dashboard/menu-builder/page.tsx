@@ -30,7 +30,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -742,52 +742,6 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
 };
 
 
-const SortableProductRow = ({ item, onAvailabilityChange, onRowClick, isSelected }: any) => {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
-    const style = { transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 10 : 'auto' };
-
-    return (
-        <TableRow ref={setNodeRef} style={style} className={cn("bg-background cursor-pointer", isSelected && 'bg-primary/5')} onClick={() => onRowClick(item)}>
-            <TableCell className="w-10">
-                <button {...listeners} {...attributes} className="cursor-grab p-2">
-                    <GripVertical className="h-5 w-5 text-muted-foreground" />
-                </button>
-            </TableCell>
-            <TableCell>
-                <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center border overflow-hidden">
-                    {item.image ? (
-                        <Image src={item.image} alt={item.name} width={64} height={64} className="object-cover" />
-                    ) : (
-                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                    )}
-                </div>
-            </TableCell>
-            <TableCell className="font-medium align-top py-4">
-                 <Input
-                    value={item.name}
-                    readOnly
-                    className="font-bold text-base bg-transparent border-none shadow-none p-0 h-auto"
-                />
-                <Textarea
-                    value={item.description}
-                    readOnly
-                    className="mt-1 text-xs text-muted-foreground line-clamp-2 bg-transparent border-none shadow-none p-0 h-auto resize-none"
-                />
-            </TableCell>
-            <TableCell className="align-top py-4 font-mono font-semibold">
-                AED {item.price.toFixed(2)}
-            </TableCell>
-            <TableCell className="align-top py-4">
-                <Switch
-                    checked={item.available ?? true}
-                    onCheckedChange={(checked) => onAvailabilityChange(item.id, checked)}
-                    onClick={(e) => e.stopPropagation()} // Prevent row click when toggling
-                />
-            </TableCell>
-        </TableRow>
-    );
-};
-
 const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
     const [quantity, setQuantity] = useState(1);
     const [selectedVariation, setSelectedVariation] = useState<string | null>(null);
@@ -1216,83 +1170,99 @@ const AddSectionSheet = ({
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            <SheetContent className="w-full max-w-4xl p-0 flex flex-col">
-                <SheetHeader className="p-6 border-b shrink-0">
+            <SheetContent className="w-full max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0 flex flex-col">
+                 <SheetHeader className="p-6 border-b shrink-0">
                     <SheetTitle className="text-xl">Create a New Menu Section</SheetTitle>
                     <SheetDescription>Build a new section by adding and customizing products.</SheetDescription>
                 </SheetHeader>
-                <div className="flex-1 grid grid-cols-2 overflow-hidden">
-                    <div className="flex flex-col border-r">
-                        <div className="p-4 border-b">
-                             <h3 className="font-semibold mb-2">Available Products ({availableProducts.length})</h3>
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input placeholder="Search all products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
-                            </div>
+                <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
+                    <Panel defaultSize={25} minSize={20} className="flex flex-col overflow-hidden border-r bg-muted/30">
+                        <Form {...form}>
+                           <form onSubmit={form.handleSubmit(onSubmit)} id="add-section-form" className="flex-1 flex flex-col overflow-hidden">
+                              <div className="p-4 space-y-4 border-b">
+                                   <h3 className="font-semibold">New Section Details</h3>
+                                  <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Section Name</FormLabel><FormControl><Input placeholder="e.g., Summer Specials" {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                                  <FormField control={form.control} name="description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="A short description for this section." rows={2} {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                              </div>
+                              <div className="p-4 border-b shrink-0">
+                                  <h3 className="font-semibold mb-2">Available Products ({availableProducts.length})</h3>
+                                  <div className="relative">
+                                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                      <Input placeholder="Search all products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
+                                  </div>
+                              </div>
+                              <ScrollArea className="flex-1 p-2">
+                                  {availableProducts.map(product => (
+                                      <div key={product.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-muted">
+                                          <Image src={product.image || 'https://picsum.photos/seed/placeholder/100/100'} alt={product.name} width={40} height={40} className="rounded object-cover" />
+                                          <div className="flex-1">
+                                              <p className="text-sm font-semibold line-clamp-1">{product.name}</p>
+                                              <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
+                                          </div>
+                                          <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => handleAddProduct(product)}>
+                                              <Plus className="h-4 w-4" />
+                                          </Button>
+                                      </div>
+                                  ))}
+                                  {availableProducts.length === 0 && <p className="text-sm text-center text-muted-foreground p-8">No available products found.</p>}
+                              </ScrollArea>
+                          </form>
+                        </Form>
+                    </Panel>
+                    <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary" />
+                    <Panel defaultSize={25} minSize={20} className="flex flex-col overflow-hidden border-r">
+                         <div className="p-4 border-b shrink-0">
+                            <h3 className="font-semibold">Items in this Section ({addedProducts.length})</h3>
+                            <p className="text-xs text-muted-foreground">Drag to reorder items</p>
                         </div>
                         <ScrollArea className="flex-1 p-2">
-                            {availableProducts.map(product => (
-                                <div key={product.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-muted">
-                                    <Image src={product.image || 'https://picsum.photos/seed/placeholder/100/100'} alt={product.name} width={40} height={40} className="rounded object-cover" />
-                                    <div className="flex-1">
-                                        <p className="text-sm font-semibold line-clamp-1">{product.name}</p>
-                                        <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
+                             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleReorderProducts}>
+                                <SortableContext items={addedProductIds} strategy={verticalListSortingStrategy}>
+                                    <div className="space-y-2">
+                                        {addedProducts.map(product => {
+                                            const SortableItemWrapper = ({ children }: { children: React.ReactNode }) => {
+                                                const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: product.id });
+                                                const style = { transform: CSS.Transform.toString(transform), transition };
+                                                return <div ref={setNodeRef} style={style} className={cn("flex items-center gap-2 p-2 rounded-md bg-background border touch-none cursor-default", selectedItem?.id === product.id && "border-primary bg-primary/5")} {...attributes} onClick={() => handleRowClick(product)}>
+                                                    <button {...listeners} className="cursor-grab p-1" onClick={e => e.stopPropagation()}><GripVertical className="h-5 w-5 text-muted-foreground" /></button>
+                                                    {children}
+                                                </div>;
+                                            };
+                                            return (
+                                                <SortableItemWrapper key={product.id}>
+                                                    <Image src={product.image || 'https://picsum.photos/seed/placeholder/100/100'} alt={product.name} width={40} height={40} className="rounded-md object-cover" />
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-semibold line-clamp-1">{product.name}</p>
+                                                        <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
+                                                    </div>
+                                                    <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={(e) => { e.stopPropagation(); handleRemoveProduct(product.id); }}>
+                                                        <X className="h-4 w-4" />
+                                                    </Button>
+                                                </SortableItemWrapper>
+                                            )
+                                        })}
                                     </div>
-                                    <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => handleAddProduct(product)}>
-                                        <Plus className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            ))}
-                            {availableProducts.length === 0 && <p className="text-sm text-center text-muted-foreground p-8">No available products found.</p>}
+                                </SortableContext>
+                            </DndContext>
+                            {addedProducts.length === 0 && <p className="text-sm text-center text-muted-foreground p-8">Add products from the library.</p>}
                         </ScrollArea>
-                    </div>
-                    <div className="flex flex-col">
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} id="add-section-form" className="flex-1 flex flex-col overflow-hidden">
-                                <div className="p-4 space-y-4 border-b">
-                                     <h3 className="font-semibold">New Section Details</h3>
-                                    <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Section Name</FormLabel><FormControl><Input placeholder="e.g., Summer Specials" {...field} /></FormControl><FormMessage /></FormItem>)}/>
-                                    <FormField control={form.control} name="description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="A short description for this section." rows={2} {...field} /></FormControl><FormMessage /></FormItem>)}/>
-                                </div>
-                                <div className="p-4 border-b shrink-0">
-                                    <h3 className="font-semibold mb-2">Items in this Section ({addedProducts.length})</h3>
-                                    <p className="text-xs text-muted-foreground">Drag to reorder items</p>
-                                </div>
-                                <ScrollArea className="flex-1 p-2">
-                                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleReorderProducts}>
-                                        <SortableContext items={addedProductIds} strategy={verticalListSortingStrategy}>
-                                            <div className="space-y-2">
-                                                {addedProducts.map(product => {
-                                                    const SortableItemWrapper = ({ children }: { children: React.ReactNode }) => {
-                                                        const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: product.id });
-                                                        const style = { transform: CSS.Transform.toString(transform), transition };
-                                                        return <div ref={setNodeRef} style={style} className={cn("flex items-center gap-2 p-2 rounded-md bg-background border touch-none cursor-default", selectedItem?.id === product.id && "border-primary bg-primary/5")} {...attributes} onClick={() => handleRowClick(product)}>
-                                                            <button {...listeners} className="cursor-grab p-1" onClick={e => e.stopPropagation()}><GripVertical className="h-5 w-5 text-muted-foreground" /></button>
-                                                            {children}
-                                                        </div>;
-                                                    };
-                                                    return (
-                                                        <SortableItemWrapper key={product.id}>
-                                                            <Image src={product.image || 'https://picsum.photos/seed/placeholder/100/100'} alt={product.name} width={40} height={40} className="rounded-md object-cover" />
-                                                            <div className="flex-1">
-                                                                <p className="text-sm font-semibold line-clamp-1">{product.name}</p>
-                                                                <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
-                                                            </div>
-                                                            <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={(e) => { e.stopPropagation(); handleRemoveProduct(product.id); }}>
-                                                                <X className="h-4 w-4" />
-                                                            </Button>
-                                                        </SortableItemWrapper>
-                                                    )
-                                                })}
-                                            </div>
-                                        </SortableContext>
-                                    </DndContext>
-                                    {addedProducts.length === 0 && <p className="text-sm text-center text-muted-foreground p-8">Add products from the library.</p>}
-                                </ScrollArea>
-                            </form>
-                        </Form>
-                    </div>
-                </div>
+                    </Panel>
+                    <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary" />
+                    <Panel defaultSize={25} minSize={20} className="flex flex-col overflow-hidden border-r">
+                        <div className="flex-1 overflow-y-auto">
+                            <ItemEditor 
+                                item={selectedItem}
+                                onUpdate={handleItemUpdate}
+                                onImageUpload={handleImageUpload}
+                                onAvailabilityChange={handleAvailabilityChange}
+                            />
+                        </div>
+                    </Panel>
+                    <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary" />
+                    <Panel defaultSize={25} minSize={20} className="bg-muted/30 flex items-center justify-center p-4">
+                        <ItemPreviewer item={selectedItem} />
+                    </Panel>
+                </PanelGroup>
                 <SheetFooter className="p-6 border-t shrink-0">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                     <Button type="submit" form="add-section-form">Create Section</Button>
