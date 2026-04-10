@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -1122,13 +1122,11 @@ const AddSectionSheet = ({
     onOpenChange, 
     onAddSection, 
     allProducts, 
-    onProductUpdate 
 }: {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     onAddSection: (data: AddSectionFormValues, productIds: string[]) => void;
     allProducts: MenuItem[];
-    onProductUpdate: (product: MenuItem) => void;
 }) => {
     const [addedProducts, setAddedProducts] = useState<MenuItem[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -1186,7 +1184,7 @@ const AddSectionSheet = ({
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            <SheetContent className="w-full max-w-4xl p-0 flex flex-col">
+            <SheetContent className="w-full max-w-2xl p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
                     <SheetTitle className="text-xl">Create a New Menu Section</SheetTitle>
                     <SheetDescription>Name your section and add products from your library. You can drag and drop to reorder items.</SheetDescription>
@@ -1262,12 +1260,12 @@ const AddSectionSheet = ({
                                 {addedProducts.length === 0 && <p className="text-sm text-center text-muted-foreground p-8">Add products from the left library.</p>}
                             </ScrollArea>
                         </div>
-                        <SheetFooter className="p-6 border-t shrink-0 md:col-span-2">
-                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                            <Button type="submit">Create Section</Button>
-                        </SheetFooter>
                     </form>
                 </Form>
+                 <SheetFooter className="p-6 border-t shrink-0 md:col-span-2">
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button type="submit" form="add-section-form">Create Section</Button>
+                </SheetFooter>
             </SheetContent>
         </Sheet>
     );
@@ -1750,7 +1748,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
         </Dialog>
 
       {/* Syncing Modal */}
-      <Dialog open={posFlowStep === 'sync'} onOpenChange={() => setPosFlowStep('')}>
+      <Dialog open={posFlowStep === 'sync'}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-center">{isSyncComplete ? 'Sync Complete!' : 'Syncing Menu from POS'}</DialogTitle>
@@ -1779,7 +1777,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
       </Dialog>
       
       {/* Customize Full-Screen Modal */}
-      <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
+      <Dialog open={posFlowStep === 'customize'}>
           <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
               <DialogTitle className="sr-only">Customize Imported Menu</DialogTitle>
               <DialogDescription>
@@ -1928,7 +1926,6 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
         onOpenChange={setIsAddSectionSheetOpen}
         onAddSection={handleAddNewSection}
         allProducts={menuItems}
-        onProductUpdate={handleProductUpdate}
       />
       <AlertDialog open={isConfirmingPublish} onOpenChange={setIsConfirmingPublish}>
         <AlertDialogContent>
