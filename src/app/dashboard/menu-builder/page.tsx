@@ -11,7 +11,7 @@ import { EMenuIcon } from '@/components/dashboard/app-sidebar';
 import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, Check } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,6 +60,7 @@ import {
 } from '@/components/ui/collapsible';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import NextLink from 'next/link';
 
 
 const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: { 
@@ -910,17 +911,14 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
 
             const newOrderedFilteredItems = arrayMove(filteredItems, oldIndexInFiltered, newIndexInFiltered);
             
-            // Reconstruct the full items array based on the new order of filtered items
             const newFullItemsOrder = [...items];
             let lastFoundIndex = -1;
 
             newOrderedFilteredItems.forEach(filteredItem => {
                 const currentIndexInFull = newFullItemsOrder.findIndex(item => item.id === filteredItem.id);
                 if (currentIndexInFull > lastFoundIndex) {
-                    // This item is already in a correct relative position
                     lastFoundIndex = currentIndexInFull;
                 } else {
-                    // Move this item to be after the last placed item
                     const [itemToMove] = newFullItemsOrder.splice(currentIndexInFull, 1);
                     newFullItemsOrder.splice(lastFoundIndex + 1, 0, itemToMove);
                     lastFoundIndex++;
@@ -1311,17 +1309,21 @@ const addSectionSchema = z.object({
 });
 type AddSectionFormValues = z.infer<typeof addSectionSchema>;
 
-const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpen, handleImportFromPos, handleAddMenu }: { 
+const MenuBuilderMainPage = ({ onClose }: { 
     onClose: () => void,
-    isAddMenuModalOpen: boolean,
-    setIsAddMenuModalOpen: (isOpen: boolean) => void,
-    handleImportFromPos: () => void,
-    handleAddMenu: (type: 'scratch' | 'pos') => void,
  }) => {
+  const router = useRouter();
+  const { toast } = useToast();
+  
+  const [isAddMenuModalOpen, setIsAddMenuModalOpen] = useState(false);
   const [posFlowStep, setPosFlowStep] = useState<'select' | 'sync' | 'customize' | ''>('');
   const [selectedPos, setSelectedPos] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
   const [isSyncComplete, setIsSyncComplete] = useState(false);
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  
   const [isConfirmingPublish, setIsConfirmingPublish] = useState(false);
   const [pendingPublishData, setPendingPublishData] = useState<any>(null);
 
@@ -1348,13 +1350,37 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
     }
   }, []);
 
-  const router = useRouter();
-  const { toast } = useToast();
   const sensors = useSensors(useSensor(PointerSensor));
 
   const [previewCart, setPreviewCart] = useState<Record<string, number>>({});
   const [isCartAnimating, setIsCartAnimating] = useState(false);
   const prevCartTotalRef = useRef(0);
+
+  const handleImportFromPos = () => {
+    setIsAddMenuModalOpen(false);
+    if (connectedPos.length > 0) {
+      setPosFlowStep('select');
+    } else {
+      router.push('/dashboard/integration/pos');
+      toast({
+        title: "No POS Connected",
+        description: "Redirecting you to connect a POS system first.",
+        action: <Button onClick={() => router.push('/dashboard/integration/pos')}>Connect</Button>
+      });
+    }
+  };
+
+  const handleAddMenu = (type: 'scratch' | 'pos') => {
+    setIsAddMenuModalOpen(false);
+    if (type === 'pos') {
+      handleImportFromPos();
+    } else {
+      setEditingMenuIndex(null);
+      setEditingMenuName('New Untitled Menu');
+      setMenuSections([]);
+      setPosFlowStep('customize');
+    }
+  };
 
   const handleEditMenu = (menu: any, index: number) => {
     setEditingMenuIndex(index);
@@ -1411,7 +1437,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
     if (status === 'Online') {
         setPendingPublishData(menuData);
         setIsConfirmingPublish(true);
-    } else { // It's an Offline or Draft menu
+    } else {
         if (editingMenuIndex !== null) {
             setUserMenus(prev => prev.map((menu, index) => index === editingMenuIndex ? { ...menu, ...menuData } : menu));
             toast({ title: 'Menu Updated', description: `"${newName}" has been saved as ${status.toLowerCase()}.` });
@@ -1429,7 +1455,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
     
     let updatedMenus = userMenus.map((menu, i) => {
         if (editingMenuIndex !== null && i === editingMenuIndex) {
-            return menu; // This one will be updated below
+            return menu;
         }
         if (menu.status === 'Online') {
             return { ...menu, status: 'Offline' as const };
@@ -1529,14 +1555,12 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
   };
 
   const handleSaveCategoryItems = (categoryId: string, updatedItems: MenuItem[]) => {
-    // Update items within the specific category
     setMenuSections(prevSections =>
       prevSections.map(section =>
         section.id === categoryId ? { ...section, items: updatedItems } : section
       )
     );
   
-    // Rebuild the master list of all menu items to reflect changes from all sections
     const allUpdatedItems = menuSections.reduce((acc, section) => {
         if (section.id === categoryId) {
             return acc.concat(updatedItems);
@@ -1575,7 +1599,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
   return (
     <>
       <div className="flex-1 flex flex-col bg-muted/40">
-        {/* Main Header */}
         <div className="flex-shrink-0 h-16 border-b flex items-center px-4 justify-between bg-card">
           <div className="flex items-center gap-4">
             <EMenuIcon />
@@ -1590,7 +1613,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
           </div>
         </div>
 
-        {/* Body */}
         <ScrollArea className="flex-1">
           <div className="p-8 space-y-10">
             <section>
@@ -1664,7 +1686,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg hover:border-primary transition-all cursor-pointer" onClick={handleImportFromPos}>
+            <Card className="hover:shadow-lg hover:border-primary transition-all cursor-pointer" onClick={() => handleAddMenu('pos')}>
               <CardHeader className="flex-row items-center gap-4 space-y-0 pb-4">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <Database className="h-6 w-6 text-primary" />
@@ -1683,77 +1705,77 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       
       <Dialog open={posFlowStep === 'select'} onOpenChange={() => setPosFlowStep('')}>
         <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Import from POS</DialogTitle>
-                <DialogDescription>
-                {connectedPos.length > 0
-                    ? 'Choose a connected POS system to import your menu from.'
-                    : "First, connect your Point-of-Sale system to import your menu automatically."}
-                </DialogDescription>
-            </DialogHeader>
-            {connectedPos.length > 0 ? (
-                <>
-                <div className="py-4">
-                    <Select
-                    value={selectedPos}
-                    onValueChange={(value) => {
-                        if (value === '__ADD_NEW_POS__') {
-                        router.push('/dashboard/integration/pos');
-                        setPosFlowStep('');
-                        } else {
-                        setSelectedPos(value);
-                        }
-                    }}
-                    >
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select a connected POS..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup>
-                        <SelectLabel>Connected POS Systems</SelectLabel>
-                        {connectedPos.map((pos: any) => (
-                            <SelectItem key={pos.id} value={pos.id}>
-                            {pos.label} ({pos.brand})
-                            </SelectItem>
-                        ))}
-                        </SelectGroup>
-                        <SelectSeparator />
-                        <SelectItem value="__ADD_NEW_POS__">
-                        <div className="flex items-center gap-2 text-primary font-semibold">
-                            <PlusCircle className="h-4 w-4" />
-                            Connect New POS
-                        </div>
+          <DialogHeader>
+            <DialogTitle>Import from POS</DialogTitle>
+            <DialogDescription>
+              {connectedPos.length > 0
+                ? 'Choose a connected POS system to import your menu from.'
+                : "First, connect your Point-of-Sale system to import your menu automatically."}
+            </DialogDescription>
+          </DialogHeader>
+          {connectedPos.length > 0 ? (
+            <>
+              <div className="py-4">
+                <Select
+                  value={selectedPos}
+                  onValueChange={(value) => {
+                    if (value === '__ADD_NEW_POS__') {
+                      router.push('/dashboard/integration/pos');
+                      setPosFlowStep('');
+                    } else {
+                      setSelectedPos(value);
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a connected POS..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Connected POS Systems</SelectLabel>
+                      {connectedPos.map((pos: any) => (
+                        <SelectItem key={pos.id} value={pos.id}>
+                          {pos.label} ({pos.brand})
                         </SelectItem>
-                    </SelectContent>
-                    </Select>
+                      ))}
+                    </SelectGroup>
+                    <SelectSeparator />
+                    <SelectItem value="__ADD_NEW_POS__">
+                      <div className="flex items-center gap-2 text-primary font-semibold">
+                        <PlusCircle className="h-4 w-4" />
+                        Connect New POS
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setPosFlowStep('')}>Cancel</Button>
+                <Button onClick={startSyncProcess} disabled={!selectedPos}>Next</Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <div className="py-8 text-center space-y-4">
+                <div className="mx-auto h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center">
+                  <Plug className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => setPosFlowStep('')}>Cancel</Button>
-                    <Button onClick={startSyncProcess} disabled={!selectedPos}>Next</Button>
-                </DialogFooter>
-                </>
-            ) : (
-                <>
-                <div className="py-8 text-center space-y-4">
-                    <div className="mx-auto h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center">
-                        <Plug className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <p className="text-muted-foreground">
-                    No POS systems have been connected yet.
-                    </p>
-                    <Button onClick={() => {
-                    router.push('/dashboard/integration/pos');
-                    setPosFlowStep('');
-                    }}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Connect Your POS
-                    </Button>
-                </div>
-                <DialogFooter className="sm:justify-center">
-                    <Button variant="outline" onClick={() => setPosFlowStep('')}>Cancel</Button>
-                </DialogFooter>
-                </>
-            )}
+                <p className="text-muted-foreground">
+                  No POS systems have been connected yet.
+                </p>
+                <Button onClick={() => {
+                  router.push('/dashboard/integration/pos');
+                  setPosFlowStep('');
+                }}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Connect Your POS
+                </Button>
+              </div>
+              <DialogFooter className="sm:justify-center">
+                <Button variant="outline" onClick={() => setPosFlowStep('')}>Cancel</Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
       
@@ -1786,138 +1808,133 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       </Dialog>
       
       <Dialog open={posFlowStep === 'customize'}>
-          <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
-              <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex">
-                  <Input
-                    value={editingMenuName}
-                    onChange={(e) => setEditingMenuName(e.target.value)}
-                    className="text-xl font-bold border-0 shadow-none focus-visible:ring-0 p-0 h-auto flex-1"
-                    aria-label="Menu Name"
-                  />
-                  <div className="flex items-center gap-2">
-                      <Button variant="outline" onClick={() => handleSaveImportedMenu('Draft')}>Save as Draft</Button>
-                      <Button onClick={() => handleSaveImportedMenu('Online')}>
-                        <Rocket className="mr-2 h-4 w-4" />
-                        Publish
-                      </Button>
+        <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
+          <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex">
+            <Input
+              value={editingMenuName}
+              onChange={(e) => setEditingMenuName(e.target.value)}
+              className="text-xl font-bold border-0 shadow-none focus-visible:ring-0 p-0 h-auto flex-1"
+              aria-label="Menu Name"
+            />
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => handleSaveImportedMenu('Draft')}>Save as Draft</Button>
+              <Button onClick={() => handleSaveImportedMenu('Online')}>
+                <Rocket className="mr-2 h-4 w-4" />
+                Publish
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 grid grid-cols-3 overflow-hidden">
+            <div className="col-span-1 p-6 overflow-y-auto border-r">
+              <h2 className="text-xl font-bold mb-4">Menu Structure</h2>
+              <p className="text-muted-foreground mb-6">Drag and drop sections to reorder your menu. Click 'Add Section' to create new categories.</p>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={menuSections.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-3">
+                    {menuSections.map(section => (
+                      <SortableSectionItem
+                        key={section.id}
+                        id={section.id}
+                        name={section.name}
+                        itemCount={section.items.length}
+                        onEditClick={() => handleEditCategory(section)}
+                      />
+                    ))}
                   </div>
-              </DialogHeader>
-              <div className="flex-1 grid grid-cols-3 overflow-hidden">
-                  <div className="col-span-1 p-6 overflow-y-auto border-r">
-                      <h2 className="text-xl font-bold mb-4">Menu Structure</h2>
-                      <p className="text-muted-foreground mb-6">Drag and drop sections to reorder your menu. Click 'Add Section' to create new categories.</p>
-                      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                          <SortableContext items={menuSections.map(s => s.id)} strategy={verticalListSortingStrategy}>
-                              <div className="space-y-3">
-                                  {menuSections.map(section => (
-                                      <SortableSectionItem
-                                          key={section.id}
-                                          id={section.id}
-                                          name={section.name}
-                                          itemCount={section.items.length}
-                                          onEditClick={() => handleEditCategory(section)}
-                                        />
-                                  ))}
-                              </div>
-                          </SortableContext>
-                      </DndContext>
-                      <Button variant="outline" className="mt-4" onClick={() => setIsAddSectionSheetOpen(true)}>
-                          <Plus className="mr-2 h-4 w-4" />
-                          Add Section
-                      </Button>
-                  </div>
-                  <div className="col-span-2 bg-muted/30 p-6 overflow-y-auto">
-                      <h2 className="text-xl font-bold mb-4 text-center">Live Preview</h2>
-                       <div className="w-full max-w-sm mx-auto bg-white rounded-[40px] shadow-2xl p-4 border-[6px] border-black overflow-hidden">
-                          {/* Replicate the full mobile layout here */}
-                          <div className="relative h-[600px] overflow-hidden bg-[#F7F9FB] flex flex-col">
-                            {/* 1. Header */}
-                            <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg p-4 pb-0 flex-shrink-0">
-                                <div className="flex items-center justify-between mb-4">
-                                    <ArrowLeft className="h-6 w-6 text-gray-800" />
-                                    <div className="text-center">
-                                        <h1 className="text-xl font-bold text-gray-900">Bestsellers</h1>
-                                        <p className="text-sm text-teal-600 font-medium">{menuItems.filter(i => i.category === 'Bestsellers').length} items</p>
-                                    </div>
-                                    <Search className="h-6 w-6 text-gray-800" />
-                                </div>
-                                <ScrollArea className="w-full whitespace-nowrap">
-                                    <div className="flex items-center space-x-1 border-b">
-                                        {['Bestsellers', 'Pizza', 'Sides', 'Desserts', 'Drinks'].map(cat => (
-                                            <button key={cat} className={cn(
-                                                "flex items-center gap-1.5 whitespace-nowrap px-4 py-3 text-sm font-bold transition-colors relative",
-                                                cat === 'Bestsellers' ? 'text-teal-600' : 'text-gray-500'
-                                            )}>
-                                                {cat === 'Bestsellers' && <Flame className="h-4 w-4 text-red-500" />}
-                                                {cat}
-                                                {cat === 'Bestsellers' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500 rounded-full" />}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <ScrollBar orientation="horizontal" className="hidden" />
-                                </ScrollArea>
-                            </header>
-
-                            {/* 2. Scrollable Body */}
-                            <div className="flex-1 overflow-y-auto">
-                                <main className="p-4 space-y-8">
-                                    {menuSections.map(section => (
-                                        <div key={section.id}>
-                                            <h2 className="text-2xl font-bold text-gray-900 mb-4">{section.name}</h2>
-                                            <div className="space-y-4">
-                                                {section.items.filter((item: any) => item.available ?? true).map((item: any) => (
-                                                    <MenuItemCard
-                                                        key={item.id}
-                                                        item={item}
-                                                        quantity={previewCart[item.id] || 0}
-                                                        onAdd={handlePreviewAddToCart}
-                                                        onIncrement={handlePreviewIncrement}
-                                                        onDecrement={handlePreviewDecrement}
-                                                        isPurchasingEnabled={true}
-                                                    />
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </main>
-                            </div>
-
-                            {/* 3. Floating Cart Icon */}
-                            {totalItemsInCart > 0 && (
-                                <div id="floating-cart-icon" className="absolute bottom-24 right-6 z-20">
-                                    <div className="relative">
-                                        <div className={cn(
-                                            "rounded-full w-16 h-16 bg-red-500 flex items-center justify-center shadow-lg",
-                                             isCartAnimating && "animate-pulse-once"
-                                        )}>
-                                            <ShoppingCart className="h-8 w-8 text-white" />
-                                        </div>
-                                        <Badge className="absolute -top-1 -right-1 w-6 h-6 flex items-center justify-center bg-gray-800 text-white rounded-full border-2 border-red-500">
-                                            {totalItemsInCart}
-                                        </Badge>
-                                    </div>
-                                </div>
-                            )}
-                            
-                            {/* 4. Footer */}
-                            <nav className="shrink-0 bg-[#F7F9FB] border-t border-gray-200/80">
-                              <div className="flex justify-around items-center h-20">
-                                <div className="flex flex-col items-center gap-1 text-teal-500">
-                                  <Home className="h-6 w-6" />
-                                  <span className="text-xs font-bold">Menu</span>
-                                </div>
-                                <div className="flex flex-col items-center gap-1 text-gray-500">
-                                  <Receipt className="h-6 w-6" />
-                                  <span className="text-xs font-bold">Orders</span>
-                                </div>
-                              </div>
-                            </nav>
-
-                          </div>
+                </SortableContext>
+              </DndContext>
+              <Button variant="outline" className="mt-4" onClick={() => setIsAddSectionSheetOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Section
+              </Button>
+            </div>
+            <div className="col-span-2 bg-muted/30 p-6 overflow-y-auto">
+              <h2 className="text-xl font-bold mb-4 text-center">Live Preview</h2>
+              <div className="w-full max-w-sm mx-auto bg-white rounded-[40px] shadow-2xl p-4 border-[6px] border-black overflow-hidden">
+                <div className="relative h-[600px] overflow-hidden bg-[#F7F9FB] flex flex-col">
+                  <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg p-4 pb-0 flex-shrink-0">
+                    <div className="flex items-center justify-between mb-4">
+                      <ArrowLeft className="h-6 w-6 text-gray-800" />
+                      <div className="text-center">
+                        <h1 className="text-xl font-bold text-gray-900">Bestsellers</h1>
+                        <p className="text-sm text-teal-600 font-medium">{menuItems.filter(i => i.category === 'Bestsellers').length} items</p>
                       </div>
+                      <Search className="h-6 w-6 text-gray-800" />
+                    </div>
+                    <ScrollArea className="w-full whitespace-nowrap">
+                      <div className="flex items-center space-x-1 border-b">
+                        {['Bestsellers', 'Pizza', 'Sides', 'Desserts', 'Drinks'].map(cat => (
+                          <button key={cat} className={cn(
+                            "flex items-center gap-1.5 whitespace-nowrap px-4 py-3 text-sm font-bold transition-colors relative",
+                            cat === 'Bestsellers' ? 'text-teal-600' : 'text-gray-500'
+                          )}>
+                            {cat === 'Bestsellers' && <Flame className="h-4 w-4 text-red-500" />}
+                            {cat}
+                            {cat === 'Bestsellers' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500 rounded-full" />}
+                          </button>
+                        ))}
+                      </div>
+                      <ScrollBar orientation="horizontal" className="hidden" />
+                    </ScrollArea>
+                  </header>
+
+                  <div className="flex-1 overflow-y-auto">
+                    <main className="p-4 space-y-8">
+                      {menuSections.map(section => (
+                        <div key={section.id}>
+                          <h2 className="text-2xl font-bold text-gray-900 mb-4">{section.name}</h2>
+                          <div className="space-y-4">
+                            {section.items.filter((item: any) => item.available ?? true).map((item: any) => (
+                              <MenuItemCard
+                                key={item.id}
+                                item={item}
+                                quantity={previewCart[item.id] || 0}
+                                onAdd={handlePreviewAddToCart}
+                                onIncrement={handlePreviewIncrement}
+                                onDecrement={handlePreviewDecrement}
+                                isPurchasingEnabled={true}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </main>
                   </div>
+
+                  {totalItemsInCart > 0 && (
+                    <div id="floating-cart-icon" className="absolute bottom-24 right-6 z-20">
+                      <div className="relative">
+                        <div className={cn(
+                          "rounded-full w-16 h-16 bg-red-500 flex items-center justify-center shadow-lg",
+                            isCartAnimating && "animate-pulse-once"
+                        )}>
+                          <ShoppingCart className="h-8 w-8 text-white" />
+                        </div>
+                        <Badge className="absolute -top-1 -right-1 w-6 h-6 flex items-center justify-center bg-gray-800 text-white rounded-full border-2 border-red-500">
+                          {totalItemsInCart}
+                        </Badge>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <nav className="shrink-0 bg-[#F7F9FB] border-t border-gray-200/80">
+                    <div className="flex justify-around items-center h-20">
+                      <div className="flex flex-col items-center gap-1 text-teal-500">
+                        <Home className="h-6 w-6" />
+                        <span className="text-xs font-bold">Menu</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1 text-gray-500">
+                        <Receipt className="h-6 w-6" />
+                        <span className="text-xs font-bold">Orders</span>
+                      </div>
+                    </div>
+                  </nav>
+
+                </div>
               </div>
-          </DialogContent>
+            </div>
+          </div>
+        </DialogContent>
       </Dialog>
       <CategoryItemsSheet 
         isOpen={isCategorySheetOpen}
@@ -2017,7 +2034,6 @@ export default function MenuBuilderPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [showBuilder, setShowBuilder] = useState(false);
-  const [isAddMenuModalOpen, setIsAddMenuModalOpen] = useState(false);
   
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -2034,30 +2050,15 @@ export default function MenuBuilderPage() {
     router.push('/dashboard');
   };
 
-  const handleImportFromPos = () => {
-    setIsAddMenuModalOpen(false); // Close the 'add' modal
-    // Here you would trigger the POS flow. We'll set the state in the main component.
-    // This function will be passed down to MenuBuilderMainPage
-  };
-
-  const handleAddMenu = (type: 'scratch' | 'pos') => {
-    setIsAddMenuModalOpen(false);
-    // Logic to add a menu, potentially opening another dialog/view
-  };
-
   if (!showBuilder) {
     return <MenuBuilderPreloader onLoaded={handleLoaded} />;
   }
 
   return (
     <div className="fixed inset-0 z-40 bg-background flex animate-in fade-in duration-500">
-      <BuilderSidebar onClose={handleClose} onAddMenu={() => setIsAddMenuModalOpen(true)} />
+      <BuilderSidebar onClose={handleClose} onAddMenu={() => {}} />
       <MenuBuilderMainPage
         onClose={handleClose}
-        isAddMenuModalOpen={isAddMenuModalOpen}
-        setIsAddMenuModalOpen={setIsAddMenuModalOpen}
-        handleImportFromPos={handleImportFromPos}
-        handleAddMenu={handleAddMenu}
       />
     </div>
   );
