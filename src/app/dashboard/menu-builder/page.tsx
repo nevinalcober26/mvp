@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronRight, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronRight, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight, Check } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -1956,7 +1956,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
-          <DialogTitle className="sr-only">Manage Synced Menu</DialogTitle>
+           <DialogTitle className="sr-only">Manage Menu</DialogTitle>
           <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
@@ -2186,3 +2186,5 @@ export default function MenuBuilderPage() {
     </div>
   );
 }
+
+    
