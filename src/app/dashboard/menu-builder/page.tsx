@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronRight, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight, Check } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight, Check } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -61,6 +61,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import NextLink from 'next/link';
+import { Search } from 'lucide-react';
 
 const BuilderSidebar = () => {
     const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
@@ -1331,11 +1332,6 @@ const AddSectionSheet = ({
                     <Panel defaultSize={20} minSize={15} className="flex flex-col overflow-hidden border-r bg-muted/30">
                         <Form {...form}>
                            <form onSubmit={form.handleSubmit(onSubmit)} id="add-section-form" className="flex-1 flex flex-col overflow-hidden">
-                              <div className="p-4 space-y-4 border-b">
-                                   <h3 className="font-semibold">Section Details</h3>
-                                  <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Section Name</FormLabel><FormControl><Input placeholder="e.g., Summer Specials" {...field} readOnly /></FormControl><FormMessage /></FormItem>)}/>
-                                  <FormField control={form.control} name="description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="A short description for this section." rows={2} {...field} readOnly /></FormControl><FormMessage /></FormItem>)}/>
-                              </div>
                               <div className="p-4 border-b shrink-0">
                                   <h3 className="font-semibold mb-2">Available Products ({availableProducts.length})</h3>
                                   <div className="relative">
@@ -1803,6 +1799,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={isAddMenuModalOpen} onOpenChange={setIsAddMenuModalOpen}>
         <DialogContent className="sm:max-w-2xl">
+          <DialogTitle className="sr-only">How would you like to build your menu?</DialogTitle>
           <DialogHeader>
             <DialogTitle className="text-center text-2xl font-bold">How would you like to build your menu?</DialogTitle>
             <DialogDescription className="text-center">
@@ -1918,6 +1915,9 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       </Dialog>
 
       <Dialog open={posFlowStep === 'sync'}>
+        <DialogHeader>
+            <DialogTitle className="sr-only">Syncing Menu</DialogTitle>
+        </DialogHeader>
         <DialogContent>
           <DialogTitle className="sr-only">Syncing Menu</DialogTitle>
           <DialogHeader>
@@ -2186,5 +2186,3 @@ export default function MenuBuilderPage() {
     </div>
   );
 }
-
-    
