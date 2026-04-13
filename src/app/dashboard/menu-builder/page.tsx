@@ -25,13 +25,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { DndContext, closestCenter, useSensor, useSensors, DragEndEvent, PointerSensor, KeyboardSensor as DndKeyboardSensor, sortableKeyboardCoordinates } from '@dnd-kit/core';
+import { DndContext, closestCenter, useSensor, useSensors, DragEndEvent, PointerSensor, KeyboardSensor, sortableKeyboardCoordinates } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetFooter, SheetDescription, SheetTitle as SheetTitleComponent } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetFooter, SheetDescription, SheetTitle } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -1018,7 +1018,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
         <div className="w-full max-w-[340px] h-[720px] bg-gray-100 rounded-[32px] shadow-2xl p-3 border-[6px] border-black overflow-hidden flex flex-col">
             <div className="flex-1 overflow-y-auto bg-white rounded-t-[20px]">
                 <div className="relative h-52">
-                    <Image src={item.image} alt={item.name} fill className="object-cover rounded-t-[20px]" />
+                    <Image src={item.image || ''} alt={item.name} fill className="object-cover rounded-t-[20px]" />
                     <div className="absolute top-3 right-3 h-8 w-8 rounded-full bg-black/40 flex items-center justify-center text-white cursor-pointer"><X size={18} /></div>
                 </div>
 
@@ -1525,7 +1525,7 @@ const AddSectionSheet = ({
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="w-full max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
-                    <SheetTitleComponent className="text-xl">Create New Section: {initialData?.name}</SheetTitleComponent>
+                    <SheetTitle className="text-xl">Create New Section: {initialData?.name}</SheetTitle>
                     <SheetDescription>{initialData?.description || 'Build a new section by adding and customizing products from your library.'}</SheetDescription>
                 </SheetHeader>
                 <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
@@ -1769,7 +1769,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
     }
   }, []);
 
-  const sensors = useSensors(useSensor(PointerSensor), useSensor(DndKeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
+  const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
   const [previewCart, setPreviewCart] = useState<Record<string, number>>({});
   const [isCartAnimating, setIsCartAnimating] = useState(false);
@@ -2025,7 +2025,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <div className="flex-1 flex flex-col bg-muted/40">
         <div className="flex-shrink-0 h-16 border-b flex items-center px-4 justify-between bg-card">
           <div className="flex items-center gap-4">
-            <EMenuIcon />
+            
           </div>
           <div className="flex items-center gap-2">
             <Button onClick={() => setIsAddMenuModalOpen(true)}>
@@ -2131,7 +2131,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={posFlowStep === 'select'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent>
-        <DialogTitle className="sr-only">Import from POS</DialogTitle>
+          <DialogTitle className="sr-only">Import from POS</DialogTitle>
           <DialogHeader>
             <DialogTitle>Import from POS</DialogTitle>
             <DialogDescription>
@@ -2245,7 +2245,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
-        <DialogTitle className="sr-only">{editingMenuName || 'Menu Editor'}</DialogTitle>
+          <DialogTitle className="sr-only">{editingMenuName || 'Menu Editor'}</DialogTitle>
           <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
@@ -2334,8 +2334,8 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
                               <MenuItemCard
                                 key={item.id}
                                 item={item}
-                                quantity={previewCart[item.id] || 0}
                                 onAdd={handlePreviewAddToCart}
+                                quantity={previewCart[item.id] || 0}
                                 onIncrement={handlePreviewIncrement}
                                 onDecrement={handlePreviewDecrement}
                                 isPurchasingEnabled={true}
