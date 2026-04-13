@@ -21,17 +21,17 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialogTitle as AlertDialogTitleComponent,
 } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { DndContext, closestCenter, useSensor, useSensors, DragEndEvent, PointerSensor, KeyboardSensor, sortableKeyboardCoordinates } from '@dnd-kit/core';
+import { DndContext, closestCenter, useSensor, useSensors, DragEndEvent, PointerSensor, KeyboardSensor as DndKeyboardSensor, sortableKeyboardCoordinates } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetFooter, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetFooter, SheetDescription, SheetTitle as SheetTitleComponent } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -68,39 +68,36 @@ import { getCategoryNameOptions } from '@/app/dashboard/categories/utils';
 import dynamic from 'next/dynamic';
 
 
-const BuilderSidebar = () => {
-    const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
+const BuilderSidebar = ({ onCreateMenuClick }: { onCreateMenuClick: () => void }) => {
     return (
         <aside className="w-80 bg-white border-r flex flex-col">
-            <div className="h-16 border-b flex items-center justify-between px-4 shrink-0">
-                <h2 className="text-lg font-bold">Menu Builder</h2>
-            </div>
-            <div className="p-4 border-b">
-                <Button className="w-full"><Plus className="h-4 w-4 mr-2" /> Create Menu</Button>
-            </div>
-            <ScrollArea className="flex-1">
-                <div className="p-4 space-y-4">
-                    <h3 className="text-sm font-semibold text-muted-foreground px-2">Brand Settings</h3>
-                    <Card className="bg-muted/50">
-                        <CardHeader>
-                            <CardTitle className="text-base">Bloomsbury's</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex items-center gap-3">
-                                {userAvatar && (
-                                    <Image src={userAvatar.imageUrl} alt="Brand Logo" width={48} height={48} className="rounded-full border" data-ai-hint={userAvatar.imageHint} />
-                                )}
-                                <div>
-                                    <p className="text-sm font-semibold">Alex Thompson</p>
-                                    <p className="text-xs text-muted-foreground">Admin</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+            <div className="h-16 border-b flex items-center px-4 shrink-0">
+                <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 bg-[#18B4A6] rounded-md flex items-center justify-center">
+                        <List className="h-5 w-5 text-white" />
+                    </div>
+                    <h2 className="text-base font-bold tracking-wider">MENU BUILDER</h2>
                 </div>
-            </ScrollArea>
-            <div className="p-4 border-t">
-                {/* Footer content if any */}
+            </div>
+            <div className="p-4 flex flex-col gap-2">
+                 <Button 
+                    className="w-full justify-start p-3 h-auto bg-teal-100/50 hover:bg-teal-100/80 text-teal-600 font-bold rounded-lg"
+                    onClick={onCreateMenuClick}
+                >
+                    <List className="h-5 w-5 mr-3" />
+                    Create a Menu
+                </Button>
+
+                <div className="px-2 pt-4">
+                    <h3 className="text-xs font-bold text-muted-foreground tracking-widest uppercase">
+                        Customization
+                    </h3>
+                </div>
+
+                <Button variant="ghost" className="w-full justify-start p-3 h-auto font-bold text-gray-600 hover:text-gray-800">
+                    <Palette className="h-5 w-5 mr-3 text-gray-500" />
+                    Brand Management
+                </Button>
             </div>
         </aside>
     );
@@ -1528,7 +1525,7 @@ const AddSectionSheet = ({
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="w-full max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
-                    <DialogTitle className="text-xl">Create New Section: {initialData?.name}</DialogTitle>
+                    <SheetTitleComponent className="text-xl">Create New Section: {initialData?.name}</SheetTitleComponent>
                     <SheetDescription>{initialData?.description || 'Build a new section by adding and customizing products from your library.'}</SheetDescription>
                 </SheetHeader>
                 <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
@@ -1772,7 +1769,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
     }
   }, []);
 
-  const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
+  const sensors = useSensors(useSensor(PointerSensor), useSensor(DndKeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
   const [previewCart, setPreviewCart] = useState<Record<string, number>>({});
   const [isCartAnimating, setIsCartAnimating] = useState(false);
@@ -2132,7 +2129,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
         </DialogContent>
       </Dialog>
 
-      <Dialog open={posFlowStep === 'select'} onOpenChange={() => setPosFlowStep('')}>
+      <Dialog open={posFlowStep === 'select'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent>
         <DialogTitle className="sr-only">Import from POS</DialogTitle>
           <DialogHeader>
@@ -2209,7 +2206,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
         </DialogContent>
       </Dialog>
 
-      <Dialog open={posFlowStep === 'sync'}>
+      <Dialog open={posFlowStep === 'sync'} >
         <DialogContent>
         <DialogTitle className="sr-only">Syncing</DialogTitle>
           <DialogHeader>
@@ -2406,7 +2403,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <AlertDialog open={isConfirmingPublish} onOpenChange={setIsConfirmingPublish}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to publish this menu?</AlertDialogTitle>
+            <AlertDialogTitleComponent>Are you sure you want to publish this menu?</AlertDialogTitleComponent>
             <AlertDialogDescription>
               Publishing this menu will make it the live version for your customers. Other active menus will be set to offline.
             </AlertDialogDescription>
@@ -2420,7 +2417,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
        <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
         <AlertDialogContent>
             <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogTitleComponent>Are you absolutely sure?</AlertDialogTitleComponent>
                 <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete the menu: <strong>{deleteConfirmation?.name}</strong>.
                 </AlertDialogDescription>
@@ -2474,7 +2471,7 @@ export default function MenuBuilderPage() {
 
   return (
     <div className="fixed inset-0 z-40 bg-background flex animate-in fade-in duration-500">
-      <BuilderSidebar />
+      <BuilderSidebar onCreateMenuClick={() => setIsAddMenuModalOpen(true)} />
       <MenuBuilderMainPage
         onClose={handleClose}
         isAddMenuModalOpen={isAddMenuModalOpen}
