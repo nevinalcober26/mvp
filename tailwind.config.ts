@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -62,8 +63,8 @@ export default {
         'confirmation': '0px 3px 4px rgba(198, 202, 215, 0.02), 0px 14px 17px rgba(198, 202, 215, 0.03), 0px 31px 39px rgba(198, 202, 215, 0.05), 0px 56px 70px rgba(198, 202, 215, 0.06), 0px 87px 109px rgba(198, 202, 215, 0.08)',
       },
       fontFamily: {
-        body: ['PT Sans', 'sans-serif'],
-        headline: ['PT Sans', 'sans-serif'],
+        body: ['var(--font-body)', 'sans-serif'],
+        headline: ['var(--font-headline)', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {

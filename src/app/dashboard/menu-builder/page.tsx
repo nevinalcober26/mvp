@@ -11,7 +11,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight, Check, Flame, ChevronRight, ShoppingCart, Edit, ImageIcon, GalleryHorizontal, Upload, QrCode, ExternalLink, Eye, HelpCircle } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +19,6 @@ import {
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
-  AlertDialogHeader,
   AlertDialogTitle as AlertDialogTitleComponent,
 } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectGroup, SelectLabel } from '@/components/ui/select';
@@ -30,7 +29,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle as SheetTitleComponent, SheetDescription as SheetDescriptionComponent, SheetFooter } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -67,7 +66,7 @@ import { getCategoryNameOptions } from '@/app/dashboard/categories/utils';
 import dynamic from 'next/dynamic';
 
 
-const BuilderSidebar = ({ onCreateMenuClick }: { onCreateMenuClick: () => void }) => {
+const BuilderSidebar = ({ view, setView }: { view: 'menus' | 'branding', setView: (view: 'menus' | 'branding') => void }) => {
     return (
         <aside className="w-80 bg-white border-r flex flex-col">
             <div className="h-16 border-b flex items-center px-4 shrink-0">
@@ -80,11 +79,16 @@ const BuilderSidebar = ({ onCreateMenuClick }: { onCreateMenuClick: () => void }
             </div>
             <div className="p-4 flex flex-col gap-2">
                  <Button 
-                    className="w-full justify-start p-3 h-auto bg-teal-100/50 hover:bg-teal-100/80 text-teal-600 font-bold rounded-lg"
-                    onClick={onCreateMenuClick}
+                    className={cn(
+                        "w-full justify-start p-3 h-auto font-bold rounded-lg",
+                        view === 'menus' 
+                            ? 'bg-teal-100/50 hover:bg-teal-100/80 text-teal-600'
+                            : 'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                    )}
+                    onClick={() => setView('menus')}
                 >
                     <List className="h-5 w-5 mr-3" />
-                    Create a Menu
+                    Menus
                 </Button>
 
                 <div className="px-2 pt-4">
@@ -93,8 +97,16 @@ const BuilderSidebar = ({ onCreateMenuClick }: { onCreateMenuClick: () => void }
                     </h3>
                 </div>
 
-                <Button variant="ghost" className="w-full justify-start p-3 h-auto font-bold text-gray-600 hover:text-gray-800">
-                    <Palette className="h-5 w-5 mr-3 text-gray-500" />
+                <Button 
+                    className={cn(
+                        "w-full justify-start p-3 h-auto font-bold rounded-lg",
+                        view === 'branding' 
+                            ? 'bg-teal-100/50 hover:bg-teal-100/80 text-teal-600'
+                            : 'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                    )}
+                    onClick={() => setView('branding')}
+                >
+                    <Palette className="h-5 w-5 mr-3" />
                     Brand Management
                 </Button>
             </div>
@@ -1274,7 +1286,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave, onOpenEdit
                   <>
                     <SheetHeader className="p-6 border-b shrink-0">
                         <div className="flex items-center gap-2">
-                            <SheetTitle>Manage: {category.name} ({items.length} items)</SheetTitle>
+                            <SheetTitleComponent>Manage: {category.name} ({items.length} items)</SheetTitleComponent>
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -1288,7 +1300,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave, onOpenEdit
                                 </Tooltip>
                             </TooltipProvider>
                         </div>
-                        <SheetDescription>Drag to reorder, click a row to edit details, and toggle availability.</SheetDescription>
+                        <SheetDescriptionComponent>Drag to reorder, click a row to edit details, and toggle availability.</SheetDescriptionComponent>
                     </SheetHeader>
                     <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
                         <Panel defaultSize={33} minSize={25} className="flex flex-col overflow-hidden border-r bg-muted/30">
@@ -1583,8 +1595,8 @@ const AddSectionSheet = ({
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="w-full max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
-                    <SheetTitle className="text-xl">Create New Section: {initialData?.name}</SheetTitle>
-                    <SheetDescription>{initialData?.description || 'Build a new section by adding and customizing products from your library.'}</SheetDescription>
+                    <SheetTitleComponent className="text-xl">Create New Section: {initialData?.name}</SheetTitleComponent>
+                    <SheetDescriptionComponent>{initialData?.description || 'Build a new section by adding and customizing products from your library.'}</SheetDescriptionComponent>
                 </SheetHeader>
                 <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
                     <Panel defaultSize={20} minSize={15} className="flex flex-col overflow-hidden border-r bg-muted/30">
@@ -1760,9 +1772,7 @@ const EditSectionDetailsDialog = ({ isOpen, onOpenChange, onConfirm, section }: 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Identifier</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled className="font-mono bg-muted" />
-                  </FormControl>
+                  <FormControl><Input {...field} disabled className="font-mono bg-muted" /></FormControl>
                 </FormItem>
               )}
             />
@@ -2310,7 +2320,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={isAddMenuModalOpen} onOpenChange={setIsAddMenuModalOpen}>
         <DialogContent className="sm:max-w-2xl">
-        <DialogTitle className="sr-only">Add new menu</DialogTitle>
           <DialogHeader>
             <DialogTitle className="text-center text-2xl font-bold">How would you like to build your menu?</DialogTitle>
             <DialogDescription className="text-center">
@@ -2351,7 +2360,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={posFlowStep === 'select'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent>
-        <DialogTitle className="sr-only">Import from POS</DialogTitle>
           <DialogHeader>
             <DialogTitle>Import from POS</DialogTitle>
             <DialogDescription>
@@ -2428,7 +2436,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={posFlowStep === 'sync'} >
         <DialogContent>
-        <DialogTitle className="sr-only">Syncing</DialogTitle>
           <DialogHeader>
               <DialogTitle className="text-center">{isSyncComplete ? 'Sync Complete!' : 'Syncing Menu from POS'}</DialogTitle>
               <DialogDescription className="text-center">
@@ -2465,7 +2472,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
-          <DialogTitle className="sr-only">{editingMenuName || 'Menu Editor'}</DialogTitle>
           <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
@@ -2677,6 +2683,7 @@ export default function MenuBuilderPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showBuilder, setShowBuilder] = useState(false);
   const [isAddMenuModalOpen, setIsAddMenuModalOpen] = useState(false);
+  const [view, setView] = useState<'menus' | 'branding'>('menus');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -2699,17 +2706,139 @@ export default function MenuBuilderPage() {
 
   return (
     <div className="fixed inset-0 z-40 bg-background flex animate-in fade-in duration-500">
-      <BuilderSidebar onCreateMenuClick={() => setIsAddMenuModalOpen(true)} />
-      <MenuBuilderMainPage
-        onClose={handleClose}
-        isAddMenuModalOpen={isAddMenuModalOpen}
-        setIsAddMenuModalOpen={setIsAddMenuModalOpen}
-      />
+      <BuilderSidebar view={view} setView={setView} />
+      {view === 'menus' ? (
+        <MenuBuilderMainPage
+          onClose={handleClose}
+          isAddMenuModalOpen={isAddMenuModalOpen}
+          setIsAddMenuModalOpen={setIsAddMenuModalOpen}
+        />
+      ) : (
+        <BrandManagementView onClose={() => setView('menus')} />
+      )}
     </div>
   );
 }
 
+const BrandManagementView = ({ onClose }: { onClose: () => void }) => {
+    const { toast } = useToast();
+    const [logo, setLogo] = useState<string | null>('https://picsum.photos/seed/brandlogo/200');
+    const [primaryColor, setPrimaryColor] = useState('#10b981'); // Emerald 500
+    const [backgroundColor, setBackgroundColor] = useState('#f9fafb'); // Gray 50
+    const [headlineFont, setHeadlineFont] = useState('Poppins');
+    const [bodyFont, setBodyFont] = useState('Inter');
+
+    const handleSave = () => {
+        toast({
+            title: "Branding Updated",
+            description: "Your new branding has been saved and will be applied globally."
+        });
+        // Here you would trigger the file changes
+        onClose();
+    };
     
+    // A simple hex to HSL converter for the preview
+    const hexToHsl = (hex: string): string => {
+        let r = 0, g = 0, b = 0;
+        if (hex.length === 4) {
+            r = parseInt(hex[1] + hex[1], 16);
+            g = parseInt(hex[2] + hex[2], 16);
+            b = parseInt(hex[3] + hex[3], 16);
+        } else if (hex.length === 7) {
+            r = parseInt(hex.substring(1, 3), 16);
+            g = parseInt(hex.substring(3, 5), 16);
+            b = parseInt(hex.substring(5, 7), 16);
+        }
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h = 0, s = 0, l = (max + min) / 2;
+        if (max !== min) {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+        }
+        return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+    }
 
+    const brandStyle = {
+        '--primary': hexToHsl(primaryColor),
+        '--background': hexToHsl(backgroundColor),
+        '--font-headline': headlineFont,
+        '--font-body': bodyFont,
+    } as React.CSSProperties;
 
-
+    return (
+        <div className="flex-1 flex flex-col bg-muted/40">
+            <div className="flex-shrink-0 h-16 border-b flex items-center px-4 justify-between bg-card">
+                <h2 className="text-xl font-semibold">Brand Management</h2>
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" onClick={onClose}>Cancel</Button>
+                    <Button onClick={handleSave}>Save Branding</Button>
+                </div>
+            </div>
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 p-8 overflow-y-auto">
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader><CardTitle>Brand Logo</CardTitle></CardHeader>
+                        <CardContent className="flex items-center gap-4">
+                            {logo ? <Image src={logo} alt="brand logo" width={80} height={80} className="rounded-lg object-cover" /> : <div className="h-20 w-20 bg-muted rounded-lg flex items-center justify-center"><ImageIcon className="h-8 w-8 text-muted-foreground"/></div>}
+                            <Button variant="outline"><Upload className="mr-2 h-4 w-4"/> Change Logo</Button>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader><CardTitle>Colors</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-center gap-4">
+                                <Label>Primary</Label>
+                                <Input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="w-12 h-12 p-1"/>
+                                <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} />
+                            </div>
+                             <div className="flex items-center gap-4">
+                                <Label>Background</Label>
+                                <Input type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="w-12 h-12 p-1"/>
+                                <Input value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} />
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader><CardTitle>Typography</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <Label>Headline Font</Label>
+                                <Select value={headlineFont} onValueChange={setHeadlineFont}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Poppins">Poppins</SelectItem>
+                                        <SelectItem value="Lato">Lato</SelectItem>
+                                        <SelectItem value="Montserrat">Montserrat</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label>Body Font</Label>
+                                <Select value={bodyFont} onValueChange={setBodyFont}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Inter">Inter</SelectItem>
+                                        <SelectItem value="Roboto">Roboto</SelectItem>
+                                        <SelectItem value="Open Sans">Open Sans</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="bg-muted p-4 rounded-lg flex items-center justify-center">
+                   <div style={brandStyle} className="w-full max-w-sm">
+                       <ItemPreviewer item={mockMenuItems[0]} />
+                   </div>
+                </div>
+            </div>
+        </div>
+    );
+};
