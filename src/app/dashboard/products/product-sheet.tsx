@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
@@ -75,6 +76,7 @@ import {
   GalleryHorizontal,
   X,
   Leaf,
+  Package,
 } from 'lucide-react';
 import type { Product, ProductVariationGroup } from './types';
 import Image from 'next/image';
@@ -164,7 +166,7 @@ const productSchema = z
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
-const mockProperties = ['Spicy', 'Vegetarian', 'Gluten-Free', 'New'];
+const mockProperties = ['Spicy', 'Vegetarian', 'Gluten-Free', 'New', 'Halal', 'Organic', 'Gluten', 'Dairy'];
 
 const initialNutritionItems: { id: string; name: string; unit: 'g' | 'mg' | 'kcal'; enabled: boolean; }[] = [
   { id: '2', name: 'Protein', unit: 'g', enabled: true },

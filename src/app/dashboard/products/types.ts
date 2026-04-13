@@ -1,7 +1,7 @@
+
 export type VariationOptionOverride = {
   id: string; // from VariationOption
   value: string;
-  matrix?: string;
   priceMode: 'override' | 'add' | 'subtract';
   priceValue: number;
   hidden: boolean;
@@ -44,4 +44,16 @@ export type Product = {
   videoUrl?: string;
   variationGroups?: ProductVariationGroup[];
   nutrition?: Record<string, number>;
+};
+
+// This is the old variation type, kept for reference but should be deprecated.
+export type Variation = {
+  id: string;
+  value: string;
+  matrix?: string;
+  priceMode: 'override' | 'add' | 'subtract';
+  priceValue: number;
+  hidden: boolean;
+  categoryPage: boolean;
+  productPage: boolean;
 };

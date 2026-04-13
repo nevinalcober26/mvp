@@ -265,13 +265,7 @@ const mockMenuItems: MenuItem[] = [
         isCustomisable: true,
         properties: ['Vegetarian', 'Gluten', 'Dairy'],
         variationGroups: [
-            {
-                id: 'group_1', name: 'Size', multiple: false, required: true,
-                options: [
-                    { id: 'opt_1_1', value: '10 inches', priceMode: 'override', priceValue: 36.00, hidden: false },
-                    { id: 'opt_1_2', value: '12 inches', priceMode: 'add', priceValue: 5.00, hidden: false },
-                ]
-            }
+            mapGroupToProductVariation(mockVariationGroups.find(g => g.id === 'group_1')!),
         ],
         nutrition: {
             protein: 32,
@@ -337,14 +331,7 @@ const mockMenuItems: MenuItem[] = [
         image: getImageUrl('soft-drink'),
         properties: [],
         variationGroups: [
-            {
-                id: 'group_2', name: 'Flavor', multiple: false, required: true,
-                options: [
-                    { id: 'opt_2_1', value: 'Coca-Cola', priceMode: 'override', priceValue: 3.00, hidden: false },
-                    { id: 'opt_2_2', value: 'Sprite', priceMode: 'override', priceValue: 3.00, hidden: false },
-                    { id: 'opt_2_3', value: 'Fanta', priceMode: 'override', priceValue: 3.00, hidden: false },
-                ]
-            }
+            mapGroupToProductVariation(mockVariationGroups.find(g => g.id === 'group_2')!),
         ],
         nutrition: {
             protein: 0,
@@ -377,12 +364,15 @@ const mockMenuItems: MenuItem[] = [
         category: 'Main Courses',
         image: getImageUrl('ribeye-steak'),
         properties: ['Halal'],
+        variationGroups: [
+          mapGroupToProductVariation(mockVariationGroups.find(g => g.id === 'group_3')!),
+        ],
         nutrition: {
             protein: 50,
             fat: 35,
             carbs: 40
         }
-    } as any,
+    },
     {
         id: 'classic-cheeseburger',
         name: 'Classic Cheeseburger',
@@ -391,13 +381,17 @@ const mockMenuItems: MenuItem[] = [
         category: 'Bestsellers',
         image: getImageUrl('classic-cheeseburger'),
         properties: ['Halal', 'Gluten', 'Dairy'],
+        variationGroups: [
+            mapGroupToProductVariation(mockVariationGroups.find(g => g.id === 'group_3')!),
+            mapGroupToProductVariation(mockVariationGroups.find(g => g.id === 'group_5')!)
+        ],
         nutrition: {
             protein: 30,
             fat: 25,
             carbs: 40,
             sugar: 8
         }
-    } as any,
+    },
     {
         id: 'truffle-fries',
         name: 'Truffle Fries',
@@ -412,7 +406,7 @@ const mockMenuItems: MenuItem[] = [
             carbs: 35,
             sodium: 350
         }
-    } as any,
+    },
     {
         id: 'lava-cake',
         name: 'Chocolate Lava Cake',
@@ -427,7 +421,7 @@ const mockMenuItems: MenuItem[] = [
             carbs: 50,
             sugar: 35
         }
-    } as any
+    }
 ];
 
 
@@ -491,8 +485,25 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
             const nutritionData = item.nutrition || {};
             setLocalNutrition(nutritionData);
             setIsNutritionEnabled(item.nutrition !== undefined);
+        } else {
+            setLocalVariationGroups([]);
+            setLocalNutrition({});
+            setIsNutritionEnabled(false);
         }
     }, [item]);
+    
+    const handleVariationGroupsChange = (newGroups: ProductVariationGroup[]) => {
+      setLocalVariationGroups(newGroups);
+      if (item) {
+          onUpdate(item.id, 'variationGroups', newGroups);
+      }
+    };
+    
+    const availableVariationGroups = useMemo(() => {
+      if (!item) return [];
+      const addedGroupIds = new Set(localVariationGroups.map(field => field.id));
+      return mockVariationGroups.filter(group => !addedGroupIds.has(group.id));
+    }, [localVariationGroups, item]);
 
     const totalKcal = useMemo(() => {
         if (!isNutritionEnabled) return 0;
@@ -657,11 +668,62 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                     <CardTitle className="flex items-center gap-2 text-lg"><Package className="h-5 w-5" /> Variation Groups</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {/* New Variation Group UI Here */}
-                    <Button type="button" variant="outline" className="w-full">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Variation Group
-                    </Button>
+                    {localVariationGroups.map((group, groupIndex) => (
+                         <Card key={group.id} className="bg-muted/30">
+                            <CardHeader className="flex flex-row items-center justify-between py-3">
+                                <CardTitle className="text-base">{group.name}</CardTitle>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                        const newGroups = localVariationGroups.filter((_, i) => i !== groupIndex);
+                                        handleVariationGroupsChange(newGroups);
+                                    }}
+                                >
+                                    <Trash className="h-4 w-4 text-destructive" />
+                                </Button>
+                            </CardHeader>
+                        </Card>
+                    ))}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full"
+                                disabled={availableVariationGroups.length === 0}
+                            >
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Add Variation Group
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            {availableVariationGroups.map((group) => (
+                                <DropdownMenuItem
+                                    key={group.id}
+                                    onSelect={() => {
+                                        const newGroup: ProductVariationGroup = {
+                                            id: group.id,
+                                            name: group.name,
+                                            multiple: group.multiple,
+                                            required: group.required,
+                                            options: group.options.map(opt => ({
+                                                id: opt.id,
+                                                value: opt.value,
+                                                priceMode: 'add',
+                                                priceValue: opt.regularPrice || 0,
+                                                hidden: false,
+                                            }))
+                                        };
+                                        handleVariationGroupsChange([...localVariationGroups, newGroup]);
+                                    }}
+                                >
+                                    {group.name}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </CardContent>
             </Card>
 
@@ -763,7 +825,10 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
             const initialSelections: Record<string, string | string[]> = {};
             item.variationGroups.forEach(group => {
                 if (group.required && !group.multiple && group.options.length > 0) {
-                    initialSelections[group.id] = group.options[0].value;
+                    const defaultOption = group.options.find(opt => !opt.hidden);
+                    if (defaultOption) {
+                        initialSelections[group.id] = defaultOption.value;
+                    }
                 } else if (group.multiple) {
                     initialSelections[group.id] = [];
                 } else {
@@ -869,7 +934,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                             <CardContent className="p-3 pt-0">
                                 {group.multiple ? (
                                     <div className="space-y-2">
-                                        {group.options.map((opt, i) => (
+                                        {group.options.filter(opt => !opt.hidden).map((opt, i) => (
                                             <div key={opt.id} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-3 last:pb-0">
                                                 <Label htmlFor={`preview-opt-${group.id}-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{opt.value}</Label>
                                                 <Checkbox
@@ -887,7 +952,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                                         onValueChange={(value) => handleSelectionChange(group.id, value, false)}
                                     >
                                         <div className="space-y-2">
-                                            {group.options.map((opt, i) => (
+                                            {group.options.filter(opt => !opt.hidden).map((opt, i) => (
                                             <div key={opt.id} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-3 last:pb-0">
                                                 <Label htmlFor={`preview-opt-${group.id}-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{opt.value}</Label>
                                                 <RadioGroupItem value={opt.value} id={`preview-opt-${group.id}-${i}`} className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500" />
@@ -1488,8 +1553,8 @@ const QrPreviewModal = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChang
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-xs text-center p-0 overflow-hidden rounded-2xl">
+                 <DialogTitle className="sr-only">Scan to Preview</DialogTitle>
                 <DialogHeader className="bg-primary/5 p-6 pb-4">
-                     <DialogTitle className="sr-only">Scan to Preview</DialogTitle>
                     <div className="mx-auto h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
                         <QrCode className="h-6 w-6 text-primary" />
                     </div>
@@ -2272,3 +2337,15 @@ export default function MenuBuilderPage() {
   );
 }
 
+const mapGroupToProductVariation = (group: VariationGroup): ProductVariationGroup => {
+  return {
+    ...group,
+    options: group.options.map(opt => ({
+        id: opt.id,
+        value: opt.value,
+        priceMode: 'add',
+        priceValue: opt.regularPrice || 0,
+        hidden: false,
+    }))
+  };
+};

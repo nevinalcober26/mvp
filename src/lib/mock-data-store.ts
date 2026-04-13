@@ -1,7 +1,7 @@
 
 'use client';
 
-import type { Product, Variation } from '@/app/dashboard/products/types';
+import type { Product, ProductVariationGroup } from '@/app/dashboard/products/types';
 import type { Customer, Visit, Payment as CustomerPayment } from '@/app/dashboard/customer/list/types';
 import type { Order, OrderItem, Payment as OrderPayment, StaffReference } from '@/app/dashboard/orders/types';
 import { format, subDays, subHours, endOfDay, setHours, setMinutes, subMinutes, formatDistanceToNow } from 'date-fns';
@@ -21,9 +21,9 @@ export const mockVariationGroups: VariationGroup[] = [
     required: true,
     maxChoices: 1,
     options: [
-      { id: 'opt_1_1', value: 'Small', sortOrder: 0 },
-      { id: 'opt_1_2', value: 'Medium', sortOrder: 1 },
-      { id: 'opt_1_3', value: 'Large', sortOrder: 2 },
+      { id: 'opt_1_1', value: 'Small', sortOrder: 0, regularPrice: 0 },
+      { id: 'opt_1_2', value: 'Medium', sortOrder: 1, regularPrice: 3.00 },
+      { id: 'opt_1_3', value: 'Large', sortOrder: 2, regularPrice: 5.00 },
     ],
   },
   {
@@ -312,6 +312,19 @@ const productDescriptions: Record<string, { description: string; smallDescriptio
     }
 };
 
+const mapGroupToProductVariation = (group: VariationGroup): ProductVariationGroup => {
+  return {
+    ...group,
+    options: group.options.map(opt => ({
+        id: opt.id,
+        value: opt.value,
+        priceMode: 'add',
+        priceValue: opt.regularPrice || 0,
+        hidden: false,
+    }))
+  };
+};
+
 // --- Product Generation ---
 const productNames = [
     'Classic Cheeseburger', 'Truffle Fries', 'Seasonal Berry Crumble', 'Artisanal Pizza',
@@ -335,11 +348,21 @@ const generateMockProducts = (count: number): Product[] => {
         const price = parseFloat((10 + (i * 1.75 % 25)).toFixed(2));
         const stock = status === 'Out of Stock' ? 0 : 10 + (i * 7 % 90);
 
-        const variations: Variation[] | undefined = i % 5 === 0 ? [
-            { id: `var_${i}_1`, value: 'Small', matrix: `S-${i}`, priceMode: 'override', priceValue: price * 0.8, hidden: false, categoryPage: true, productPage: true },
-            { id: `var_${i}_2`, value: 'Large', matrix: `L-${i}`, priceMode: 'override', priceValue: price * 1.2, hidden: false, categoryPage: true, productPage: true }
-        ] : undefined;
-        
+        let variationGroups: ProductVariationGroup[] | undefined = undefined;
+
+        if (name === 'Classic Cheeseburger' || name === 'Mushroom Swiss Burger' || name === 'Ribeye Steak' || name === 'Filet Mignon') {
+            variationGroups = [mapGroupToProductVariation(mockVariationGroups.find(g => g.id === 'group_3')!)]; // Doneness
+            if (name.includes('Burger')) {
+                 variationGroups.push(mapGroupToProductVariation(mockVariationGroups.find(g => g.id === 'group_5')!)); // Toppings
+            }
+        }
+        if (name.includes('Pizza')) {
+            variationGroups = [mapGroupToProductVariation(mockVariationGroups.find(g => g.id === 'group_1')!)]; // Size
+        }
+         if (name.includes('Salad')) {
+            variationGroups = [mapGroupToProductVariation(mockVariationGroups.find(g => g.id === 'group_6')!)]; // Dressing
+        }
+
         const imageId = name.toLowerCase().replace(/ /g, '-');
         const image = PlaceHolderImages.find(p => p.id === imageId);
 
@@ -360,7 +383,7 @@ const generateMockProducts = (count: number): Product[] => {
             description: descriptionDetails.description,
             smallDescription: descriptionDetails.smallDescription,
             discountedPrice: status === 'Active' && i % 4 === 0 ? parseFloat((price * 0.8).toFixed(2)) : undefined,
-            variations
+            variationGroups
         });
     }
     return products;
