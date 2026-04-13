@@ -1418,7 +1418,7 @@ const SortableProductRow = ({ item, isSelected, onAvailabilityChange, onRowClick
     );
 };
 
-const FloatingActionMenu = () => {
+const FloatingActionMenu = ({ onQrClick }: { onQrClick: () => void }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -1426,27 +1426,37 @@ const FloatingActionMenu = () => {
       <div className="relative flex flex-col items-center gap-4">
         {/* Secondary Buttons (visible when open) */}
         <div className={cn("flex flex-col items-center gap-4 transition-all duration-300 ease-in-out", isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none")}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" className="h-14 w-14 rounded-2xl bg-white shadow-lg border-gray-200 hover:bg-gray-50">
-                <QrCode className="h-7 w-7 text-primary" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left" className="bg-gray-800 text-white border-0">
-              <p>Mobile QR Preview</p>
-            </TooltipContent>
-          </Tooltip>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="h-14 w-14 rounded-2xl bg-white shadow-lg border-gray-200 hover:bg-gray-50"
+                  onClick={() => {
+                    onQrClick();
+                    setIsOpen(false);
+                  }}
+                >
+                  <QrCode className="h-7 w-7 text-primary" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left" className="bg-gray-800 text-white border-0">
+                <p>Mobile QR Preview</p>
+              </TooltipContent>
+            </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" className="h-14 w-14 rounded-2xl bg-white shadow-lg border-gray-200 hover:bg-gray-50">
-                <ExternalLink className="h-6 w-6 text-primary" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left" className="bg-gray-800 text-white border-0">
-              <p>Open Live Preview</p>
-            </TooltipContent>
-          </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" className="h-14 w-14 rounded-2xl bg-white shadow-lg border-gray-200 hover:bg-gray-50">
+                  <ExternalLink className="h-6 w-6 text-primary" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left" className="bg-gray-800 text-white border-0">
+                <p>Open Live Preview</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         
         {/* Main FAB */}
@@ -1463,6 +1473,33 @@ const FloatingActionMenu = () => {
   );
 };
 
+const QrPreviewModal = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChange: (open: boolean) => void; }) => {
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-xs text-center p-0 overflow-hidden rounded-2xl">
+                <DialogHeader className="bg-primary/5 p-6 pb-4">
+                    <div className="mx-auto h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                        <QrCode className="h-6 w-6 text-primary" />
+                    </div>
+                    <DialogTitle className="pt-2">Scan to Preview</DialogTitle>
+                    <DialogDescription>
+                        Use your phone's camera to see your menu live.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="p-8 bg-white">
+                    <div className="p-4 bg-white rounded-lg border border-dashed">
+                        <QrCode className="h-full w-full text-black" strokeWidth={1.5} />
+                    </div>
+                </div>
+                <DialogFooter className="bg-muted/50 p-4 text-center text-xs text-muted-foreground border-t">
+                    Point your device's camera at the code to open the link.
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+
 const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpen }: {
     onClose: () => void,
     isAddMenuModalOpen: boolean;
@@ -1476,6 +1513,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
   const [isSyncComplete, setIsSyncComplete] = useState(false);
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   const [isConfirmingPublish, setIsConfirmingPublish] = useState(false);
   const [pendingPublishData, setPendingPublishData] = useState<any>(null);
@@ -1945,7 +1983,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
             <DialogTitle className="sr-only">Syncing Menu</DialogTitle>
         </DialogHeader>
         <DialogContent>
-          <DialogTitle className="sr-only">Syncing Menu</DialogTitle>
           <DialogHeader>
             <DialogTitle className="text-center">{isSyncComplete ? 'Sync Complete!' : 'Syncing Menu from POS'}</DialogTitle>
             <DialogDescription className="text-center">
@@ -2113,7 +2150,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
               </div>
             </div>
           </div>
-          <FloatingActionMenu />
+          <FloatingActionMenu onQrClick={() => setIsQrModalOpen(true)} />
         </DialogContent>
       </Dialog>
       <CategoryItemsSheet
@@ -2172,6 +2209,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <QrPreviewModal isOpen={isQrModalOpen} onOpenChange={setIsQrModalOpen} />
     </>
   );
 };
@@ -2213,3 +2251,4 @@ export default function MenuBuilderPage() {
     </div>
   );
 }
+
