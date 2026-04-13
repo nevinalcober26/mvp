@@ -30,7 +30,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetTitle as SheetTitleComponent, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -1135,8 +1135,9 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
 
 
 const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave, onOpenEditDialog }: any) => {
-
     const [items, setItems] = useState<MenuItem[]>([]);
+    const [initialItems, setInitialItems] = useState<MenuItem[]>([]);
+    const [isConfirmingClose, setIsConfirmingClose] = useState(false);
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const sensors = useSensors(useSensor(PointerSensor));
@@ -1144,11 +1145,15 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave, onOpenEdit
 
     useEffect(() => {
         if (category && isOpen) {
-          setItems(category.items.map((item: any) => ({ ...item, available: item.available ?? true })));
-          setSelectedItem(category.items.length > 0 ? category.items[0] : null);
+          const newItems = category.items.map((item: any) => ({ ...item, available: item.available ?? true }));
+          setItems(newItems);
+          setInitialItems(JSON.parse(JSON.stringify(newItems))); // Deep copy for comparison
+          setSelectedItem(newItems.length > 0 ? newItems[0] : null);
           setSearchQuery('');
         }
     }, [category, isOpen]);
+
+    const isDirty = useMemo(() => JSON.stringify(items) !== JSON.stringify(initialItems), [items, initialItems]);
 
     const filteredItems = useMemo(() => {
         if (!searchQuery) return items;
@@ -1230,13 +1235,36 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave, onOpenEdit
     const handleRowClick = (item: MenuItem) => {
         setSelectedItem(item);
     };
+    
+    const handleAttemptClose = () => {
+        if (isDirty) {
+            setIsConfirmingClose(true);
+        } else {
+            onOpenChange(false);
+        }
+    };
+
+    const handleForceClose = () => {
+        setIsConfirmingClose(false);
+        onOpenChange(false);
+    };
+    
+    const handleSheetOpenChange = (open: boolean) => {
+        if (open) {
+            onOpenChange(true);
+        } else {
+            handleAttemptClose();
+        }
+    }
+
 
     if (!isOpen) {
         return null;
     }
 
     return (
-        <Sheet open={isOpen} onOpenChange={onOpenChange}>
+        <>
+        <Sheet open={isOpen} onOpenChange={handleSheetOpenChange}>
             <SheetContent className="sm:max-w-[90vw] w-[90vw] p-0 flex flex-col">
                 {!category ? (
                     <div className="flex-1 flex items-center justify-center">
@@ -1246,7 +1274,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave, onOpenEdit
                   <>
                     <SheetHeader className="p-6 border-b shrink-0">
                         <div className="flex items-center gap-2">
-                            <DialogTitle>Manage: {category.name} ({items.length} items)</DialogTitle>
+                            <SheetTitle>Manage: {category.name} ({items.length} items)</SheetTitle>
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -1324,13 +1352,30 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave, onOpenEdit
                         </Panel>
                     </PanelGroup>
                     <SheetFooter className="p-6 border-t shrink-0">
-                        <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+                        <Button variant="outline" onClick={handleAttemptClose}>Close</Button>
                         <Button onClick={handleSaveChanges}>Save Changes</Button>
                     </SheetFooter>
                   </>
                 )}
             </SheetContent>
         </Sheet>
+        <AlertDialog open={isConfirmingClose} onOpenChange={setIsConfirmingClose}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitleComponent>You have unsaved changes</AlertDialogTitleComponent>
+              <AlertDialogDescription>
+                Are you sure you want to discard your changes? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep Editing</AlertDialogCancel>
+              <AlertDialogAction onClick={handleForceClose}>
+                Discard Changes
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        </>
     );
 };
 
@@ -1538,7 +1583,7 @@ const AddSectionSheet = ({
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="w-full max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
-                    <SheetTitleComponent className="text-xl">Create New Section: {initialData?.name}</SheetTitleComponent>
+                    <SheetTitle className="text-xl">Create New Section: {initialData?.name}</SheetTitle>
                     <SheetDescription>{initialData?.description || 'Build a new section by adding and customizing products from your library.'}</SheetDescription>
                 </SheetHeader>
                 <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
@@ -2265,7 +2310,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={isAddMenuModalOpen} onOpenChange={setIsAddMenuModalOpen}>
         <DialogContent className="sm:max-w-2xl">
-          <DialogTitle className="sr-only">Add new menu</DialogTitle>
+        <DialogTitle className="sr-only">Add new menu</DialogTitle>
           <DialogHeader>
             <DialogTitle className="text-center text-2xl font-bold">How would you like to build your menu?</DialogTitle>
             <DialogDescription className="text-center">
@@ -2665,5 +2710,6 @@ export default function MenuBuilderPage() {
 }
 
     
+
 
 
