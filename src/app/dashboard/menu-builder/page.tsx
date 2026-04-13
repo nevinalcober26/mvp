@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight, Check, ChevronRight, ShoppingCart, Edit, ImageIcon, GalleryHorizontal, Upload, Flame, QrCode, ExternalLink } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight, Check, ChevronRight, ShoppingCart, Edit, ImageIcon, GalleryHorizontal, Upload, Flame, QrCode, ExternalLink, Eye } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -178,8 +178,34 @@ const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: {
                 )}
             </CardHeader>
             <CardContent className="p-3">
-                <div className={cn("aspect-[4/3] w-full bg-muted rounded-md overflow-hidden", isLocked && "filter grayscale opacity-70")}>
-                    {image && <Image src={image.imageUrl} alt={name} width={600} height={400} className="object-cover h-full w-full" data-ai-hint={image.imageHint} />}
+                <div className={cn("relative aspect-[4/3] w-full bg-muted rounded-md overflow-hidden", isLocked && "filter grayscale opacity-70")}>
+                    {image && <Image src={image.imageUrl} alt={name} width={600} height={400} className="object-cover h-full w-full transition-transform group-hover:scale-105" data-ai-hint={image.imageHint} />}
+                    {!isLocked && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button size="icon" variant="outline" className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm rounded-full h-12 w-12 border-white/30">
+                                            <Eye className="h-6 w-6" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Preview Menu</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button size="icon" variant="outline" className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm rounded-full h-12 w-12 border-white/30" onClick={(e) => { e.stopPropagation(); if (onEdit) onEdit(); }}>
+                                            <Edit className="h-6 w-6" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Edit Menu</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
+                    )}
                 </div>
             </CardContent>
         </Card>
@@ -2020,7 +2046,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
            <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
-            <DialogTitle className="sr-only">Manage Menu</DialogTitle>
+           <DialogTitle className="sr-only">Manage Menu</DialogTitle>
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
                 <ArrowLeft className="h-5 w-5" />
@@ -2251,3 +2277,4 @@ export default function MenuBuilderPage() {
     </div>
   );
 }
+
