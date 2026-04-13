@@ -1226,13 +1226,10 @@ const AddSectionSheet = ({
     isOpen,
     onOpenChange,
     onAddSection,
-    allProducts,
-    initialData,
 }: {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     onAddSection: (data: AddSectionFormValues, productIds: string[]) => void;
-    allProducts: MenuItem[];
     initialData?: Partial<AddSectionFormValues> | null;
 }) => {
     const [addedProducts, setAddedProducts] = useState<MenuItem[]>([]);
@@ -1246,15 +1243,15 @@ const AddSectionSheet = ({
             setSearchQuery('');
             setSelectedItem(null);
         }
-    }, [isOpen, initialData]);
+    }, [isOpen]);
 
     const availableProducts = useMemo(() => {
         const addedIds = new Set(addedProducts.map(p => p.id));
-        return allProducts.filter(p =>
+        return mockMenuItems.filter(p =>
             !addedIds.has(p.id) &&
             p.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [allProducts, addedProducts, searchQuery]);
+    }, [addedProducts, searchQuery]);
 
     const addedProductIds = useMemo(() => addedProducts.map(p => p.id), [addedProducts]);
 
@@ -1309,10 +1306,7 @@ const AddSectionSheet = ({
     };
 
     const handleSubmit = () => {
-        if (initialData) {
-            onAddSection(initialData as AddSectionFormValues, addedProducts.map(p => p.id));
-            onOpenChange(false);
-        }
+        onOpenChange(false);
     };
 
     const SortableAddedProductRow = ({ product, isSelected, onClick }: { product: MenuItem; isSelected: boolean; onClick: () => void; }) => {
@@ -1368,7 +1362,7 @@ const AddSectionSheet = ({
                     <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary" />
                     <Panel defaultSize={20} minSize={15} className="flex flex-col overflow-hidden border-r">
                          <div className="p-4 border-b shrink-0">
-                            <h3 className="font-semibold">Items in {initialData?.name || 'New Section'} ({addedProducts.length})</h3>
+                            <h3 className="font-semibold">Items in New Section ({addedProducts.length})</h3>
                             <p className="text-xs text-muted-foreground">Drag to reorder items</p>
                         </div>
                         <ScrollArea className="flex-1 p-2">
@@ -1874,7 +1868,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
                       status={m.status}
                       onDelete={() => setDeleteConfirmation({ index, name: m.name })}
                       onEdit={() => handleEditMenu(m, index)}
-                      onPreview={() => router.push('/mobile/menu')}
+                      onPreview={() => window.open('/mobile/menu', '_blank')}
                     />
                   ))}
                   <Card
@@ -1895,7 +1889,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={isAddMenuModalOpen} onOpenChange={setIsAddMenuModalOpen}>
         <DialogContent className="sm:max-w-2xl">
-          <DialogTitle className="sr-only">How would you like to build your menu?</DialogTitle>
+          <h2 className="sr-only">How would you like to build your menu?</h2>
           <DialogHeader>
             <h2 className="text-center text-2xl font-bold">How would you like to build your menu?</h2>
             <DialogDescription className="text-center">
@@ -2011,8 +2005,8 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       </Dialog>
 
       <Dialog open={posFlowStep === 'sync'}>
-        <DialogHeader>
-            <DialogTitle className="sr-only">Syncing Menu</DialogTitle>
+        <DialogHeader className="sr-only">
+            <DialogTitle>Syncing Menu</DialogTitle>
         </DialogHeader>
         <DialogContent>
           <DialogHeader>
@@ -2052,7 +2046,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
            <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
-           <DialogTitle className="sr-only">Manage Menu</DialogTitle>
+            <h2 className="sr-only">Manage Menu</h2>
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
                 <ArrowLeft className="h-5 w-5" />
@@ -2206,7 +2200,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <AlertDialog open={isConfirmingPublish} onOpenChange={setIsConfirmingPublish}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to publish this menu?</AlertDialogTitle>
+            <DialogTitle>Are you sure you want to publish this menu?</DialogTitle>
             <AlertDialogDescription>
               Publishing this menu will make it the live version for your customers. Other active menus will be set to offline.
             </AlertDialogDescription>
@@ -2220,7 +2214,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
        <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
         <AlertDialogContent>
             <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <DialogTitle>Are you absolutely sure?</DialogTitle>
                 <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete the menu: <strong>{deleteConfirmation?.name}</strong>.
                 </AlertDialogDescription>
@@ -2283,4 +2277,3 @@ export default function MenuBuilderPage() {
     </div>
   );
 }
-
