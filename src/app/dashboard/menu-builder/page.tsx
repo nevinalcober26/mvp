@@ -11,7 +11,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight, Check, Flame, ChevronRight, ShoppingCart, Edit, ImageIcon, GalleryHorizontal, Upload, QrCode, ExternalLink, Eye, HelpCircle } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1771,21 +1771,21 @@ const EditSectionDetailsDialog = ({ isOpen, onOpenChange, onConfirm, section }: 
               name="id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Identifier</FormLabel>
+                  <Label>Identifier</Label>
                   <FormControl><Input {...field} disabled className="font-mono bg-muted" /></FormControl>
                 </FormItem>
               )}
             />
             <FormField control={form.control} name="name" render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Section Name*</FormLabel>
+                    <Label>Section Name*</Label>
                     <FormControl><Input placeholder="e.g., Summer Specials" {...field} /></FormControl>
                     <FormMessage />
                 </FormItem>
             )}/>
             <FormField control={form.control} name="description" render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <Label>Description</Label>
                     <FormControl><Textarea placeholder="A short description for this section." rows={2} {...field} /></FormControl>
                     <FormMessage />
                 </FormItem>
@@ -1795,7 +1795,7 @@ const EditSectionDetailsDialog = ({ isOpen, onOpenChange, onConfirm, section }: 
               name="imageUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Image</FormLabel>
+                  <Label>Image</Label>
                   <div className="flex items-center gap-4">
                     <div className="w-24 h-24 bg-muted rounded-md flex items-center justify-center border overflow-hidden">
                       {imagePreview ? (
@@ -1824,7 +1824,7 @@ const EditSectionDetailsDialog = ({ isOpen, onOpenChange, onConfirm, section }: 
              <FormField control={form.control} name="enableSpecial" render={({ field }) => (
                 <FormItem className="flex items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                        <FormLabel>Mark as Special</FormLabel>
+                        <Label>Mark as Special</Label>
                         <FormDescription>
                             Highlight this section on your menu.
                         </FormDescription>
