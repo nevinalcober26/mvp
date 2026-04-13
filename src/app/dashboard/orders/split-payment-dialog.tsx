@@ -254,8 +254,8 @@ const AssignItemsStep = ({ order, peopleCount, onContinue, onBack }: { order: Or
                 <DialogTitle className="text-xl">Assign Items for Person {currentPersonIndex + 1}</DialogTitle>
                 <DialogDescription>Select the items this person is paying for.</DialogDescription>
             </DialogHeader>
-            <ScrollArea className="h-96 my-4 pr-4 -mr-4">
-                <div className="space-y-3">
+            <ScrollArea className="h-[22rem] my-2 pr-4 -mr-4">
+                <div className="space-y-2">
                 {order.items.map(item => {
                     const totalAssignedForAllPeople = Object.values(assignments[item.id] || {}).reduce((s, q) => s + q, 0);
                     const assignedToCurrent = (assignments[item.id] || {})[currentPersonIndex] || 0;
@@ -263,17 +263,17 @@ const AssignItemsStep = ({ order, peopleCount, onContinue, onBack }: { order: Or
                     const isFullyAssigned = totalAssignedForAllPeople >= item.quantity;
                     
                     return (
-                        <div key={item.id} className={cn("p-4 border rounded-lg flex items-center justify-between transition-opacity", isFullyAssigned && assignedToCurrent === 0 && "opacity-40")}>
-                            <div className="space-y-1">
-                                <p className="font-semibold">{item.name}</p>
-                                <p className="text-sm text-muted-foreground">{item.quantity} total @ AED {item.price.toFixed(2)}</p>
+                        <div key={item.id} className={cn("p-3 border rounded-lg flex items-center justify-between transition-opacity", isFullyAssigned && assignedToCurrent === 0 && "opacity-40")}>
+                            <div>
+                                <p className="font-semibold text-sm">{item.name}</p>
+                                <p className="text-xs text-muted-foreground">{item.quantity} total @ AED {item.price.toFixed(2)}</p>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleAssignmentChange(item.id, Math.max(0, assignedToCurrent - 1))} disabled={assignedToCurrent === 0}>
+                            <div className="flex items-center gap-1">
+                                <Button variant="outline" size="icon" className="h-8 w-8 rounded-md" onClick={() => handleAssignmentChange(item.id, Math.max(0, assignedToCurrent - 1))} disabled={assignedToCurrent === 0}>
                                     <Minus className="h-4 w-4"/>
                                 </Button>
-                                <span className="font-bold w-6 text-center text-lg">{assignedToCurrent}</span>
-                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleAssignmentChange(item.id, Math.min(maxAssignableToCurrent, assignedToCurrent + 1))} disabled={assignedToCurrent >= maxAssignableToCurrent}>
+                                <span className="font-bold w-8 text-center text-base">{assignedToCurrent}</span>
+                                <Button variant="outline" size="icon" className="h-8 w-8 rounded-md" onClick={() => handleAssignmentChange(item.id, Math.min(maxAssignableToCurrent, assignedToCurrent + 1))} disabled={assignedToCurrent >= maxAssignableToCurrent}>
                                     <Plus className="h-4 w-4"/>
                                 </Button>
                             </div>
@@ -282,9 +282,9 @@ const AssignItemsStep = ({ order, peopleCount, onContinue, onBack }: { order: Or
                 })}
                 </div>
             </ScrollArea>
-             <div className="bg-muted p-4 rounded-lg flex justify-between items-center">
-                <span className="font-bold text-lg">Person {currentPersonIndex + 1}'s Total</span>
-                <span className="font-bold font-mono text-xl">AED {personSubtotal.toFixed(2)}</span>
+             <div className="bg-muted p-3 rounded-lg flex justify-between items-center">
+                <span className="font-bold text-base">Person {currentPersonIndex + 1}'s Total</span>
+                <span className="font-bold font-mono text-lg">AED {personSubtotal.toFixed(2)}</span>
             </div>
             <DialogFooter>
                 <Button variant="ghost" onClick={() => currentPersonIndex > 0 ? setCurrentPersonIndex(p => p - 1) : onBack()}>Back</Button>
