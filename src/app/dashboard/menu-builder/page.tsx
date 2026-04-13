@@ -1226,10 +1226,13 @@ const AddSectionSheet = ({
     isOpen,
     onOpenChange,
     onAddSection,
+    allProducts,
+    initialData,
 }: {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     onAddSection: (data: AddSectionFormValues, productIds: string[]) => void;
+    allProducts: MenuItem[];
     initialData?: Partial<AddSectionFormValues> | null;
 }) => {
     const [addedProducts, setAddedProducts] = useState<MenuItem[]>([]);
@@ -1247,11 +1250,11 @@ const AddSectionSheet = ({
 
     const availableProducts = useMemo(() => {
         const addedIds = new Set(addedProducts.map(p => p.id));
-        return mockMenuItems.filter(p =>
+        return allProducts.filter(p =>
             !addedIds.has(p.id) &&
             p.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [addedProducts, searchQuery]);
+    }, [allProducts, addedProducts, searchQuery]);
 
     const addedProductIds = useMemo(() => addedProducts.map(p => p.id), [addedProducts]);
 
@@ -1306,6 +1309,9 @@ const AddSectionSheet = ({
     };
 
     const handleSubmit = () => {
+        if(initialData){
+            onAddSection(initialData as AddSectionFormValues, addedProducts.map(p => p.id));
+        }
         onOpenChange(false);
     };
 
@@ -1472,9 +1478,11 @@ const FloatingActionMenu = ({ onQrClick }: { onQrClick: () => void }) => {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" className="h-14 w-14 rounded-2xl bg-white shadow-lg border-gray-200 hover:bg-gray-50">
-                  <ExternalLink className="h-6 w-6 text-primary" />
-                </Button>
+                <a href="/mobile/menu" target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" size="icon" className="h-14 w-14 rounded-2xl bg-white shadow-lg border-gray-200 hover:bg-gray-50">
+                    <ExternalLink className="h-6 w-6 text-primary" />
+                  </Button>
+                </a>
               </TooltipTrigger>
               <TooltipContent side="left" className="bg-gray-800 text-white border-0">
                 <p>Open Live Preview</p>
@@ -1889,9 +1897,8 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={isAddMenuModalOpen} onOpenChange={setIsAddMenuModalOpen}>
         <DialogContent className="sm:max-w-2xl">
-          <h2 className="sr-only">How would you like to build your menu?</h2>
           <DialogHeader>
-            <h2 className="text-center text-2xl font-bold">How would you like to build your menu?</h2>
+            <DialogTitle className="text-center text-2xl font-bold">How would you like to build your menu?</DialogTitle>
             <DialogDescription className="text-center">
               Choose how you want to set up your menu. You can manage multiple versions and publish anytime.
             </DialogDescription>
@@ -2005,15 +2012,12 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       </Dialog>
 
       <Dialog open={posFlowStep === 'sync'}>
-        <DialogHeader className="sr-only">
-            <DialogTitle>Syncing Menu</DialogTitle>
-        </DialogHeader>
         <DialogContent>
           <DialogHeader>
-            <h2 className="text-center">{isSyncComplete ? 'Sync Complete!' : 'Syncing Menu from POS'}</h2>
-            <DialogDescription className="text-center">
-              {isSyncComplete ? `${menuItems.length} items imported successfully.` : 'Please wait while we securely import your menu data.'}
-            </DialogDescription>
+              <DialogTitle className="text-center">{isSyncComplete ? 'Sync Complete!' : 'Syncing Menu from POS'}</DialogTitle>
+              <DialogDescription className="text-center">
+                {isSyncComplete ? `${menuItems.length} items imported successfully.` : 'Please wait while we securely import your menu data.'}
+              </DialogDescription>
           </DialogHeader>
           <div className="py-8 flex flex-col items-center justify-center gap-4">
             <div className={cn(
@@ -2046,7 +2050,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
            <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
-            <h2 className="sr-only">Manage Menu</h2>
+            <DialogTitle className="sr-only">Manage Menu</DialogTitle>
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
                 <ArrowLeft className="h-5 w-5" />
@@ -2200,7 +2204,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <AlertDialog open={isConfirmingPublish} onOpenChange={setIsConfirmingPublish}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <DialogTitle>Are you sure you want to publish this menu?</DialogTitle>
+            <AlertDialogTitle>Are you sure you want to publish this menu?</AlertDialogTitle>
             <AlertDialogDescription>
               Publishing this menu will make it the live version for your customers. Other active menus will be set to offline.
             </AlertDialogDescription>
@@ -2214,7 +2218,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
        <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
         <AlertDialogContent>
             <AlertDialogHeader>
-                <DialogTitle>Are you absolutely sure?</DialogTitle>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete the menu: <strong>{deleteConfirmation?.name}</strong>.
                 </AlertDialogDescription>
@@ -2277,3 +2281,4 @@ export default function MenuBuilderPage() {
     </div>
   );
 }
+
