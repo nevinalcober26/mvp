@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -102,13 +101,14 @@ const BuilderSidebar = () => {
 };
 
 
-const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: {
+const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit, onPreview }: {
     name: string;
     imageHint: string;
     isLocked?: boolean;
     status?: 'Offline' | 'Online' | 'Draft',
     onDelete?: () => void;
     onEdit?: () => void;
+    onPreview?: () => void;
 }) => {
     const router = useRouter();
     const image = PlaceHolderImages.find(img => img.id === imageHint);
@@ -186,7 +186,7 @@ const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: {
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button size="icon" variant="outline" className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm rounded-full h-12 w-12 border-white/30" onClick={(e) => { e.stopPropagation(); router.push('/mobile/menu'); }}>
+                                        <Button size="icon" variant="outline" className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm rounded-full h-12 w-12 border-white/30" onClick={(e) => { e.stopPropagation(); if (onPreview) onPreview(); }}>
                                             <Eye className="h-6 w-6" />
                                         </Button>
                                     </TooltipTrigger>
@@ -1164,7 +1164,7 @@ const AddSectionDetailsDialog = ({ isOpen, onOpenChange, onConfirm }: { isOpen: 
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <h2>Create New Menu Section</h2>
+          <DialogTitle>Create New Menu Section</DialogTitle>
           <DialogDescription>
             Enter the basic details for your new section. You can add products in the next step.
           </DialogDescription>
@@ -1387,7 +1387,7 @@ const AddSectionSheet = ({
                     <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary" />
                     <Panel defaultSize={35} minSize={25} className="flex flex-col overflow-hidden border-r">
                         <div className="p-6 border-b shrink-0">
-                            <h3 className="font-semibold">{initialData?.name || 'New Section'} Details</h3>
+                            <h3 className="font-semibold">Product Details</h3>
                         </div>
                         <div className="flex-1 overflow-y-auto">
                             <ItemEditor
@@ -1508,6 +1508,7 @@ const QrPreviewModal = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChang
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-xs text-center p-0 overflow-hidden rounded-2xl">
                 <DialogHeader className="bg-primary/5 p-6 pb-4">
+                    <DialogTitle className="sr-only">QR Code Preview</DialogTitle>
                     <div className="mx-auto h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
                         <QrCode className="h-6 w-6 text-primary" />
                     </div>
@@ -1873,6 +1874,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
                       status={m.status}
                       onDelete={() => setDeleteConfirmation({ index, name: m.name })}
                       onEdit={() => handleEditMenu(m, index)}
+                      onPreview={() => router.push('/mobile/menu')}
                     />
                   ))}
                   <Card
@@ -2050,7 +2052,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
            <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
-           <div className="sr-only">Manage Menu</div>
+           <DialogTitle className="sr-only">Manage Menu</DialogTitle>
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
                 <ArrowLeft className="h-5 w-5" />
@@ -2281,5 +2283,4 @@ export default function MenuBuilderPage() {
     </div>
   );
 }
-
 
