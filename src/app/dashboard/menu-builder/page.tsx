@@ -64,6 +64,7 @@ import NextLink from 'next/link';
 import { Search } from 'lucide-react';
 import type { VariationGroup } from '@/app/dashboard/catalog/variations/types';
 import { mockCategories, mockVariationGroups, mockComboGroupNames } from '@/lib/mock-data-store';
+import { getCategoryNameOptions } from '@/app/dashboard/categories/utils';
 
 
 const BuilderSidebar = () => {
@@ -234,19 +235,6 @@ const getImageUrl = (id: string) => {
     return image?.imageUrl || 'https://picsum.photos/seed/placeholder/400/400';
 };
 
-const mapGroupToProductVariation = (group: VariationGroup): ProductVariationGroup => {
-  return {
-    ...group,
-    options: group.options.map(opt => ({
-        id: opt.id,
-        value: opt.value,
-        priceMode: 'add',
-        priceValue: opt.regularPrice || 0,
-        hidden: false,
-    }))
-  };
-};
-
 export type VariationOptionOverride = {
   id: string; // from VariationOption
   value: string;
@@ -261,6 +249,19 @@ export type ProductVariationGroup = {
   multiple: boolean;
   required: boolean;
   options: VariationOptionOverride[];
+};
+
+const mapGroupToProductVariation = (group: VariationGroup): ProductVariationGroup => {
+  return {
+    ...group,
+    options: group.options.map(opt => ({
+        id: opt.id,
+        value: opt.value,
+        priceMode: 'add',
+        priceValue: opt.regularPrice || 0,
+        hidden: false,
+    }))
+  };
 };
 
 interface MenuItem extends BaseMenuItem {
@@ -698,7 +699,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                         handleVariationGroupsChange(newGroups);
                                     }}
                                 >
-                                    <Trash className="h-4 w-4 text-destructive" />
+                                    <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
                             </CardHeader>
                         </Card>
@@ -1571,6 +1572,7 @@ const QrPreviewModal = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChang
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-xs text-center p-0 overflow-hidden rounded-2xl">
                 <DialogHeader className="bg-primary/5 p-6 pb-4">
+                    <DialogTitle className="sr-only">QR Code Preview</DialogTitle>
                     <div className="mx-auto h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
                         <QrCode className="h-6 w-6 text-primary" />
                     </div>
@@ -2115,7 +2117,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
-           <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
+          <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
             <DialogTitle className="sr-only">Customize Menu</DialogTitle>
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
@@ -2274,7 +2276,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <AlertDialog open={isConfirmingPublish} onOpenChange={setIsConfirmingPublish}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to publish this menu?</AlertDialogTitle>
+            <DialogTitle>Are you sure you want to publish this menu?</DialogTitle>
             <AlertDialogDescription>
               Publishing this menu will make it the live version for your customers. Other active menus will be set to offline.
             </AlertDialogDescription>
