@@ -11,7 +11,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight, Check, Flame, ChevronRight, ShoppingCart, Edit, ImageIcon, GalleryHorizontal, Upload, QrCode, ExternalLink, Eye, HelpCircle } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Dialog, DialogContent, DialogHeader, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,7 +20,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialogTitle as AlertDialogTitleComponent,
 } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
@@ -30,7 +30,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -715,7 +715,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                             <CollapsibleContent className="p-4 pt-0">
                                 <div className="space-y-4 border-t pt-4">
                                     <div className="flex items-center justify-between rounded-lg border bg-background p-3">
-                                        <Label htmlFor={`multi-select-${groupIndex}`} className="font-medium flex items-center gap-2">
+                                        <div className="font-medium flex items-center gap-2">
                                             Multi-selection?
                                             <TooltipProvider>
                                                 <Tooltip>
@@ -727,7 +727,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TooltipProvider>
-                                        </Label>
+                                        </div>
                                         <Switch
                                             id={`multi-select-${groupIndex}`}
                                             checked={group.multiple}
@@ -741,7 +741,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                     <div className="space-y-4">
                                       {group.options.map((option, optionIndex) => (
                                           <div key={option.id} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end border-t pt-4">
-                                              <Label className="font-normal md:col-span-1">{option.value}</Label>
+                                              <div className="font-normal md:col-span-1">{option.value}</div>
                                               <div className="space-y-1">
                                                 <Label>Price Rule</Label>
                                                 <Select
@@ -837,7 +837,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex items-center justify-between rounded-lg border p-3">
-                        <Label htmlFor="enableNutrition" className="font-medium">Enable Info</Label>
+                        <div className="font-medium">Enable Info</div>
                         <Switch
                             id="enableNutrition"
                             checked={isNutritionEnabled}
@@ -1524,7 +1524,7 @@ const AddSectionSheet = ({
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="w-full max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
-                    <DialogTitle className="text-xl">Create New Section: {initialData?.name}</DialogTitle>
+                    <SheetTitle className="text-xl">Create New Section: {initialData?.name}</SheetTitle>
                     <SheetDescription>{initialData?.description || 'Build a new section by adding and customizing products from your library.'}</SheetDescription>
                 </SheetHeader>
                 <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
@@ -1590,10 +1590,10 @@ const AddSectionSheet = ({
                         <ItemPreviewer item={selectedItem} />
                     </Panel>
                 </PanelGroup>
-                <DialogFooter className="p-6 border-t shrink-0">
+                <SheetFooter className="p-6 border-t shrink-0">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                     <Button type="button" onClick={handleSubmit}>Create Section</Button>
-                </DialogFooter>
+                </SheetFooter>
             </SheetContent>
         </Sheet>
     );
@@ -2402,7 +2402,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <AlertDialog open={isConfirmingPublish} onOpenChange={setIsConfirmingPublish}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to publish this menu?</AlertDialogTitle>
+            <AlertDialogTitleComponent>Are you sure you want to publish this menu?</AlertDialogTitleComponent>
             <AlertDialogDescription>
               Publishing this menu will make it the live version for your customers. Other active menus will be set to offline.
             </AlertDialogDescription>
@@ -2416,7 +2416,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
        <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
         <AlertDialogContent>
             <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogTitleComponent>Are you absolutely sure?</AlertDialogTitleComponent>
                 <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete the menu: <strong>{deleteConfirmation?.name}</strong>.
                 </AlertDialogDescription>
