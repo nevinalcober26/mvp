@@ -314,6 +314,15 @@ export function OrderDetailsSheet({
                                                             </div>
                                                             <Button size="sm" onClick={() => handleOpenSettleDialog(payment)}>Settle</Button>
                                                         </div>
+                                                        {payment.taxBreakdown && (
+                                                          <Card className="mt-2 bg-muted/50 border-dashed">
+                                                              <CardContent className="p-3 text-xs space-y-1">
+                                                                  <div className="flex justify-between"><span className="text-muted-foreground">Subtotal:</span><span className="font-mono font-medium">${payment.taxBreakdown.subtotal.toFixed(2)}</span></div>
+                                                                  <div className="flex justify-between"><span className="text-muted-foreground">Service:</span><span className="font-mono font-medium">${payment.taxBreakdown.serviceCharge.toFixed(2)}</span></div>
+                                                                  <div className="flex justify-between"><span className="text-muted-foreground">VAT:</span><span className="font-mono font-medium">${payment.taxBreakdown.vat.toFixed(2)}</span></div>
+                                                              </CardContent>
+                                                          </Card>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -358,9 +367,17 @@ export function OrderDetailsSheet({
                                                 Success
                                                 </Badge>
                                             </div>
-                                            {(localOrder.splitType || payment.tip || localOrder.staffReference) && (
+                                            {(payment.taxBreakdown || localOrder.splitType || payment.tip || localOrder.staffReference) && (
                                                 <Card className="mt-3 bg-card border overflow-hidden">
                                                     <CardContent className="p-0 divide-y">
+                                                        {payment.taxBreakdown && (
+                                                            <div className="p-4 text-xs space-y-1">
+                                                                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal:</span><span className="font-mono font-medium">${payment.taxBreakdown.subtotal.toFixed(2)}</span></div>
+                                                                <div className="flex justify-between"><span className="text-muted-foreground">Service Charge:</span><span className="font-mono font-medium">${payment.taxBreakdown.serviceCharge.toFixed(2)}</span></div>
+                                                                <div className="flex justify-between"><span className="text-muted-foreground">VAT:</span><span className="font-mono font-medium">${payment.taxBreakdown.vat.toFixed(2)}</span></div>
+                                                            </div>
+                                                        )}
+                                                        
                                                         {localOrder.splitType === 'byItem' && payment.items && payment.items.length > 0 && (
                                                             <div className="p-4">
                                                                 <p className="text-sm font-semibold text-foreground mb-2">Items Paid For:</p>

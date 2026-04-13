@@ -16,6 +16,11 @@ export type Payment = {
   items?: { name: string; quantity: number }[];
   status: 'Paid' | 'Pending';
   note?: string;
+  taxBreakdown?: {
+    subtotal: number;
+    serviceCharge: number;
+    vat: number;
+  };
 };
 
 export type Customer = {

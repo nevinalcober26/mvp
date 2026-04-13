@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -9,14 +8,22 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Users, Package, ArrowLeft, CheckCircle, Minus, Plus } from 'lucide-react';
+import {
+  Users,
+  Package,
+  ArrowLeft,
+  CheckCircle,
+  Minus,
+  Plus,
+  Circle,
+  Check,
+} from 'lucide-react';
 import type { Order, OrderItem, Payment } from './types';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -30,7 +37,361 @@ interface SplitPaymentDialogProps {
   onUpdateOrder: (updatedOrder: Order) => void;
 }
 
-// --- Internal Components for each step ---
+// ##################################
+// ##       EQUAL SPLIT VIEW       ##
+// ##################################
+
+const SplitEquallyView = ({
+  order,
+  totalWithTax,
+  onBack,
+  onUpdateOrder,
+  onOpenChange,
+}: Omit<SplitPaymentDialogProps, 'open' | 'order'> & {
+  order: Order;
+  onBack: () => void;
+}) => {
+  const { toast } = useToast();
+  const [numSplits, setNumSplits] = useState(2);
+
+  const amountPerPerson = numSplits > 0 ? totalWithTax / numSplits : 0;
+
+  const handleSetupSplit = () => {
+    const newPayments: Payment[] = [];
+    for (let i = 0; i < numSplits; i++) {
+      newPayments.push({
+        amount: amountPerPerson.toFixed(2),
+        guestName: `Payer ${i + 1}`,
+        status: 'Pending',
+        transactionId: `split_${order.orderId}_${i}_${Date.now()}`,
+      });
+    }
+
+    const updatedOrder: Order = {
+      ...order,
+      payments: newPayments,
+      paidAmount: 0,
+      paymentState: 'Unpaid',
+      splitType: 'equally',
+    };
+
+    onUpdateOrder(updatedOrder);
+    onOpenChange(false);
+    toast({
+      title: 'Split Setup',
+      description: `Bill has been split ${numSplits} ways.`,
+    });
+  };
+
+  return (
+    <div className="py-6 space-y-6 relative">
+      <div className="grid grid-cols-2 gap-4 items-end">
+        <div className="space-y-1.5">
+          <Label>Number of People</Label>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 rounded-lg"
+              onClick={() => setNumSplits((s) => Math.max(2, s - 1))}
+              disabled={numSplits <= 2}
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <div className="flex h-10 w-16 items-center justify-center rounded-lg border bg-background text-lg font-bold">
+              {numSplits}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 rounded-lg"
+              onClick={() => setNumSplits((s) => Math.min(20, s + 1))}
+              disabled={numSplits >= 20}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <div className="text-right pb-2">
+          <p className="text-sm text-muted-foreground">Amount per person</p>
+          <p className="text-2xl font-bold font-mono">
+            ${amountPerPerson.toFixed(2)}
+          </p>
+        </div>
+      </div>
+      <Separator />
+      <ScrollArea className="h-64">
+        <div className="space-y-3 pr-4">
+          {Array.from({ length: numSplits }).map((_, index) => (
+            <Card key={index} className="p-4 flex justify-between items-center bg-card">
+              <p className="font-semibold">Payer {index + 1}</p>
+              <p className="font-mono font-semibold">
+                ${amountPerPerson.toFixed(2)}
+              </p>
+            </Card>
+          ))}
+        </div>
+      </ScrollArea>
+      <DialogFooter>
+        <Button variant="ghost" onClick={onBack}>
+          Back
+        </Button>
+        <Button onClick={handleSetupSplit}>Setup Split</Button>
+      </DialogFooter>
+    </div>
+  );
+};
+
+
+// ##################################
+// ##     ITEM SPLIT SUB-VIEWS     ##
+// ##################################
+
+const DefineGroupStep = ({ onContinue, onBack }: { onContinue: (peopleCount: number) => void; onBack: () => void }) => {
+    const [peopleCount, setPeopleCount] = useState(2);
+    return (
+        <>
+            <DialogHeader className="text-center pt-4">
+                <DialogTitle className="text-xl">How many people are splitting?</DialogTitle>
+            </DialogHeader>
+            <div className="py-8 flex justify-center items-center gap-4">
+                <Button variant="outline" size="icon" className="h-14 w-14 rounded-full" onClick={() => setPeopleCount(c => Math.max(2, c - 1))} disabled={peopleCount <= 2}>
+                    <Minus className="h-6 w-6"/>
+                </Button>
+                <span className="text-6xl font-bold w-24 text-center">{peopleCount}</span>
+                <Button variant="outline" size="icon" className="h-14 w-14 rounded-full" onClick={() => setPeopleCount(c => c + 1)}>
+                    <Plus className="h-6 w-6"/>
+                </Button>
+            </div>
+            <DialogFooter>
+                 <Button variant="ghost" onClick={onBack}>Back</Button>
+                <Button onClick={() => onContinue(peopleCount)}>Continue</Button>
+            </DialogFooter>
+        </>
+    )
+}
+
+type ItemAssignments = Record<string, { [personIndex: number]: number }>;
+
+const AssignItemsStep = ({ order, peopleCount, onContinue }: { order: Order; peopleCount: number; onContinue: (assignments: ItemAssignments) => void }) => {
+    const { toast } = useToast();
+    const [currentPersonIndex, setCurrentPersonIndex] = useState(0);
+    const [assignments, setAssignments] = useState<ItemAssignments>({});
+
+    const handleAssignmentChange = (itemId: string, newQuantity: number) => {
+        setAssignments(prev => ({
+            ...prev,
+            [itemId]: {
+                ...(prev[itemId] || {}),
+                [currentPersonIndex]: newQuantity
+            }
+        }));
+    };
+    
+    const handleNextPerson = () => {
+        const isMovingToLastPerson = currentPersonIndex === peopleCount - 2;
+
+        if (isMovingToLastPerson) {
+             const newAssignments = { ...assignments };
+             let itemsAssigned = false;
+             order.items.forEach(item => {
+                 const totalAssigned = Object.values(newAssignments[item.id] || {}).reduce((sum, qty) => sum + qty, 0);
+                 const remaining = item.quantity - totalAssigned;
+                 if (remaining > 0) {
+                     if (!newAssignments[item.id]) newAssignments[item.id] = {};
+                     newAssignments[item.id][peopleCount - 1] = (newAssignments[item.id][peopleCount - 1] || 0) + remaining;
+                     itemsAssigned = true;
+                 }
+             });
+             setAssignments(newAssignments);
+             if (itemsAssigned) {
+                 toast({ title: "Remaining item(s) assigned automatically." });
+             }
+        }
+        setCurrentPersonIndex(p => p + 1);
+    };
+
+    const isLastPerson = currentPersonIndex === peopleCount - 1;
+
+    const personSubtotal = useMemo(() => {
+        return order.items.reduce((total, item) => {
+            const quantity = (assignments[item.id] || {})[currentPersonIndex] || 0;
+            return total + (item.price * quantity);
+        }, 0);
+    }, [assignments, currentPersonIndex, order.items]);
+
+    return (
+        <>
+            <DialogHeader>
+                <DialogTitle>Assign Items for Person {currentPersonIndex + 1} of {peopleCount}</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="h-96 my-4 pr-4">
+                <div className="space-y-4">
+                {order.items.map(item => {
+                    const totalAssigned = Object.values(assignments[item.id] || {}).reduce((s, q) => s + q, 0);
+                    const assignedToCurrent = (assignments[item.id] || {})[currentPersonIndex] || 0;
+                    const availableForCurrent = item.quantity - totalAssigned + assignedToCurrent;
+
+                    return (
+                        <div key={item.id} className="p-4 border rounded-lg flex items-center justify-between">
+                            <div className="space-y-1">
+                                <p className="font-semibold">{item.name}</p>
+                                <p className="text-sm text-muted-foreground">{item.quantity} total @ ${item.price.toFixed(2)}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleAssignmentChange(item.id, Math.max(0, assignedToCurrent - 1))} disabled={assignedToCurrent === 0}>
+                                    <Minus className="h-4 w-4"/>
+                                </Button>
+                                <span className="font-bold w-6 text-center">{assignedToCurrent}</span>
+                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleAssignmentChange(item.id, Math.min(availableForCurrent, assignedToCurrent + 1))} disabled={assignedToCurrent >= availableForCurrent}>
+                                    <Plus className="h-4 w-4"/>
+                                </Button>
+                            </div>
+                        </div>
+                    );
+                })}
+                </div>
+            </ScrollArea>
+             <div className="bg-muted p-4 rounded-lg flex justify-between items-center">
+                <span className="font-bold">Person Total</span>
+                <span className="font-bold font-mono text-lg">${personSubtotal.toFixed(2)}</span>
+            </div>
+            <DialogFooter>
+                <Button variant="ghost" onClick={() => setCurrentPersonIndex(p => Math.max(0, p - 1))} disabled={currentPersonIndex === 0}>Back</Button>
+                {isLastPerson ? (
+                     <Button onClick={() => onContinue(assignments)}>View Summary</Button>
+                ) : (
+                    <Button onClick={handleNextPerson}>Next Person</Button>
+                )}
+            </DialogFooter>
+        </>
+    );
+};
+
+const SummaryStep = ({ order, peopleCount, assignments, onBack, onConfirmSplit, onOpenChange }: { order: Order; peopleCount: number; assignments: ItemAssignments; onBack: () => void; onConfirmSplit: (payments: Payment[]) => void; onOpenChange: (open: boolean) => void }) => {
+    const finalBreakdown = useMemo(() => {
+        const paymentsByPerson: Record<number, { items: OrderItem[], subtotal: number }> = {};
+        for (let i = 0; i < peopleCount; i++) {
+            paymentsByPerson[i] = { items: [], subtotal: 0 };
+        }
+
+        order.items.forEach(item => {
+            const itemAssignments = assignments[item.id] || {};
+            Object.entries(itemAssignments).forEach(([personIdxStr, quantity]) => {
+                const personIdx = Number(personIdxStr);
+                if (quantity > 0) {
+                    paymentsByPerson[personIdx].items.push({ ...item, quantity });
+                    paymentsByPerson[personIdx].subtotal += item.price * quantity;
+                }
+            });
+        });
+
+        const taxRate = 0.05;
+        const serviceChargeRate = 0.10;
+        const totalTax = order.totalAmount * taxRate;
+        const totalService = order.totalAmount * serviceChargeRate;
+
+        return Object.entries(paymentsByPerson)
+            .filter(([_, data]) => data.items.length > 0)
+            .map(([personIdxStr, data]) => {
+                const personSubtotal = data.subtotal;
+                const portionOfTotal = order.totalAmount > 0 ? personSubtotal / order.totalAmount : 0;
+                const personTax = totalTax * portionOfTotal;
+                const personService = totalService * portionOfTotal;
+                const personTotal = personSubtotal + personTax + personService;
+
+                return {
+                    guestName: `Person ${Number(personIdxStr) + 1}`,
+                    items: data.items,
+                    taxBreakdown: {
+                        subtotal: personSubtotal,
+                        serviceCharge: personService,
+                        vat: personTax,
+                    },
+                    total: personTotal,
+                    payment: {
+                        amount: personTotal.toFixed(2),
+                        guestName: `Person ${Number(personIdxStr) + 1}`,
+                        status: 'Pending',
+                        transactionId: `split_item_${order.orderId}_${personIdxStr}_${Date.now()}`,
+                        items: data.items,
+                        taxBreakdown: { subtotal: personSubtotal, serviceCharge: personService, vat: personTax }
+                    } as Payment,
+                };
+            });
+    }, [assignments, peopleCount, order]);
+
+    return (
+        <>
+            <DialogHeader>
+                <DialogTitle>Payment Summary</DialogTitle>
+                <DialogDescription>Review the split before confirming. Each person can now pay their share.</DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="h-[28rem] my-4 pr-4">
+                <div className="space-y-4">
+                    {finalBreakdown.map(p => (
+                        <Card key={p.guestName}>
+                            <CardHeader className="flex flex-row justify-between items-center">
+                                <CardTitle>{p.guestName}</CardTitle>
+                                <span className="text-xl font-bold font-mono">${p.total.toFixed(2)}</span>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                <div className="text-sm space-y-1">
+                                    <div className="flex justify-between text-muted-foreground"><span>Subtotal:</span><span className="font-mono">${p.taxBreakdown.subtotal.toFixed(2)}</span></div>
+                                    <div className="flex justify-between text-muted-foreground"><span>Service Charge:</span><span className="font-mono">${p.taxBreakdown.serviceCharge.toFixed(2)}</span></div>
+                                    <div className="flex justify-between text-muted-foreground"><span>VAT:</span><span className="font-mono">${p.taxBreakdown.vat.toFixed(2)}</span></div>
+                                </div>
+                                <Button className="w-full mt-2" disabled>Pay Now (Coming Soon)</Button>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </ScrollArea>
+             <DialogFooter>
+                <Button variant="ghost" onClick={onBack}>Edit Assignments</Button>
+                <Button onClick={() => { onConfirmSplit(finalBreakdown.map(p => p.payment)); onOpenChange(false); }}>Confirm Split</Button>
+            </DialogFooter>
+        </>
+    );
+}
+
+const SplitByItemView = ({ order, onBack, onUpdateOrder, onOpenChange }: Omit<SplitPaymentDialogProps, 'open' | 'totalWithTax' | 'order'> & { order: Order; onBack: () => void }) => {
+    const [step, setStep] = useState<'define' | 'assign' | 'summary'>('define');
+    const [peopleCount, setPeopleCount] = useState(2);
+    const [assignments, setAssignments] = useState<ItemAssignments>({});
+
+    const handleDefineContinue = (count: number) => {
+        setPeopleCount(count);
+        setStep('assign');
+    };
+    
+    const handleAssignContinue = (finalAssignments: ItemAssignments) => {
+        setAssignments(finalAssignments);
+        setStep('summary');
+    }
+    
+    const handleConfirmSplit = (payments: Payment[]) => {
+        const updatedOrder: Order = {
+            ...order,
+            payments,
+            paidAmount: 0,
+            paymentState: 'Unpaid',
+            splitType: 'byItem'
+        };
+        onUpdateOrder(updatedOrder);
+        onOpenChange(false);
+    }
+
+    return (
+        <>
+            {step === 'define' && <DefineGroupStep onBack={onBack} onContinue={handleDefineContinue} />}
+            {step === 'assign' && <AssignItemsStep order={order} peopleCount={peopleCount} onContinue={handleAssignContinue} />}
+            {step === 'summary' && <SummaryStep order={order} peopleCount={peopleCount} assignments={assignments} onBack={() => setStep('assign')} onConfirmSplit={handleConfirmSplit} onOpenChange={onOpenChange} />}
+        </>
+    )
+}
 
 const SelectMethodStep = ({ onSelect }: { onSelect: (method: 'equally' | 'byItem') => void }) => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
@@ -51,219 +412,6 @@ const SelectMethodStep = ({ onSelect }: { onSelect: (method: 'equally' | 'byItem
     </div>
 );
 
-const SplitEquallyView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenChange }: Omit<SplitPaymentDialogProps, 'open' | 'order'> & { order: Order; onBack: () => void }) => {
-    const { toast } = useToast();
-    const [numSplits, setNumSplits] = useState(2);
-    
-    const amountPerPerson = numSplits > 0 ? totalWithTax / numSplits : 0;
-
-    const handleSetupSplit = () => {
-        const newPayments: Payment[] = [];
-        for (let i = 0; i < numSplits; i++) {
-            newPayments.push({
-                amount: amountPerPerson.toFixed(2),
-                guestName: `Payer ${i + 1}`,
-                status: 'Pending',
-                transactionId: `split_${order.orderId}_${i}_${Date.now()}`
-            });
-        }
-    
-        const updatedOrder: Order = {
-            ...order,
-            payments: newPayments,
-            paidAmount: 0,
-            paymentState: 'Unpaid',
-            splitType: 'equally',
-        };
-    
-        onUpdateOrder(updatedOrder);
-        onOpenChange(false);
-        toast({ title: "Split Setup", description: `Bill has been split ${numSplits} ways.` });
-    };
-
-    return (
-        <div className="py-6 space-y-6 relative">
-            <div className="grid grid-cols-2 gap-4 items-end">
-                <div className="space-y-1.5">
-                    <Label>Number of People</Label>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            className="h-10 w-10 rounded-lg"
-                            onClick={() => setNumSplits(s => Math.max(2, s - 1))}
-                            disabled={numSplits <= 2}
-                        >
-                            <Minus className="h-4 w-4" />
-                        </Button>
-                        <div className="flex h-10 w-16 items-center justify-center rounded-lg border bg-background text-lg font-bold">
-                            {numSplits}
-                        </div>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            className="h-10 w-10 rounded-lg"
-                            onClick={() => setNumSplits(s => Math.min(20, s + 1))}
-                            disabled={numSplits >= 20}
-                        >
-                            <Plus className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
-                <div className="text-right pb-2">
-                    <p className="text-sm text-muted-foreground">Amount per person</p>
-                    <p className="text-2xl font-bold font-mono">${amountPerPerson.toFixed(2)}</p>
-                </div>
-            </div>
-            <Separator />
-            <ScrollArea className="h-64">
-                <div className="space-y-3 pr-4">
-                    {Array.from({ length: numSplits }).map((_, index) => (
-                        <Card key={index} className="p-4 flex justify-between items-center bg-card">
-                            <p className="font-semibold">Payer {index + 1}</p>
-                            <p className="font-mono font-semibold">${amountPerPerson.toFixed(2)}</p>
-                        </Card>
-                    ))}
-                </div>
-            </ScrollArea>
-             <DialogFooter>
-                <Button variant="ghost" onClick={onBack}>Back</Button>
-                <Button onClick={handleSetupSplit}>Setup Split</Button>
-            </DialogFooter>
-        </div>
-    );
-};
-
-const SplitByItemView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenChange }: Omit<SplitPaymentDialogProps, 'open' | 'order'> & { order: Order; onBack: () => void }) => {
-    const { toast } = useToast();
-    const [payers, setPayers] = useState<{ id: number; items: Set<string> }[]>([{ id: 1, items: new Set() }]);
-    const [nextPayerId, setNextPayerId] = useState(2);
-
-    const unassignedItems = useMemo(() => {
-        const assignedItemIds = new Set(payers.flatMap(p => Array.from(p.items)));
-        return order.items.filter(item => !assignedItemIds.has(item.id));
-    }, [payers, order.items]);
-
-    const handleToggleItem = (payerId: number, itemId: string) => {
-        setPayers(prevPayers => {
-            const newPayers = prevPayers.map(p => ({ ...p, items: new Set(p.items) })); // Deep copy sets
-            const itemIsAssigned = newPayers.some(p => p.items.has(itemId));
-
-            const targetPayer = newPayers.find(p => p.id === payerId);
-            if (!targetPayer) return prevPayers;
-
-            if (itemIsAssigned) { // If item is assigned anywhere
-                newPayers.forEach(p => p.items.delete(itemId)); // Remove from all payers
-                if (!targetPayer.items.has(itemId)) { // If it wasn't in the target payer, add it back
-                    targetPayer.items.add(itemId);
-                }
-            } else { // Item is unassigned
-                targetPayer.items.add(itemId);
-            }
-            
-            return newPayers.filter(p => p.items.size > 0 || p.id === 1 || newPayers.length === 1);
-        });
-    };
-
-    const addPayer = () => {
-        setPayers(prev => [...prev, { id: nextPayerId, items: new Set() }]);
-        setNextPayerId(prev => prev + 1);
-    };
-    
-    const handleSetupSplit = () => {
-        const newPayments: Payment[] = payers
-            .filter(payer => payer.items.size > 0)
-            .map((payer, index) => {
-                const itemsForPayer = order.items.filter(item => payer.items.has(item.id));
-                const amount = itemsForPayer.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-                return {
-                    amount: amount.toFixed(2),
-                    guestName: `Payer ${index + 1}`,
-                    status: 'Pending',
-                    transactionId: `split_item_${order.orderId}_${payer.id}_${Date.now()}`,
-                    items: itemsForPayer.map(it => ({ name: it.name, quantity: it.quantity })),
-                };
-            });
-
-        if (newPayments.length === 0) {
-            toast({ variant: 'destructive', title: "No items selected", description: "Please assign items to at least one payer." });
-            return;
-        }
-
-        const updatedOrder: Order = {
-            ...order,
-            payments: newPayments,
-            paidAmount: 0,
-            paymentState: 'Unpaid',
-            splitType: 'byItem',
-        };
-
-        onUpdateOrder(updatedOrder);
-        onOpenChange(false);
-        toast({ title: "Split Setup", description: `Bill has been split by items for ${newPayments.length} payer(s).` });
-    };
-
-    return (
-        <div className="py-6 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-                <Card>
-                    <CardContent className="p-4">
-                        <h4 className="font-semibold mb-2">Unassigned Items</h4>
-                        <ScrollArea className="h-80">
-                            <div className="space-y-2 pr-4">
-                                {unassignedItems.map(item => (
-                                    <div key={item.id} className="text-sm p-2 bg-card rounded-md border">
-                                        <p className="font-medium">{item.name}</p>
-                                        <p className="text-muted-foreground font-mono">${(item.price * item.quantity).toFixed(2)}</p>
-                                    </div>
-                                ))}
-                                {unassignedItems.length === 0 && <p className="text-sm text-muted-foreground p-2">All items assigned.</p>}
-                            </div>
-                        </ScrollArea>
-                    </CardContent>
-                </Card>
-                <div className="space-y-4">
-                    {payers.map((payer, index) => {
-                        const payerItems = order.items.filter(item => payer.items.has(item.id));
-                        const payerTotal = payerItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-                        return (
-                            <Card key={payer.id}>
-                                <CardContent className="p-4">
-                                    <h4 className="font-semibold mb-2">Payer {index + 1} - <span className="font-mono">${payerTotal.toFixed(2)}</span></h4>
-                                    <ScrollArea className="h-40">
-                                        <div className="space-y-2 pr-4">
-                                            {order.items.map(item => {
-                                                const isAssignedToThisPayer = payer.items.has(item.id);
-                                                const isAssignedElsewhere = !isAssignedToThisPayer && payers.some(p => p.id !== payer.id && p.items.has(item.id));
-                                                return (
-                                                     <div key={item.id} onClick={() => handleToggleItem(payer.id, item.id)} className={cn("flex items-center gap-2 p-2 rounded-md cursor-pointer border", isAssignedToThisPayer ? 'bg-primary/10 border-primary/50' : 'bg-card', isAssignedElsewhere && 'opacity-40')}>
-                                                        <Checkbox checked={isAssignedToThisPayer} />
-                                                        <div className="flex-1 text-sm">
-                                                            <p className="font-medium">{item.name}</p>
-                                                        </div>
-                                                    </div>
-                                                )
-                                            })}
-                                        </div>
-                                    </ScrollArea>
-                                </CardContent>
-                            </Card>
-                        )
-                    })}
-                    <Button variant="outline" onClick={addPayer} className="w-full">Add Payer</Button>
-                </div>
-            </div>
-             <DialogFooter>
-                <Button variant="ghost" onClick={onBack}>Back</Button>
-                <Button onClick={handleSetupSplit}>Setup Split</Button>
-            </DialogFooter>
-        </div>
-    );
-};
 
 // --- Main Dialog Component ---
 
@@ -285,7 +433,7 @@ export function SplitPaymentDialog({ order, totalWithTax, open, onOpenChange, on
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <div className="flex items-center gap-4">
-            {step !== 'select' && (
+            {(step === 'equally' || step === 'byItem') && (
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleBack}>
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
@@ -303,7 +451,8 @@ export function SplitPaymentDialog({ order, totalWithTax, open, onOpenChange, on
 
         {step === 'select' && <SelectMethodStep onSelect={setStep} />}
         {step === 'equally' && <SplitEquallyView order={order} totalWithTax={totalWithTax} onBack={handleBack} onUpdateOrder={onUpdateOrder} onOpenChange={onOpenChange} />}
-        {step === 'byItem' && <SplitByItemView order={order} totalWithTax={totalWithTax} onBack={handleBack} onUpdateOrder={onUpdateOrder} onOpenChange={onOpenChange} />}
+        {step === 'byItem' && <SplitByItemView order={order} onBack={handleBack} onUpdateOrder={onUpdateOrder} onOpenChange={onOpenChange} />}
+
       </DialogContent>
     </Dialog>
   );
