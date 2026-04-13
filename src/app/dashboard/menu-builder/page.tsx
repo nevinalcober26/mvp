@@ -30,7 +30,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle as SheetTitleComponent, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -1538,7 +1538,7 @@ const AddSectionSheet = ({
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="w-full max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
-                    <DialogTitle className="text-xl">Create New Section: {initialData?.name}</DialogTitle>
+                    <SheetTitleComponent className="text-xl">Create New Section: {initialData?.name}</SheetTitleComponent>
                     <SheetDescription>{initialData?.description || 'Build a new section by adding and customizing products from your library.'}</SheetDescription>
                 </SheetHeader>
                 <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
@@ -1649,92 +1649,13 @@ const SortableProductRow = ({ item, isSelected, onAvailabilityChange, onRowClick
     );
 };
 
-const FloatingActionMenu = ({ onQrClick }: { onQrClick: () => void }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <div className="fixed bottom-8 right-8 z-50">
-      <div className="relative flex flex-col items-center gap-4">
-        {/* Secondary Buttons (visible when open) */}
-        <div className={cn("flex flex-col items-center gap-4 transition-all duration-300 ease-in-out", isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none")}>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="h-14 w-14 rounded-2xl bg-white shadow-lg border-gray-200 hover:bg-gray-50"
-                  onClick={() => {
-                    onQrClick();
-                    setIsOpen(false);
-                  }}
-                >
-                  <QrCode className="h-7 w-7 text-primary" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left" className="bg-gray-800 text-white border-0">
-                <p>Mobile QR Preview</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <a href="/mobile/menu" target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" size="icon" className="h-14 w-14 rounded-2xl bg-white shadow-lg border-gray-200 hover:bg-gray-50">
-                    <ExternalLink className="h-6 w-6 text-primary" />
-                  </Button>
-                </a>
-              </TooltipTrigger>
-              <TooltipContent side="left" className="bg-gray-800 text-white border-0">
-                <p>Open Live Preview</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-        
-        {/* Main FAB */}
-        <Button
-          size="icon"
-          className="h-16 w-16 rounded-2xl bg-primary text-white shadow-xl transition-all duration-300 hover:scale-105 active:scale-100"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <Sparkles className={cn("absolute h-8 w-8 transition-all duration-300", isOpen ? "rotate-45 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100")} />
-          <X className={cn("absolute h-8 w-8 transition-all duration-300", isOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-45 scale-0 opacity-0")} />
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-const QrPreviewModal = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChange: (open: boolean) => void; }) => {
-    return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-xs text-center p-0 overflow-hidden rounded-2xl">
-                <DialogHeader className="bg-primary/5 p-6 pb-4">
-                    <div className="mx-auto h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                        <QrCode className="h-6 w-6 text-primary" />
-                    </div>
-                    <DialogTitle className="pt-2">Scan to Preview</DialogTitle>
-                    <DialogDescription>
-                        Use your phone's camera to see your menu live.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="p-8 bg-white">
-                    <div className="p-4 bg-white rounded-lg border border-dashed">
-                        <QrCode className="h-full w-full text-black" strokeWidth={1.5} />
-                    </div>
-                </div>
-                <DialogFooter className="bg-muted/50 p-4 text-center text-xs text-muted-foreground border-t">
-                    Point your device's camera at the code to open the link.
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-};
+interface EditSectionFormValues extends AddSectionFormValues {
+    id: string;
+}
 
 const EditSectionDetailsDialog = ({ isOpen, onOpenChange, onConfirm, section }: { isOpen: boolean; onOpenChange: (open: boolean) => void; onConfirm: (data: EditSectionFormValues) => void; section: any | null; }) => {
   const form = useForm<EditSectionFormValues>({
-    resolver: zodResolver(addSectionSchema), // Note: Using addSectionSchema as it's identical
+    resolver: zodResolver(addSectionSchema.extend({ id: z.string() })), 
     defaultValues: { id: '', name: '', description: '', imageUrl: '', enableSpecial: false },
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1868,6 +1789,88 @@ const EditSectionDetailsDialog = ({ isOpen, onOpenChange, onConfirm, section }: 
     </Dialog>
   );
 };
+
+const FloatingActionMenu = ({ onQrClick }: { onQrClick: () => void }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="fixed bottom-8 right-8 z-50">
+      <div className="relative flex flex-col items-center gap-4">
+        <div className={cn("flex flex-col items-center gap-4 transition-all duration-300 ease-in-out", isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none")}>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="h-14 w-14 rounded-2xl bg-white shadow-lg border-gray-200 hover:bg-gray-50"
+                  onClick={() => {
+                    onQrClick();
+                    setIsOpen(false);
+                  }}
+                >
+                  <QrCode className="h-7 w-7 text-primary" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left" className="bg-gray-800 text-white border-0">
+                <p>Mobile QR Preview</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a href="/mobile/menu" target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" size="icon" className="h-14 w-14 rounded-2xl bg-white shadow-lg border-gray-200 hover:bg-gray-50">
+                    <ExternalLink className="h-6 w-6 text-primary" />
+                  </Button>
+                </a>
+              </TooltipTrigger>
+              <TooltipContent side="left" className="bg-gray-800 text-white border-0">
+                <p>Open Live Preview</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        
+        <Button
+          size="icon"
+          className="h-16 w-16 rounded-2xl bg-primary text-white shadow-xl transition-all duration-300 hover:scale-105 active:scale-100"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <Sparkles className={cn("absolute h-8 w-8 transition-all duration-300", isOpen ? "rotate-45 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100")} />
+          <X className={cn("absolute h-8 w-8 transition-all duration-300", isOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-45 scale-0 opacity-0")} />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const QrPreviewModal = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChange: (open: boolean) => void; }) => {
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-xs text-center p-0 overflow-hidden rounded-2xl">
+                <DialogHeader className="bg-primary/5 p-6 pb-4">
+                    <div className="mx-auto h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                        <QrCode className="h-6 w-6 text-primary" />
+                    </div>
+                    <DialogTitle className="pt-2">Scan to Preview</DialogTitle>
+                    <DialogDescription>
+                        Use your phone's camera to see your menu live.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="p-8 bg-white">
+                    <div className="p-4 bg-white rounded-lg border border-dashed">
+                        <QrCode className="h-full w-full text-black" strokeWidth={1.5} />
+                    </div>
+                </div>
+                <DialogFooter className="bg-muted/50 p-4 text-center text-xs text-muted-foreground border-t">
+                    Point your device's camera at the code to open the link.
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
 
 const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpen }: {
     onClose: () => void,
@@ -2552,6 +2555,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
               </div>
             </div>
           </div>
+          <FloatingActionMenu onQrClick={() => setIsQrModalOpen(true)} />
         </DialogContent>
       </Dialog>
       <CategoryItemsSheet
@@ -2661,4 +2665,5 @@ export default function MenuBuilderPage() {
 }
 
     
+
 
