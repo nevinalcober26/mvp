@@ -20,7 +20,6 @@ import {
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
-  AlertDialogHeader,
   AlertDialogTitle as AlertDialogTitleComponent,
 } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectGroup, SelectLabel } from '@/components/ui/select';
@@ -31,7 +30,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -236,6 +235,13 @@ const getImageUrl = (id: string) => {
     return image?.imageUrl || 'https://picsum.photos/seed/placeholder/400/400';
 };
 
+interface MenuItem extends BaseMenuItem {
+  available?: boolean;
+  nutrition?: Record<string, number>;
+  variationGroups?: ProductVariationGroup[];
+  properties?: string[];
+}
+
 const mapGroupToProductVariation = (group: VariationGroup): ProductVariationGroup => {
   return {
     ...group,
@@ -248,13 +254,6 @@ const mapGroupToProductVariation = (group: VariationGroup): ProductVariationGrou
     }))
   };
 };
-
-interface MenuItem extends BaseMenuItem {
-  available?: boolean;
-  nutrition?: Record<string, number>;
-  variationGroups?: ProductVariationGroup[];
-  properties?: string[];
-}
 
 const mockMenuItems: MenuItem[] = [
     {
@@ -1528,7 +1527,7 @@ const AddSectionSheet = ({
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="w-full max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
-                    <DialogTitle className="text-xl">Create New Section: {initialData?.name}</DialogTitle>
+                    <SheetTitle className="text-xl">Create New Section: {initialData?.name}</SheetTitle>
                     <SheetDescription>{initialData?.description || 'Build a new section by adding and customizing products from your library.'}</SheetDescription>
                 </SheetHeader>
                 <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
