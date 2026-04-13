@@ -1,12 +1,18 @@
-export type Variation = {
-  id: string;
+export type VariationOptionOverride = {
+  id: string; // from VariationOption
   value: string;
   matrix?: string;
   priceMode: 'override' | 'add' | 'subtract';
   priceValue: number;
   hidden: boolean;
-  categoryPage?: boolean;
-  productPage?: boolean;
+};
+
+export type ProductVariationGroup = {
+  id: string; // from VariationGroup
+  name: string;
+  multiple: boolean;
+  required: boolean;
+  options: VariationOptionOverride[];
 };
 
 export type Product = {
@@ -36,6 +42,6 @@ export type Product = {
   mainImage?: string;
   additionalImages?: string[];
   videoUrl?: string;
-  variations?: Variation[];
+  variationGroups?: ProductVariationGroup[];
   nutrition?: Record<string, number>;
 };

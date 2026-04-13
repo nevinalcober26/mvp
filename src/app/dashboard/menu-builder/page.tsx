@@ -158,7 +158,7 @@ const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit, onP
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={() => onPreview && window.open('/mobile/menu', '_blank')}>
+                            <DropdownMenuItem onSelect={(e) => { e.stopPropagation(); onPreview && window.open('/mobile/menu', '_blank'); }}>
                                 <Eye className="mr-2 h-4 w-4" /> Preview
                             </DropdownMenuItem>
                             <DropdownMenuItem onSelect={onEdit}>
@@ -230,22 +230,26 @@ const getImageUrl = (id: string) => {
     return image?.imageUrl || 'https://picsum.photos/seed/placeholder/400/400';
 };
 
-export type Variation = {
-  id: string;
+export type VariationOptionOverride = {
+  id: string; // from VariationOption
   value: string;
-  matrix?: string;
   priceMode: 'override' | 'add' | 'subtract';
   priceValue: number;
   hidden: boolean;
-  categoryPage?: boolean;
-  productPage?: boolean;
+};
+
+export type ProductVariationGroup = {
+  id: string; // from VariationGroup
+  name: string;
+  multiple: boolean;
+  required: boolean;
+  options: VariationOptionOverride[];
 };
 
 interface MenuItem extends BaseMenuItem {
   available?: boolean;
   nutrition?: Record<string, number>;
-  variations?: Variation[];
-  multipleVariations?: boolean;
+  variationGroups?: ProductVariationGroup[];
   properties?: string[];
 }
 
@@ -258,11 +262,15 @@ const mockMenuItems: MenuItem[] = [
         category: 'Bestsellers',
         image: getImageUrl('margherita-pizza'),
         isCustomisable: true,
-        multipleVariations: false,
         properties: ['Vegetarian', 'Gluten', 'Dairy'],
-        variations: [
-            { id: 'var_pm12_1', value: 'Thin Crust', priceMode: 'override', priceValue: 36.00, hidden: false, categoryPage: true, productPage: true },
-            { id: 'var_pm12_2', value: 'Thick Crust', priceMode: 'add', priceValue: 5.00, hidden: false, categoryPage: true, productPage: true },
+        variationGroups: [
+            {
+                id: 'group_1', name: 'Size', multiple: false, required: true,
+                options: [
+                    { id: 'opt_1_1', value: '10 inches', priceMode: 'override', priceValue: 36.00, hidden: false },
+                    { id: 'opt_1_2', value: '12 inches', priceMode: 'add', priceValue: 5.00, hidden: false },
+                ]
+            }
         ],
         nutrition: {
             protein: 32,
@@ -279,11 +287,6 @@ const mockMenuItems: MenuItem[] = [
         isCustomisable: true,
         image: getImageUrl('alfredo-pizza'),
         properties: ['Halal'],
-        multipleVariations: false,
-        variations: [
-            { id: 'var_alfredo_1', value: 'Standard', priceMode: 'override', priceValue: 48.00, hidden: false, categoryPage: true, productPage: true },
-            { id: 'var_alfredo_2', value: 'Extra Chicken', priceMode: 'add', priceValue: 8.00, hidden: false, categoryPage: true, productPage: true },
-        ],
         nutrition: {
             protein: 45,
             fat: 30,
@@ -316,11 +319,6 @@ const mockMenuItems: MenuItem[] = [
         isCustomisable: true,
         image: getImageUrl('hawaiian-pizza'),
         properties: ['Gluten', 'Dairy'],
-        multipleVariations: false,
-        variations: [
-            { id: 'var_hawaiian_1', value: 'Regular', priceMode: 'override', priceValue: 32.00, hidden: false, categoryPage: true, productPage: true },
-            { id: 'var_hawaiian_2', value: 'Extra Pineapple', priceMode: 'add', priceValue: 3.00, hidden: false, categoryPage: true, productPage: true },
-        ],
         nutrition: {
             protein: 22,
             fat: 18,
@@ -337,11 +335,15 @@ const mockMenuItems: MenuItem[] = [
         isCustomisable: true,
         image: getImageUrl('soft-drink'),
         properties: [],
-        multipleVariations: false,
-        variations: [
-            { id: 'var_drink_1', value: 'Coca-Cola', priceMode: 'override', priceValue: 3.00, hidden: false, categoryPage: true, productPage: true },
-            { id: 'var_drink_2', value: 'Sprite', priceMode: 'override', priceValue: 3.00, hidden: false, categoryPage: true, productPage: true },
-            { id: 'var_drink_3', value: 'Fanta', priceMode: 'override', priceValue: 3.00, hidden: false, categoryPage: true, productPage: true },
+        variationGroups: [
+            {
+                id: 'group_2', name: 'Flavor', multiple: false, required: true,
+                options: [
+                    { id: 'opt_2_1', value: 'Coca-Cola', priceMode: 'override', priceValue: 3.00, hidden: false },
+                    { id: 'opt_2_2', value: 'Sprite', priceMode: 'override', priceValue: 3.00, hidden: false },
+                    { id: 'opt_2_3', value: 'Fanta', priceMode: 'override', priceValue: 3.00, hidden: false },
+                ]
+            }
         ],
         nutrition: {
             protein: 0,
@@ -374,12 +376,6 @@ const mockMenuItems: MenuItem[] = [
         category: 'Main Courses',
         image: getImageUrl('ribeye-steak'),
         properties: ['Halal'],
-        multipleVariations: false,
-        variations: [
-            { id: 'var_steak_1', value: 'Rare', priceMode: 'override', priceValue: 25.00, hidden: false, categoryPage: true, productPage: true },
-            { id: 'var_steak_2', value: 'Medium Rare', priceMode: 'override', priceValue: 25.00, hidden: false, categoryPage: true, productPage: true },
-            { id: 'var_steak_3', value: 'Medium', priceMode: 'override', priceValue: 25.00, hidden: false, categoryPage: true, productPage: true },
-        ],
         nutrition: {
             protein: 50,
             fat: 35,
@@ -399,12 +395,7 @@ const mockMenuItems: MenuItem[] = [
             fat: 25,
             carbs: 40,
             sugar: 8
-        },
-        multipleVariations: false,
-        variations: [
-            { id: 'var_cb_1', value: 'Single Patty', priceMode: 'override', priceValue: 35.00, hidden: false, categoryPage: true, productPage: true },
-            { id: 'var_cb_2', value: 'Double Patty', priceMode: 'add', priceValue: 10.00, hidden: false, categoryPage: true, productPage: true },
-        ]
+        }
     } as any,
     {
         id: 'truffle-fries',
@@ -489,13 +480,13 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
     onAvailabilityChange: (itemId: string, available: boolean) => void;
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [localVariations, setLocalVariations] = useState<Variation[]>([]);
+    const [localVariationGroups, setLocalVariationGroups] = useState<ProductVariationGroup[]>([]);
     const [localNutrition, setLocalNutrition] = useState<Record<string, number>>({});
     const [isNutritionEnabled, setIsNutritionEnabled] = useState(false);
 
     useEffect(() => {
         if (item) {
-            setLocalVariations(item.variations || []);
+            setLocalVariationGroups(item.variationGroups || []);
             const nutritionData = item.nutrition || {};
             setLocalNutrition(nutritionData);
             setIsNutritionEnabled(item.nutrition !== undefined);
@@ -512,31 +503,6 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
 
     const handleUpdate = (field: keyof MenuItem, value: any) => {
         if (item) onUpdate(item.id, field, value);
-    };
-
-    const handleVariationChange = (index: number, field: keyof Variation, value: any) => {
-        const newVariations = [...localVariations];
-        if (field === 'priceValue' && typeof value === 'string') {
-            value = parseFloat(value) || 0;
-        }
-        newVariations[index] = { ...newVariations[index], [field]: value };
-        setLocalVariations(newVariations);
-        handleUpdate('variations', newVariations);
-    };
-
-    const handleAddVariation = () => {
-        const newVariation: Variation = {
-            id: `var_${Date.now()}`, value: '', priceMode: 'override', priceValue: 0, hidden: false, categoryPage: true, productPage: true
-        };
-        const newVariations = [...localVariations, newVariation];
-        setLocalVariations(newVariations);
-        handleUpdate('variations', newVariations);
-    };
-
-    const handleRemoveVariation = (index: number) => {
-        const newVariations = localVariations.filter((_, i) => i !== index);
-        setLocalVariations(newVariations);
-        handleUpdate('variations', newVariations);
     };
 
     const handleNutritionChange = (key: string, value: string) => {
@@ -687,93 +653,17 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
 
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg"><Package className="h-5 w-5" /> Variations</CardTitle>
-                     <div className="flex items-center justify-between rounded-lg border p-3 pt-4 mt-2">
-                        <div className="flex items-center gap-2">
-                            <Label htmlFor="multiSelectVariation" className="font-medium">Multi-selection</Label>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <button type="button" onClick={(e) => e.preventDefault()} className='cursor-default'>
-                                            <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                                        </button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Enable customers to select multiple variation options.</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        </div>
-                        <Switch
-                            id="multiSelectVariation"
-                            checked={item.multipleVariations ?? false}
-                            onCheckedChange={(checked) => handleUpdate('multipleVariations', checked)}
-                        />
-                    </div>
+                    <CardTitle className="flex items-center gap-2 text-lg"><Package className="h-5 w-5" /> Variation Groups</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {localVariations.map((variation, index) => (
-                        <Collapsible key={variation.id || index} defaultOpen className="rounded-lg border bg-muted/40">
-                            <div className="flex items-center p-3">
-                                <CollapsibleTrigger className="flex flex-1 items-center gap-2 text-left [&[data-state=open]>svg]:rotate-180">
-                                    <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                                    <span className="font-semibold">{variation.value || 'New Variation'}</span>
-                                </CollapsibleTrigger>
-                                <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveVariation(index)} className="ml-4 shrink-0">
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                            </div>
-                            <CollapsibleContent>
-                                <div className="space-y-4 border-t bg-card p-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <Label>Variation Value</Label>
-                                            <Input
-                                                value={variation.value}
-                                                onChange={(e) => handleVariationChange(index, 'value', e.target.value)}
-                                                placeholder="e.g., Small, Large, Spicy"
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label>Price Rule</Label>
-                                            <Select
-                                                value={variation.priceMode}
-                                                onValueChange={(value) => handleVariationChange(index, 'priceMode', value)}
-                                            >
-                                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="override">Set specific price</SelectItem>
-                                                    <SelectItem value="add">Add to base price</SelectItem>
-                                                    <SelectItem value="subtract">Subtract from base price</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <Label>
-                                            { {
-                                                'override': 'Specific Price (AED)',
-                                                'add': 'Amount to Add (AED)',
-                                                'subtract': 'Amount to Subtract (AED)'
-                                            }[variation.priceMode] }
-                                        </Label>
-                                        <Input
-                                            type="number"
-                                            value={variation.priceValue}
-                                            onChange={(e) => handleVariationChange(index, 'priceValue', e.target.value)}
-                                            placeholder="0.00"
-                                        />
-                                    </div>
-                                </div>
-                            </CollapsibleContent>
-                        </Collapsible>
-                    ))}
-                    <Button type="button" variant="outline" onClick={handleAddVariation} className="w-full">
+                    {/* New Variation Group UI Here */}
+                    <Button type="button" variant="outline" className="w-full">
                         <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Variation
+                        Add Variation Group
                     </Button>
                 </CardContent>
             </Card>
+
 
             <Card>
                 <CardHeader>
@@ -869,10 +759,10 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
 
     useEffect(() => {
         setQuantity(1);
-        if(item?.multipleVariations) {
+        if(item?.variationGroups?.[0]?.multiple) {
             setSelectedVariations([]);
         } else {
-            setSelectedVariation(item?.variations?.[0]?.value || null);
+            setSelectedVariation(item?.variationGroups?.[0]?.options[0]?.value || null);
         }
     }, [item]);
 
@@ -891,6 +781,8 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
             </div>
         );
     }
+
+    const mainVariationGroup = item.variationGroups?.[0];
 
     return (
         <div className="w-full max-w-[340px] h-[720px] bg-gray-100 rounded-[32px] shadow-2xl p-3 border-[6px] border-black overflow-hidden flex flex-col">
@@ -938,19 +830,19 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                         </Card>
                     )}
 
-                    {item.variations && item.variations.length > 0 && (
+                    {mainVariationGroup && (
                         <Card className="bg-gray-50 rounded-xl">
                             <CardHeader className="p-3">
-                                <h3 className="font-bold">Flavor</h3>
+                                <h3 className="font-bold">{mainVariationGroup.name}</h3>
                                 <p className="text-sm text-gray-500">
-                                  {item.multipleVariations ? "Select one or more options" : "Select one option"}{' '}
-                                  <span className="text-red-500 font-semibold">(Required)</span>
+                                  {mainVariationGroup.multiple ? "Select one or more options" : "Select one option"}{' '}
+                                  {mainVariationGroup.required && <span className="text-red-500 font-semibold">(Required)</span>}
                                 </p>
                             </CardHeader>
                             <CardContent className="p-3 pt-0">
-                                {item.multipleVariations ? (
+                                {mainVariationGroup.multiple ? (
                                     <div className="space-y-2">
-                                        {item.variations.map((v, i) => (
+                                        {mainVariationGroup.options.map((v, i) => (
                                             <div key={v.id} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-3 last:pb-0">
                                                 <Label htmlFor={`preview-opt-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{v.value}</Label>
                                                 <Checkbox
@@ -971,7 +863,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                                 ) : (
                                     <RadioGroup value={selectedVariation ?? ''} onValueChange={setSelectedVariation}>
                                         <div className="space-y-2">
-                                            {item.variations.map((v, i) => (
+                                            {mainVariationGroup.options.map((v, i) => (
                                             <div key={v.id} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-3 last:pb-0">
                                                 <Label htmlFor={`preview-opt-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{v.value}</Label>
                                                 <RadioGroupItem value={v.value} id={`preview-opt-${i}`} className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500" />
@@ -1572,6 +1464,7 @@ const QrPreviewModal = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChang
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-xs text-center p-0 overflow-hidden rounded-2xl">
                 <DialogHeader className="bg-primary/5 p-6 pb-4">
+                    <DialogTitle className="sr-only">Scan to Preview</DialogTitle>
                     <div className="mx-auto h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
                         <QrCode className="h-6 w-6 text-primary" />
                     </div>
@@ -2118,7 +2011,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
            <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
-            <DialogTitle className="sr-only">Manage Menu</DialogTitle>
+            <h2 className="sr-only">Manage Menu</h2>
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
                 <ArrowLeft className="h-5 w-5" />
@@ -2168,19 +2061,23 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
                 <div className="relative h-[600px] overflow-hidden bg-[#F7F9FB] flex flex-col">
                   <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg p-4 pb-0 flex-shrink-0">
                     <div className="flex items-center justify-between mb-4">
-                      <ArrowLeft className="h-6 w-6 text-gray-800" />
+                      <Button variant="ghost" size="icon" className="-ml-2">
+                        <ArrowLeft className="h-6 w-6 text-gray-800" />
+                      </Button>
                       <div className="text-center">
                         <h1 className="text-xl font-bold text-gray-900">{activeTab}</h1>
                         <p className="text-sm text-teal-600 font-medium">{menuItems.filter(i => i.category === activeTab).length} items</p>
                       </div>
-                      <Search className="h-6 w-6 text-gray-800" />
+                      <Button variant="ghost" size="icon">
+                        <Search className="h-6 w-6 text-gray-800" />
+                      </Button>
                     </div>
                     <ScrollArea className="w-full whitespace-nowrap">
                       <div className="flex items-center space-x-1 border-b">
                         {menuSections.map((section: any) => (
                           <button key={section.id} className={cn(
                             "flex items-center gap-1.5 whitespace-nowrap px-4 py-3 text-sm font-bold transition-colors relative",
-                            activeTab === section.name ? 'text-teal-600' : 'text-gray-500'
+                             activeTab === section.name ? 'text-teal-600' : 'text-gray-500'
                           )}>
                             {section.name === 'Bestsellers' && <Flame className="h-4 w-4 text-red-500" />}
                             {section.name}

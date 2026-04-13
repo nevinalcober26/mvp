@@ -76,7 +76,7 @@ import {
   X,
   Leaf,
 } from 'lucide-react';
-import type { Product, Variation } from './types';
+import type { Product, ProductVariationGroup } from './types';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -115,19 +115,23 @@ const productSchema = z
     comboGroup: z.string().optional(),
     videoUrl: z.string().url().optional().or(z.literal('')),
     externalLink: z.string().url().optional().or(z.literal('')),
-    variations: z
-      .array(
-        z.object({
-          value: z.string().min(1, 'Variation value is required'),
-          matrix: z.string().optional(),
-          priceMode: z.enum(['override', 'add', 'subtract']).default('override'),
-          priceValue: z.coerce.number().min(0, "Price value can't be negative"),
-          hidden: z.boolean().default(false),
-          categoryPage: z.boolean().default(false),
-          productPage: z.boolean().default(false),
-        })
-      )
-      .optional(),
+    variationGroups: z.array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        multiple: z.boolean(),
+        required: z.boolean(),
+        options: z.array(
+          z.object({
+            id: z.string(),
+            value: z.string(),
+            priceMode: z.enum(['override', 'add', 'subtract']),
+            priceValue: z.coerce.number().min(0),
+            hidden: z.boolean(),
+          })
+        )
+      })
+    ).optional(),
     enableNutrition: z.boolean().default(true),
     nutrition: z.array(z.object({
       name: z.string(), // This will be the key like 'protein'
@@ -228,7 +232,7 @@ export function ProductSheet({
       comboGroup: product?.comboGroup || '',
       videoUrl: product?.videoUrl || '',
       externalLink: product?.externalLink || '',
-      variations: product?.variations || [],
+      variationGroups: product?.variationGroups || [],
       enableNutrition: !!(product?.nutrition && Object.keys(product.nutrition).length > 0) || !product,
       nutrition: nutritionArray,
     };
@@ -241,12 +245,12 @@ export function ProductSheet({
   });
 
   const {
-    fields: variationFields,
-    append: appendVariation,
-    remove: removeVariation,
+    fields: variationGroupFields,
+    append: appendVariationGroup,
+    remove: removeVariationGroup,
   } = useFieldArray({
     control: form.control,
-    name: 'variations',
+    name: "variationGroups",
   });
   
    const {
@@ -421,6 +425,7 @@ export function ProductSheet({
       mainImage: mainImagePreview || undefined,
       additionalImages: galleryPreviews,
       nutrition: nutritionObject,
+      variationGroups: data.variationGroups,
     };
     
     onSave(fullProductData as Product);
@@ -435,7 +440,7 @@ export function ProductSheet({
       category: 'basic-info',
       price: 'pricing',
       discountValue: 'pricing',
-      variations: 'variations',
+      variationGroups: 'variations',
       nutrition: 'nutrition',
     };
 
@@ -457,7 +462,7 @@ export function ProductSheet({
     form.getValues('name') &&
     form.getValues('category');
   const isPricingComplete = !errors.price && !errors.discountValue && form.getValues('price') > 0;
-  const areVariationsComplete = !errors.variations;
+  const areVariationsComplete = !errors.variationGroups;
   
   const tabsConfig = [
     { value: 'basic-info', label: 'Basic Info', isComplete: isBasicInfoComplete },
@@ -472,6 +477,11 @@ export function ProductSheet({
   const availableNutritionItems = initialNutritionItems.filter(
     item => item.enabled && !addedNutritionNames.includes(item.name.toLowerCase().replace(/\s/g, '_'))
   );
+
+  const availableVariationGroups = useMemo(() => {
+    const addedGroupIds = new Set(variationGroupFields.map(field => field.id));
+    return mockVariationGroups.filter(group => !addedGroupIds.has(group.id));
+  }, [variationGroupFields]);
 
   return (
     <>
@@ -1150,210 +1160,108 @@ export function ProductSheet({
                       <TabsContent value="variations">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Product Variations</CardTitle>
+                                <CardTitle>Product Variation Groups</CardTitle>
                                 <CardDescription>
                                     Offer different options for this product, like size or type. Each variation can have its own price.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-4">
-                                    {variationFields.map((field, index) => (
-                                        <Collapsible
-                                            key={field.id}
-                                            defaultOpen={true}
-                                            className="rounded-lg border bg-muted/40"
-                                        >
-                                            <div className="flex items-center p-3">
-                                                <CollapsibleTrigger className="flex flex-1 items-center gap-2 text-left [&[data-state=open]>svg]:rotate-180">
-                                                    <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                                                    <span className="font-semibold">
-                                                        {form.watch(`variations.${index}.value`) || 'New Variation'}
-                                                    </span>
-                                                </CollapsibleTrigger>
+                                    {variationGroupFields.map((groupField, groupIndex) => (
+                                        <Card key={groupField.id} className="bg-muted/30">
+                                            <CardHeader className="flex flex-row items-center justify-between py-3">
+                                                <CardTitle className="text-base">{groupField.name}</CardTitle>
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() => removeVariation(index)}
-                                                    className="ml-4 shrink-0"
+                                                    onClick={() => removeVariationGroup(groupIndex)}
                                                 >
                                                     <Trash className="h-4 w-4 text-destructive" />
                                                 </Button>
-                                            </div>
-                                            <CollapsibleContent>
-                                                <div className="space-y-4 border-t bg-card p-4">
-                                                    <FormField
-                                                        control={form.control}
-                                                        name={`variations.${index}.value`}
+                                            </CardHeader>
+                                            <CardContent className="space-y-4">
+                                                {groupField.options.map((option, optionIndex) => (
+                                                  <div key={option.id} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end border-t pt-4">
+                                                    <div className="md:col-span-1">
+                                                        <Label>Option</Label>
+                                                        <Input value={option.value} readOnly className="bg-background border-dashed"/>
+                                                    </div>
+                                                    <FormField control={form.control} name={`variationGroups.${groupIndex}.options.${optionIndex}.priceMode`}
+                                                      render={({ field }) => (
+                                                          <FormItem>
+                                                              <FormLabel>Price Rule</FormLabel>
+                                                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                  <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                                                  <SelectContent>
+                                                                      <SelectItem value="override">Override</SelectItem>
+                                                                      <SelectItem value="add">Add</SelectItem>
+                                                                      <SelectItem value="subtract">Subtract</SelectItem>
+                                                                  </SelectContent>
+                                                              </Select>
+                                                          </FormItem>
+                                                      )}
+                                                    />
+                                                    <FormField control={form.control} name={`variationGroups.${groupIndex}.options.${optionIndex}.priceValue`}
                                                         render={({ field }) => (
-                                                            <FormItem className="w-full">
-                                                                <FormLabel>Variation Value*</FormLabel>
-                                                                <Select
-                                                                  onValueChange={(groupId) => {
-                                                                      const selectedGroup = mockVariationGroups.find(g => g.id === groupId);
-                                                                      if (selectedGroup) {
-                                                                          field.onChange(selectedGroup.name);
-                                                                      }
-                                                                  }}
-                                                                  value={mockVariationGroups.find(g => g.name === field.value)?.id}
-                                                                >
-                                                                    <FormControl>
-                                                                        <SelectTrigger>
-                                                                            <SelectValue placeholder="Select a variation" />
-                                                                        </SelectTrigger>
-                                                                    </FormControl>
-                                                                    <SelectContent>
-                                                                        {mockVariationGroups.map((group) => (
-                                                                            <SelectItem key={group.id} value={group.id}>
-                                                                                {group.name}
-                                                                            </SelectItem>
-                                                                        ))}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                <FormMessage />
+                                                            <FormItem>
+                                                                <FormLabel>Value (AED)</FormLabel>
+                                                                <FormControl><Input type="number" {...field} /></FormControl>
                                                             </FormItem>
                                                         )}
                                                     />
-                                                    <div className="space-y-4">
-                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-                                                            <FormField
-                                                                control={form.control}
-                                                                name={`variations.${index}.priceMode`}
-                                                                render={({ field }) => (
-                                                                    <FormItem>
-                                                                        <FormLabel>Price Rule</FormLabel>
-                                                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                                            <FormControl>
-                                                                                <SelectTrigger>
-                                                                                    <SelectValue placeholder="Select a rule" />
-                                                                                </SelectTrigger>
-                                                                            </FormControl>
-                                                                            <SelectContent>
-                                                                                <SelectItem value="override">Set specific price</SelectItem>
-                                                                                <SelectItem value="add">Add to base price</SelectItem>
-                                                                                <SelectItem value="subtract">Subtract from base price</SelectItem>
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                        <FormMessage />
-                                                                    </FormItem>
-                                                                )}
-                                                            />
-                                                            <FormField
-                                                                control={form.control}
-                                                                name={`variations.${index}.priceValue`}
-                                                                render={({ field }) => (
-                                                                    <FormItem>
-                                                                        <FormLabel>
-                                                                            {
-                                                                                {
-                                                                                    'override': 'Specific Price (AED)',
-                                                                                    'add': 'Amount to Add (AED)',
-                                                                                    'subtract': 'Amount to Subtract (AED)'
-                                                                                }[form.watch(`variations.${index}.priceMode`) || 'override']
-                                                                            }
-                                                                        </FormLabel>
-                                                                        <FormControl>
-                                                                            <Input type="number" placeholder="0.00" {...field} />
-                                                                        </FormControl>
-                                                                        <FormMessage />
-                                                                    </FormItem>
-                                                                )}
-                                                            />
-                                                            <FormField
-                                                                control={form.control}
-                                                                name={`variations.${index}.matrix`}
-                                                                render={({ field }) => (
-                                                                    <FormItem>
-                                                                        <FormLabel>Matrix / SKU</FormLabel>
-                                                                        <FormControl>
-                                                                            <Input placeholder="Optional identifier" {...field} />
-                                                                        </FormControl>
-                                                                        <FormMessage />
-                                                                    </FormItem>
-                                                                )}
-                                                            />
-                                                        </div>
-                                                        <FormDescription className="px-1">
-                                                            {
-                                                                {
-                                                                'override': 'This specific price will be used for this variation, ignoring the base product price.',
-                                                                'add': 'This amount will be added to the base product price.',
-                                                                'subtract': 'This amount will be subtracted from the base product price.',
-                                                                }[form.watch(`variations.${index}.priceMode`) || 'override']
-                                                            }
-                                                        </FormDescription>
-                                                    </div>
-                                                    
-                                                    <div>
-                                                        <Label className="text-sm font-medium">Display Options</Label>
-                                                        <div className="mt-2 space-y-2 rounded-lg border p-4 bg-background">
-                                                            <FormField
-                                                                control={form.control}
-                                                                name={`variations.${index}.hidden`}
-                                                                render={({ field }) => (
-                                                                    <FormItem className="flex items-center justify-between">
-                                                                        <div className="space-y-0.5">
-                                                                            <FormLabel>Hidden Variation</FormLabel>
-                                                                            <FormDescription>
-                                                                                If checked, this variation will be hidden from customers.
-                                                                            </FormDescription>
-                                                                        </div>
-                                                                        <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                                                                    </FormItem>
-                                                                )}
-                                                            />
-                                                            <div className={cn("pl-4 border-l ml-2 pt-2 space-y-2", form.watch(`variations.${index}.hidden`) && "opacity-50")}>
-                                                                <FormField
-                                                                    control={form.control}
-                                                                    name={`variations.${index}.categoryPage`}
-                                                                    render={({ field }) => (
-                                                                        <FormItem className="flex items-center justify-between">
-                                                                            <FormLabel>Show on Category Page</FormLabel>
-                                                                            <FormControl>
-                                                                                <Checkbox 
-                                                                                    checked={field.value} 
-                                                                                    onCheckedChange={field.onChange}
-                                                                                    disabled={form.watch(`variations.${index}.hidden`)}
-                                                                                />
-                                                                            </FormControl>
-                                                                        </FormItem>
-                                                                    )}
-                                                                />
-                                                                <FormField
-                                                                    control={form.control}
-                                                                    name={`variations.${index}.productPage`}
-                                                                    render={({ field }) => (
-                                                                        <FormItem className="flex items-center justify-between">
-                                                                            <FormLabel>Show on Product Page</FormLabel>
-                                                                            <FormControl>
-                                                                                <Checkbox 
-                                                                                    checked={field.value} 
-                                                                                    onCheckedChange={field.onChange}
-                                                                                    disabled={form.watch(`variations.${index}.hidden`)}
-                                                                                />
-                                                                            </FormControl>
-                                                                        </FormItem>
-                                                                    )}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </CollapsibleContent>
-                                        </Collapsible>
+                                                    <FormField control={form.control} name={`variationGroups.${groupIndex}.options.${optionIndex}.hidden`}
+                                                        render={({ field }) => (
+                                                            <FormItem className="flex flex-col items-center justify-center gap-2">
+                                                                <FormLabel>Hidden</FormLabel>
+                                                                <FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl>
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                  </div>
+                                                ))}
+                                            </CardContent>
+                                        </Card>
                                     ))}
                                 </div>
 
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() =>
-                                    appendVariation({ value: '', matrix: '', priceMode: 'override', priceValue: 0, hidden: false, categoryPage: true, productPage: true })
-                                    }
-                                >
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    Add Variation
-                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            disabled={availableVariationGroups.length === 0}
+                                        >
+                                            <PlusCircle className="mr-2 h-4 w-4" />
+                                            Add Variation Group
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                        {availableVariationGroups.map((group) => (
+                                            <DropdownMenuItem
+                                                key={group.id}
+                                                onSelect={() => {
+                                                    appendVariationGroup({
+                                                        id: group.id,
+                                                        name: group.name,
+                                                        multiple: group.multiple,
+                                                        required: group.required,
+                                                        options: group.options.map(opt => ({
+                                                            id: opt.id,
+                                                            value: opt.value,
+                                                            priceMode: 'override',
+                                                            priceValue: opt.regularPrice || 0,
+                                                            hidden: false,
+                                                        }))
+                                                    });
+                                                }}
+                                            >
+                                                {group.name}
+                                            </DropdownMenuItem>
+                                        ))}
+                                        {availableVariationGroups.length === 0 && <DropdownMenuItem disabled>All groups added</DropdownMenuItem>}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </CardContent>
                         </Card>
                       </TabsContent>
@@ -1546,4 +1454,3 @@ export function ProductSheet({
     </>
   );
 }
-
