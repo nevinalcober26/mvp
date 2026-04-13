@@ -30,7 +30,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -1134,7 +1134,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
 };
 
 
-const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => {
+const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave, onOpenEditDialog }: any) => {
 
     const [items, setItems] = useState<MenuItem[]>([]);
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
@@ -1245,7 +1245,21 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
                 ) : (
                   <>
                     <SheetHeader className="p-6 border-b shrink-0">
-                        <DialogTitle>Manage: {category.name} ({items.length} items)</DialogTitle>
+                        <div className="flex items-center gap-2">
+                            <DialogTitle>Manage: {category.name} ({items.length} items)</DialogTitle>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onOpenEditDialog(category)}>
+                                            <Edit className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Edit Section Details</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
                         <SheetDescription>Drag to reorder, click a row to edit details, and toggle availability.</SheetDescription>
                     </SheetHeader>
                     <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
@@ -1524,7 +1538,7 @@ const AddSectionSheet = ({
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="w-full max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
-                    <SheetTitle className="text-xl">Create New Section: {initialData?.name}</SheetTitle>
+                    <DialogTitle className="text-xl">Create New Section: {initialData?.name}</DialogTitle>
                     <SheetDescription>{initialData?.description || 'Build a new section by adding and customizing products from your library.'}</SheetDescription>
                 </SheetHeader>
                 <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
@@ -1718,6 +1732,142 @@ const QrPreviewModal = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChang
     );
 };
 
+const EditSectionDetailsDialog = ({ isOpen, onOpenChange, onConfirm, section }: { isOpen: boolean; onOpenChange: (open: boolean) => void; onConfirm: (data: EditSectionFormValues) => void; section: any | null; }) => {
+  const form = useForm<EditSectionFormValues>({
+    resolver: zodResolver(addSectionSchema), // Note: Using addSectionSchema as it's identical
+    defaultValues: { id: '', name: '', description: '', imageUrl: '', enableSpecial: false },
+  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen && section) {
+      form.reset({
+        id: section.id,
+        name: section.name,
+        description: section.description || '',
+        imageUrl: section.imageUrl || null,
+        enableSpecial: section.enableSpecial || false,
+      });
+      setImagePreview(section.imageUrl || null);
+    }
+  }, [isOpen, section, form]);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setImagePreview(result);
+        form.setValue('imageUrl', result, { shouldDirty: true });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const clearImage = () => {
+    setImagePreview(null);
+    form.setValue('imageUrl', null, { shouldDirty: true });
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  const onSubmit = (data: EditSectionFormValues) => {
+    onConfirm(data);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Menu Section</DialogTitle>
+          <DialogDescription>
+            Update the details for the &quot;{section?.name}&quot; section.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form id="edit-section-details-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            <FormField
+              control={form.control}
+              name="id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Identifier</FormLabel>
+                  <FormControl>
+                    <Input {...field} disabled className="font-mono bg-muted" />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField control={form.control} name="name" render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Section Name*</FormLabel>
+                    <FormControl><Input placeholder="e.g., Summer Specials" {...field} /></FormControl>
+                    <FormMessage />
+                </FormItem>
+            )}/>
+            <FormField control={form.control} name="description" render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl><Textarea placeholder="A short description for this section." rows={2} {...field} /></FormControl>
+                    <FormMessage />
+                </FormItem>
+            )}/>
+            <FormField
+              control={form.control}
+              name="imageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image</FormLabel>
+                  <div className="flex items-center gap-4">
+                    <div className="w-24 h-24 bg-muted rounded-md flex items-center justify-center border overflow-hidden">
+                      {imagePreview ? (
+                        <Image src={imagePreview} alt="Section image" width={96} height={96} className="object-contain" />
+                      ) : (
+                        <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <Button variant="outline" type="button" asChild>
+                            <label className="cursor-pointer">
+                                <Upload className="mr-2 h-4 w-4"/>Upload
+                                <Input type="file" id="image-upload-edit" className="hidden" ref={fileInputRef} onChange={handleImageUpload} accept="image/png, image/jpeg, image/svg+xml" />
+                            </label>
+                        </Button>
+                         {imagePreview && (
+                            <Button type="button" variant="link" size="sm" className="text-destructive font-semibold px-0 hover:no-underline h-auto" onClick={clearImage}>
+                                <X className="mr-1 h-4 w-4" /> Remove
+                            </Button>
+                        )}
+                    </div>
+                  </div>
+                </FormItem>
+              )}
+            />
+             <FormField control={form.control} name="enableSpecial" render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                        <FormLabel>Mark as Special</FormLabel>
+                        <FormDescription>
+                            Highlight this section on your menu.
+                        </FormDescription>
+                    </div>
+                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                </FormItem>
+            )} />
+          </form>
+        </Form>
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button type="submit" form="edit-section-details-form">
+            Update Section
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpen }: {
     onClose: () => void,
@@ -1748,6 +1898,9 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ index: number; name: string } | null>(null);
   const [isAddSectionDetailsModalOpen, setIsAddSectionDetailsModalOpen] = useState(false);
   const [newSectionDetails, setNewSectionDetails] = useState<Partial<AddSectionFormValues> | null>(null);
+
+  const [isEditSectionDetailsModalOpen, setIsEditSectionDetailsModalOpen] = useState(false);
+  const [editingSectionDetails, setEditingSectionDetails] = useState<any | null>(null);
 
   const [connectedPos, setConnectedPos] = useState<PosConnection[]>([]);
 
@@ -2019,6 +2172,26 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
     });
   };
 
+  const handleOpenSectionDetailsDialog = (section: any) => {
+    setEditingSectionDetails(section);
+    setIsEditSectionDetailsModalOpen(true);
+  };
+
+  const handleUpdateSectionDetails = (updatedData: EditSectionFormValues) => {
+      setMenuSections(prevSections =>
+          prevSections.map(section =>
+              section.id === updatedData.id ? { ...section, ...updatedData } : section
+          )
+      );
+      if (editingCategory?.id === updatedData.id) {
+        setEditingCategory((prev: any) => ({ ...prev, ...updatedData }));
+      }
+      toast({
+          title: "Section Updated",
+          description: `"${updatedData.name}" has been updated.`,
+      });
+  };
+
   return (
     <>
       <div className="flex-1 flex flex-col bg-muted/40">
@@ -2130,7 +2303,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={posFlowStep === 'select'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent>
-          <DialogTitle className="sr-only">Import from POS</DialogTitle>
+        <DialogTitle className="sr-only">Import from POS</DialogTitle>
           <DialogHeader>
             <DialogTitle>Import from POS</DialogTitle>
             <DialogDescription>
@@ -2386,11 +2559,18 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
         onOpenChange={setIsCategorySheetOpen}
         category={editingCategory}
         onSave={handleSaveCategoryItems}
+        onOpenEditDialog={handleOpenSectionDetailsDialog}
       />
       <AddSectionDetailsDialog
         isOpen={isAddSectionDetailsModalOpen}
         onOpenChange={setIsAddSectionDetailsModalOpen}
         onConfirm={handleStartAddingItems}
+      />
+       <EditSectionDetailsDialog
+        isOpen={isEditSectionDetailsModalOpen}
+        onOpenChange={setIsEditSectionDetailsModalOpen}
+        section={editingSectionDetails}
+        onConfirm={handleUpdateSectionDetails}
       />
       <AddSectionSheet
         isOpen={isAddSectionSheetOpen}
@@ -2481,3 +2661,4 @@ export default function MenuBuilderPage() {
 }
 
     
+
