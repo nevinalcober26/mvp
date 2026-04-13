@@ -1375,7 +1375,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave, onOpenEdit
         <AlertDialog open={isConfirmingClose} onOpenChange={setIsConfirmingClose}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitleComponent>You have unsaved changes</AlertDialogTitleComponent>
+              <AlertDialogTitle>You have unsaved changes</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to discard your changes? This action cannot be undone.
               </AlertDialogDescription>
@@ -2724,7 +2724,7 @@ export default function MenuBuilderPage() {
 const BrandManagementView = ({ onClose }: { onClose: () => void }) => {
     const { toast } = useToast();
     const [logo, setLogo] = useState<string | null>('https://picsum.photos/seed/brandlogo/200');
-    const [primaryColor, setPrimaryColor] = useState('#10b981'); // Emerald 500
+    const [primaryColor, setPrimaryColor] = useState('#0CB5A8'); // Emerald 500
     const [backgroundColor, setBackgroundColor] = useState('#f9fafb'); // Gray 50
     const [headlineFont, setHeadlineFont] = useState('Poppins');
     const [bodyFont, setBodyFont] = useState('Inter');
