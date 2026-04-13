@@ -30,7 +30,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -742,37 +742,37 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                       {group.options.map((option, optionIndex) => (
                                           <div key={option.id} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end border-t pt-4">
                                               <div className="font-normal md:col-span-1">{option.value}</div>
-                                              <div className="space-y-1">
-                                                <Label>Price Rule</Label>
-                                                <Select
-                                                    value={option.priceMode}
-                                                    onValueChange={(value) => {
-                                                        const newGroups = [...localVariationGroups];
-                                                        newGroups[groupIndex].options[optionIndex].priceMode = value as any;
-                                                        handleVariationGroupsChange(newGroups);
-                                                    }}
-                                                >
-                                                    <SelectTrigger><SelectValue /></SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="add">Add Price</SelectItem>
-                                                        <SelectItem value="subtract">Subtract Price</SelectItem>
-                                                        <SelectItem value="override">Override Price</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                              </div>
-                                              <div className="space-y-1">
-                                                <Label>Value (AED)</Label>
-                                                <Input
-                                                    type="number"
-                                                    placeholder='0.00'
-                                                    value={option.priceValue}
-                                                    onChange={(e) => {
-                                                        const newGroups = [...localVariationGroups];
-                                                        newGroups[groupIndex].options[optionIndex].priceValue = parseFloat(e.target.value) || 0;
-                                                        handleVariationGroupsChange(newGroups);
-                                                    }}
-                                                />
-                                              </div>
+                                                <div>
+                                                    <Label>Price Rule</Label>
+                                                    <Select
+                                                        value={option.priceMode}
+                                                        onValueChange={(value) => {
+                                                            const newGroups = [...localVariationGroups];
+                                                            newGroups[groupIndex].options[optionIndex].priceMode = value as any;
+                                                            handleVariationGroupsChange(newGroups);
+                                                        }}
+                                                    >
+                                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="add">Add Price</SelectItem>
+                                                            <SelectItem value="subtract">Subtract Price</SelectItem>
+                                                            <SelectItem value="override">Override Price</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div>
+                                                    <Label>Value (AED)</Label>
+                                                    <Input
+                                                        type="number"
+                                                        placeholder='0.00'
+                                                        value={option.priceValue}
+                                                        onChange={(e) => {
+                                                            const newGroups = [...localVariationGroups];
+                                                            newGroups[groupIndex].options[optionIndex].priceValue = parseFloat(e.target.value) || 0;
+                                                            handleVariationGroupsChange(newGroups);
+                                                        }}
+                                                    />
+                                                </div>
                                               <div className="flex flex-col items-center justify-center gap-2">
                                                   <Label>Hidden</Label>
                                                   <Switch checked={option.hidden} onCheckedChange={(checked) => {
@@ -2089,7 +2089,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={isAddMenuModalOpen} onOpenChange={setIsAddMenuModalOpen}>
         <DialogContent className="sm:max-w-2xl">
-        <DialogTitle className="sr-only">Add new menu</DialogTitle>
+          <DialogTitle className="sr-only">Add new menu</DialogTitle>
           <DialogHeader>
             <DialogTitle className="text-center text-2xl font-bold">How would you like to build your menu?</DialogTitle>
             <DialogDescription className="text-center">
