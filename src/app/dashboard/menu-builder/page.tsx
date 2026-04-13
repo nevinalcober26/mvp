@@ -687,9 +687,14 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {localVariationGroups.map((group, groupIndex) => (
-                         <Card key={group.id} className="bg-muted/30">
-                            <CardHeader className="flex flex-row items-center justify-between py-3">
-                                <CardTitle className="text-base">{group.name}</CardTitle>
+                        <Collapsible key={group.id} className="border rounded-lg bg-muted/30">
+                            <div className="flex items-center p-2">
+                                <CollapsibleTrigger asChild>
+                                    <Button variant="ghost" className="flex-1 justify-start gap-2">
+                                        <ChevronRight className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-90" />
+                                        <span className="font-semibold">{group.name}</span>
+                                    </Button>
+                                </CollapsibleTrigger>
                                 <Button
                                     type="button"
                                     variant="ghost"
@@ -701,8 +706,68 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                 >
                                     <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
-                            </CardHeader>
-                        </Card>
+                            </div>
+                            <CollapsibleContent className="p-4 pt-0">
+                                <div className="space-y-4 border-t pt-4">
+                                    <div className="flex items-center justify-between rounded-lg border bg-background p-3">
+                                        <Label htmlFor={`multi-select-${groupIndex}`} className="font-medium flex items-center gap-2">
+                                            Multi-selection?
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <button type="button" onClick={e => e.preventDefault()}><HelpCircle className="h-4 w-4 text-muted-foreground" /></button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Enable customers to select multiple options.</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </Label>
+                                        <Switch
+                                            id={`multi-select-${groupIndex}`}
+                                            checked={group.multiple}
+                                            onCheckedChange={(checked) => {
+                                                const newGroups = [...localVariationGroups];
+                                                newGroups[groupIndex].multiple = checked;
+                                                handleVariationGroupsChange(newGroups);
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="space-y-4">
+                                      {group.options.map((option, optionIndex) => (
+                                          <div key={option.id} className="grid grid-cols-1 md:grid-cols-[1fr_120px_120px] gap-2 items-end border-t pt-4">
+                                              <Label className="font-normal md:col-span-3">{option.value}</Label>
+                                              <Select
+                                                  value={option.priceMode}
+                                                  onValueChange={(value) => {
+                                                      const newGroups = [...localVariationGroups];
+                                                      newGroups[groupIndex].options[optionIndex].priceMode = value as any;
+                                                      handleVariationGroupsChange(newGroups);
+                                                  }}
+                                              >
+                                                  <SelectTrigger><SelectValue /></SelectTrigger>
+                                                  <SelectContent>
+                                                      <SelectItem value="add">Add Price</SelectItem>
+                                                      <SelectItem value="subtract">Subtract Price</SelectItem>
+                                                      <SelectItem value="override">Override Price</SelectItem>
+                                                  </SelectContent>
+                                              </Select>
+                                              <Input
+                                                  type="number"
+                                                  placeholder='0.00'
+                                                  value={option.priceValue}
+                                                  onChange={(e) => {
+                                                      const newGroups = [...localVariationGroups];
+                                                      newGroups[groupIndex].options[optionIndex].priceValue = parseFloat(e.target.value) || 0;
+                                                      handleVariationGroupsChange(newGroups);
+                                                  }}
+                                              />
+                                          </div>
+                                      ))}
+                                    </div>
+                                </div>
+                            </CollapsibleContent>
+                        </Collapsible>
                     ))}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -740,6 +805,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                     {group.name}
                                 </DropdownMenuItem>
                             ))}
+                            {availableVariationGroups.length === 0 && <DropdownMenuItem disabled>All groups added</DropdownMenuItem>}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </CardContent>
@@ -845,7 +911,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                 if (group.required && !group.multiple && group.options.length > 0) {
                     const defaultOption = group.options.find(opt => !opt.hidden);
                     if (defaultOption) {
-                        initialSelections[group.id] = defaultOption.value;
+                        initialSelections[group.id] = defaultOption.id;
                     }
                 } else if (group.multiple) {
                     initialSelections[group.id] = [];
@@ -859,18 +925,18 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
         }
     }, [item]);
 
-    const handleSelectionChange = (groupId: string, value: string, isMultiple: boolean) => {
+    const handleSelectionChange = (groupId: string, optionId: string, isMultiple: boolean) => {
         setSelections(prev => {
             const newSelections = { ...prev };
             if (isMultiple) {
                 const currentSelection = (newSelections[groupId] as string[]) || [];
-                if (currentSelection.includes(value)) {
-                    newSelections[groupId] = currentSelection.filter(v => v !== value);
+                if (currentSelection.includes(optionId)) {
+                    newSelections[groupId] = currentSelection.filter(id => id !== optionId);
                 } else {
-                    newSelections[groupId] = [...currentSelection, value];
+                    newSelections[groupId] = [...currentSelection, optionId];
                 }
             } else {
-                newSelections[groupId] = value;
+                newSelections[groupId] = optionId;
             }
             return newSelections;
         });
@@ -882,6 +948,42 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
         return Math.round((protein * 4) + ((carbohydrates || carbs) * 4) + (fat * 9));
     }, [item?.nutrition]);
 
+    const totalPrice = useMemo(() => {
+        if (!item) return 0;
+
+        let basePrice = item.price;
+        const additions: number[] = [];
+        const overrides: number[] = [];
+
+        if (item.variationGroups) {
+          Object.entries(selections).forEach(([groupId, selectedOptionIds]) => {
+            const group = item.variationGroups?.find(g => g.id === groupId);
+            if (!group) return;
+
+            const ids = Array.isArray(selectedOptionIds) ? selectedOptionIds : [selectedOptionIds].filter(Boolean);
+            ids.forEach(optionId => {
+              const option = group.options.find(o => o.id === optionId);
+              if (option) {
+                if (option.priceMode === 'override') {
+                  overrides.push(option.priceValue);
+                } else {
+                  additions.push(option.priceMode === 'add' ? option.priceValue : -option.priceValue);
+                }
+              }
+            });
+          });
+        }
+        
+        if(overrides.length > 0) {
+          basePrice = Math.max(...overrides);
+        }
+        
+        const finalPrice = basePrice + additions.reduce((acc, val) => acc + val, 0);
+
+        return finalPrice * quantity;
+    }, [item, selections, quantity]);
+
+
     if (!item) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8 w-full max-w-sm">
@@ -891,8 +993,6 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
             </div>
         );
     }
-
-    const totalPrice = item.price * quantity;
 
     return (
         <div className="w-full max-w-[340px] h-[720px] bg-gray-100 rounded-[32px] shadow-2xl p-3 border-[6px] border-black overflow-hidden flex flex-col">
@@ -954,11 +1054,14 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                                     <div className="space-y-2">
                                         {group.options.filter(opt => !opt.hidden).map((opt, i) => (
                                             <div key={opt.id} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-3 last:pb-0">
-                                                <Label htmlFor={`preview-opt-${group.id}-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{opt.value}</Label>
+                                                <Label htmlFor={`preview-opt-${group.id}-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">
+                                                    {opt.value}
+                                                    {opt.priceValue > 0 && <span className="text-sm text-gray-500 ml-2">(+AED {opt.priceValue.toFixed(2)})</span>}
+                                                </Label>
                                                 <Checkbox
                                                     id={`preview-opt-${group.id}-${i}`}
-                                                    checked={(selections[group.id] as string[])?.includes(opt.value)}
-                                                    onCheckedChange={() => handleSelectionChange(group.id, opt.value, true)}
+                                                    checked={(selections[group.id] as string[])?.includes(opt.id)}
+                                                    onCheckedChange={() => handleSelectionChange(group.id, opt.id, true)}
                                                     className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500 data-[state=checked]:bg-teal-500"
                                                 />
                                             </div>
@@ -972,8 +1075,11 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                                         <div className="space-y-2">
                                             {group.options.filter(opt => !opt.hidden).map((opt, i) => (
                                             <div key={opt.id} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-3 last:pb-0">
-                                                <Label htmlFor={`preview-opt-${group.id}-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{opt.value}</Label>
-                                                <RadioGroupItem value={opt.value} id={`preview-opt-${group.id}-${i}`} className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500" />
+                                                <Label htmlFor={`preview-opt-${group.id}-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">
+                                                  {opt.value}
+                                                  {opt.priceValue > 0 && <span className="text-sm text-gray-500 ml-2">(+AED {opt.priceValue.toFixed(2)})</span>}
+                                                </Label>
+                                                <RadioGroupItem value={opt.id} id={`preview-opt-${group.id}-${i}`} className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500" />
                                             </div>
                                             ))}
                                         </div>
