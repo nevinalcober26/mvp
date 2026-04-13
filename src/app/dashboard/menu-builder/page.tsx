@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight, Check, ChevronRight, ShoppingCart, Edit, ImageIcon, GalleryHorizontal, Upload, Flame, QrCode, ExternalLink, Eye, HelpCircle } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight, Check, Flame, ChevronRight, ShoppingCart, Edit, ImageIcon, GalleryHorizontal, Upload, QrCode, ExternalLink, Eye, HelpCircle } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -158,6 +158,9 @@ const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit, onP
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={() => onPreview && window.open('/mobile/menu', '_blank')}>
+                                <Eye className="mr-2 h-4 w-4" /> Preview
+                            </DropdownMenuItem>
                             <DropdownMenuItem onSelect={onEdit}>
                                 <Edit className="mr-2 h-4 w-4" /> Edit
                             </DropdownMenuItem>
@@ -186,7 +189,7 @@ const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit, onP
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button size="icon" variant="outline" className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm rounded-full h-12 w-12 border-white/30" onClick={(e) => { e.stopPropagation(); if (onPreview) onPreview(); }}>
+                                        <Button size="icon" variant="outline" className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm rounded-full h-12 w-12 border-white/30" onClick={(e) => { e.stopPropagation(); onPreview && window.open('/mobile/menu', '_blank'); }}>
                                             <Eye className="h-6 w-6" />
                                         </Button>
                                     </TooltipTrigger>
@@ -1427,7 +1430,7 @@ const AddSectionSheet = ({
                     <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary" />
                     <Panel defaultSize={20} minSize={15} className="flex flex-col overflow-hidden border-r">
                          <div className="p-4 border-b shrink-0">
-                            <h3 className="font-semibold">Items in New Section ({addedProducts.length})</h3>
+                            <h3 className="font-semibold">Items in {initialData?.name || 'New Section'} ({addedProducts.length})</h3>
                             <p className="text-xs text-muted-foreground">Drag to reorder items</p>
                         </div>
                         <ScrollArea className="flex-1 p-2">
@@ -1569,7 +1572,7 @@ const QrPreviewModal = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChang
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-xs text-center p-0 overflow-hidden rounded-2xl">
                 <DialogHeader className="bg-primary/5 p-6 pb-4">
-                    <DialogTitle className="sr-only">QR Code Preview</DialogTitle>
+                     <DialogTitle className="sr-only">QR Code Preview</DialogTitle>
                     <div className="mx-auto h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
                         <QrCode className="h-6 w-6 text-primary" />
                     </div>
@@ -1621,14 +1624,15 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ index: number; name: string } | null>(null);
   const [isAddSectionDetailsModalOpen, setIsAddSectionDetailsModalOpen] = useState(false);
   const [newSectionDetails, setNewSectionDetails] = useState<Partial<AddSectionFormValues> | null>(null);
-
-  const handleStartAddingItems = (data: AddSectionFormValues) => {
-    setNewSectionDetails(data);
-    setIsAddSectionDetailsModalOpen(false);
-    setIsAddSectionSheetOpen(true);
-  };
+  const [activeTab, setActiveTab] = useState('');
 
   const [connectedPos, setConnectedPos] = useState<PosConnection[]>([]);
+
+  useEffect(() => {
+    if (menuSections.length > 0) {
+      setActiveTab(menuSections[0].name);
+    }
+  }, [menuSections]);
 
   useEffect(() => {
     try {
@@ -1646,6 +1650,12 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
   const [previewCart, setPreviewCart] = useState<Record<string, number>>({});
   const [isCartAnimating, setIsCartAnimating] = useState(false);
   const prevCartTotalRef = useRef(0);
+
+  const handleStartAddingItems = (data: AddSectionFormValues) => {
+    setNewSectionDetails(data);
+    setIsAddSectionDetailsModalOpen(false);
+    setIsAddSectionSheetOpen(true);
+  };
 
   const handleImportFromPos = () => {
     setIsAddMenuModalOpen(false);
@@ -2168,14 +2178,14 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
                     </div>
                     <ScrollArea className="w-full whitespace-nowrap">
                       <div className="flex items-center space-x-1 border-b">
-                        {['Bestsellers', 'Pizza', 'Sides', 'Desserts', 'Drinks'].map(cat => (
-                          <button key={cat} className={cn(
+                        {menuSections.map((section: any) => (
+                          <button key={section.id} className={cn(
                             "flex items-center gap-1.5 whitespace-nowrap px-4 py-3 text-sm font-bold transition-colors relative",
-                            cat === 'Bestsellers' ? 'text-teal-600' : 'text-gray-500'
+                            activeTab === section.name ? 'text-teal-600' : 'text-gray-500'
                           )}>
-                            {cat === 'Bestsellers' && <Flame className="h-4 w-4 text-red-500" />}
-                            {cat}
-                            {cat === 'Bestsellers' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500 rounded-full" />}
+                            {section.name === 'Bestsellers' && <Flame className="h-4 w-4 text-red-500" />}
+                            {section.name}
+                            {activeTab === section.name && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500 rounded-full" />}
                           </button>
                         ))}
                       </div>
@@ -2277,7 +2287,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
        <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
         <AlertDialogContent>
             <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <DialogTitle>Are you absolutely sure?</DialogTitle>
                 <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete the menu: <strong>{deleteConfirmation?.name}</strong>.
                 </AlertDialogDescription>
@@ -2340,4 +2350,3 @@ export default function MenuBuilderPage() {
     </div>
   );
 }
-
