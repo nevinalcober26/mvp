@@ -38,7 +38,11 @@ import {
   HandCoins,
   X,
   Star,
+  Palette,
+  ImageIcon,
+  Upload,
 } from 'lucide-react';
+import Image from 'next/image';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -101,6 +105,13 @@ export default function EditBranchPage() {
   const [suggestedRates, setSuggestedRates] = useState([10, 15, 20]);
   const [quickTagSearch, setQuickTagSearch] = useState('');
   const [popularRate, setPopularRate] = useState<number | null>(15);
+
+  // Branding State
+  const [customBrandingEnabled, setCustomBrandingEnabled] = useState(false);
+  const [branchLogo, setBranchLogo] = useState<string | null>(null);
+  const [branchPrimaryColor, setBranchPrimaryColor] = useState('#0CB5A8');
+  const [branchBackgroundColor, setBranchBackgroundColor] = useState('#f9fafb');
+
 
   const currencySymbols: { [key: string]: string } = {
     AED: 'د.إ',
@@ -219,7 +230,7 @@ export default function EditBranchPage() {
 
           <Card className="shadow-smooth border-0 overflow-hidden">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full grid grid-cols-3 rounded-none border-b bg-background p-0 h-14 sticky top-0 z-20">
+              <TabsList className="w-full grid grid-cols-4 rounded-none border-b bg-background p-0 h-14 sticky top-0 z-20">
                 <TabsTrigger 
                   value="basic" 
                   className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none h-full gap-2 text-sm font-semibold"
@@ -231,6 +242,9 @@ export default function EditBranchPage() {
                 </TabsTrigger>
                 <TabsTrigger value="tip-fee" className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none h-full gap-2 text-sm font-semibold">
                   <HandCoins className="h-4 w-4" /> Tip Fee
+                </TabsTrigger>
+                <TabsTrigger value="branding" className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none h-full gap-2 text-sm font-semibold">
+                  <Palette className="h-4 w-4" /> Branding
                 </TabsTrigger>
               </TabsList>
 
@@ -628,6 +642,69 @@ export default function EditBranchPage() {
                       </CardContent>
                     </Card>
                   </div>
+                </section>
+              </TabsContent>
+
+              <TabsContent value="branding" className="p-8 space-y-10 focus-visible:ring-0 mt-0 bg-background">
+                <section className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-xl font-bold">Branch Branding</h3>
+                        <p className="text-sm text-muted-foreground">Override global brand settings for this branch only.</p>
+                    </div>
+                    <Button 
+                        variant="outline"
+                        onClick={() => setCustomBrandingEnabled(false)}
+                        disabled={!customBrandingEnabled}
+                    >
+                        Reset to Global Branding
+                    </Button>
+                  </div>
+
+                  <Card>
+                      <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                              <div>
+                                  <Label htmlFor="custom-branding-toggle" className="text-base font-medium">Customize Branding for this Branch</Label>
+                                  <p className="text-sm text-muted-foreground">
+                                      {customBrandingEnabled ? 'Custom styles are active.' : 'Using global brand styles.'}
+                                  </p>
+                              </div>
+                              <Switch
+                                  id="custom-branding-toggle"
+                                  checked={customBrandingEnabled}
+                                  onCheckedChange={setCustomBrandingEnabled}
+                              />
+                          </div>
+                      </CardContent>
+                  </Card>
+
+                  {customBrandingEnabled && (
+                      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                          <Card>
+                              <CardHeader><CardTitle>Branch Logo</CardTitle></CardHeader>
+                              <CardContent className="flex items-center gap-4">
+                                  {branchLogo ? <Image src={branchLogo} alt="branch logo" width={80} height={80} className="rounded-lg object-cover" /> : <div className="h-20 w-20 bg-muted rounded-lg flex items-center justify-center"><ImageIcon className="h-8 w-8 text-muted-foreground"/></div>}
+                                  <Button variant="outline"><Upload className="mr-2 h-4 w-4"/> Change Logo</Button>
+                              </CardContent>
+                          </Card>
+                          <Card>
+                              <CardHeader><CardTitle>Branch Colors</CardTitle></CardHeader>
+                              <CardContent className="space-y-4">
+                                  <div className="flex items-center gap-4">
+                                      <Label>Primary</Label>
+                                      <Input type="color" value={branchPrimaryColor} onChange={(e) => setBranchPrimaryColor(e.target.value)} className="w-12 h-12 p-1"/>
+                                      <Input value={branchPrimaryColor} onChange={(e) => setBranchPrimaryColor(e.target.value)} />
+                                  </div>
+                                   <div className="flex items-center gap-4">
+                                      <Label>Background</Label>
+                                      <Input type="color" value={branchBackgroundColor} onChange={(e) => setBranchBackgroundColor(e.target.value)} className="w-12 h-12 p-1"/>
+                                      <Input value={branchBackgroundColor} onChange={(e) => setBranchBackgroundColor(e.target.value)} />
+                                  </div>
+                              </CardContent>
+                          </Card>
+                      </div>
+                  )}
                 </section>
               </TabsContent>
             </Tabs>

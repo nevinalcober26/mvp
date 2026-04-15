@@ -72,8 +72,8 @@ const BuilderSidebar = ({ view, setView }: { view: 'menus' | 'branding', setView
         <aside className="w-80 bg-white border-r flex flex-col">
             <div className="h-16 border-b flex items-center px-4 shrink-0">
                 <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 bg-[#18B4A6] rounded-md flex items-center justify-center">
-                        <List className="h-5 w-5 text-white" />
+                    <div className="h-8 w-8 bg-sidebar-primary-foreground/10 rounded-md flex items-center justify-center">
+                        <List className="h-5 w-5 text-sidebar-primary-foreground" />
                     </div>
                     <h2 className="text-base font-bold tracking-wider">MENU BUILDER</h2>
                 </div>
@@ -83,8 +83,8 @@ const BuilderSidebar = ({ view, setView }: { view: 'menus' | 'branding', setView
                     className={cn(
                         "w-full justify-start p-3 h-auto font-bold rounded-lg",
                         view === 'menus' 
-                            ? 'bg-teal-100/50 hover:bg-teal-100/80 text-teal-600'
-                            : 'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                            ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                            : 'bg-transparent text-gray-600 hover:bg-muted/50 hover:text-gray-800'
                     )}
                     onClick={() => setView('menus')}
                 >
@@ -102,8 +102,8 @@ const BuilderSidebar = ({ view, setView }: { view: 'menus' | 'branding', setView
                     className={cn(
                         "w-full justify-start p-3 h-auto font-bold rounded-lg",
                         view === 'branding' 
-                            ? 'bg-teal-100/50 hover:bg-teal-100/80 text-teal-600'
-                            : 'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                             ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                            : 'bg-transparent text-gray-600 hover:bg-muted/50 hover:text-gray-800'
                     )}
                     onClick={() => setView('branding')}
                 >
@@ -1094,7 +1094,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                                                     id={`preview-opt-${group.id}-${i}`}
                                                     checked={(selections[group.id] as string[])?.includes(opt.id)}
                                                     onCheckedChange={() => handleSelectionChange(group.id, opt.id, true)}
-                                                    className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500 data-[state=checked]:bg-teal-500"
+                                                    className="h-5 w-5 text-sidebar-primary-foreground border-gray-300 data-[state=checked]:border-sidebar-primary-foreground data-[state=checked]:bg-sidebar-primary-foreground"
                                                 />
                                             </div>
                                         ))}
@@ -1111,7 +1111,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                                                   {opt.value}
                                                   {opt.priceValue > 0 && <span className="text-sm text-gray-500 ml-2">(+AED {opt.priceValue.toFixed(2)})</span>}
                                                 </Label>
-                                                <RadioGroupItem value={opt.id} id={`preview-opt-${group.id}-${i}`} className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500" />
+                                                <RadioGroupItem value={opt.id} id={`preview-opt-${group.id}-${i}`} className="h-5 w-5 text-sidebar-primary-foreground border-gray-300 data-[state=checked]:border-sidebar-primary-foreground" />
                                             </div>
                                             ))}
                                         </div>
@@ -1140,7 +1140,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                     <span className="font-bold text-lg text-gray-800">{quantity}</span>
                     <Button size="icon" variant="ghost" className="h-9 w-9 text-gray-700" onClick={() => setQuantity(q => q + 1)}><Plus className="h-5 w-5" /></Button>
                 </div>
-                <Button className="flex-1 h-12 text-white font-bold text-base bg-teal-500 hover:bg-teal-600">Add • AED {totalPrice.toFixed(2)}</Button>
+                <Button className="flex-1 h-12 text-white font-bold text-base bg-sidebar-primary-foreground hover:bg-sidebar-primary-foreground/90">Add • AED {totalPrice.toFixed(2)}</Button>
             </div>
         </div>
     );
@@ -1928,10 +1928,12 @@ const QrPreviewModal = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChang
 };
 
 
-const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpen }: {
+const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpen, userMenus, setUserMenus }: {
     onClose: () => void,
     isAddMenuModalOpen: boolean;
     setIsAddMenuModalOpen: (open: boolean) => void;
+    userMenus: any[];
+    setUserMenus: React.Dispatch<React.SetStateAction<any[]>>;
  }) => {
   const router = useRouter();
   const { toast } = useToast();
@@ -1951,7 +1953,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isAddSectionSheetOpen, setIsAddSectionSheetOpen] = useState(false);
-  const [userMenus, setUserMenus] = useState<any[]>([]);
   const [editingMenuName, setEditingMenuName] = useState('Untitled Menu');
   const [editingMenuIndex, setEditingMenuIndex] = useState<number | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ index: number; name: string } | null>(null);
@@ -2528,7 +2529,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
                       </Button>
                       <div className="text-center">
                         <h1 className="text-xl font-bold text-gray-900">{activeTab}</h1>
-                        <p className="text-sm text-teal-600 font-medium">{menuItems.filter(i => i.category === activeTab).length} items</p>
+                        <p className="text-sm text-sidebar-primary-foreground font-medium">{menuItems.filter(i => i.category === activeTab).length} items</p>
                       </div>
                       <Button variant="ghost" size="icon">
                         <Search className="h-6 w-6 text-gray-800" />
@@ -2539,11 +2540,11 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
                         {menuSections.map((section: any) => (
                           <button key={section.id} className={cn(
                             "flex items-center gap-1.5 whitespace-nowrap px-4 py-3 text-sm font-bold transition-colors relative",
-                             activeTab === section.name ? 'text-teal-600' : 'text-gray-500'
+                             activeTab === section.name ? 'text-sidebar-primary-foreground' : 'text-gray-500'
                           )}>
                             {section.name === 'Bestsellers' && <Flame className="h-4 w-4 text-red-500" />}
                             {section.name}
-                            {activeTab === section.name && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500 rounded-full" />}
+                            {activeTab === section.name && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-sidebar-primary-foreground rounded-full" />}
                           </button>
                         ))}
                       </div>
@@ -2592,7 +2593,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
                   <nav className="shrink-0 bg-[#F7F9FB] border-t border-gray-200/80">
                     <div className="flex justify-around items-center h-20">
-                      <div className="flex flex-col items-center gap-1 text-teal-500">
+                      <div className="flex flex-col items-center gap-1 text-sidebar-primary-foreground">
                         <Home className="h-6 w-6" />
                         <span className="text-xs font-bold">Menu</span>
                       </div>
@@ -2685,6 +2686,7 @@ export default function MenuBuilderPage() {
   const [showBuilder, setShowBuilder] = useState(false);
   const [isAddMenuModalOpen, setIsAddMenuModalOpen] = useState(false);
   const [view, setView] = useState<'menus' | 'branding'>('menus');
+  const [userMenus, setUserMenus] = useState<any[]>([]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -2713,19 +2715,21 @@ export default function MenuBuilderPage() {
           onClose={handleClose}
           isAddMenuModalOpen={isAddMenuModalOpen}
           setIsAddMenuModalOpen={setIsAddMenuModalOpen}
+          userMenus={userMenus}
+          setUserMenus={setUserMenus}
         />
       ) : (
-        <BrandManagementView onClose={() => setView('menus')} />
+        <BrandManagementView onClose={() => setView('menus')} userMenus={userMenus} />
       )}
     </div>
   );
 }
 
-const BrandManagementView = ({ onClose }: { onClose: () => void }) => {
+const BrandManagementView = ({ onClose, userMenus }: { onClose: () => void; userMenus: any[] }) => {
     const { toast } = useToast();
     const [logo, setLogo] = useState<string | null>('https://picsum.photos/seed/brandlogo/200');
-    const [primaryColor, setPrimaryColor] = useState('#0CB5A8'); // Emerald 500
-    const [backgroundColor, setBackgroundColor] = useState('#f9fafb'); // Gray 50
+    const [primaryColor, setPrimaryColor] = useState('#0CB5A8');
+    const [backgroundColor, setBackgroundColor] = useState('#f9fafb');
     const [headlineFont, setHeadlineFont] = useState('Poppins');
     const [bodyFont, setBodyFont] = useState('Inter');
 
@@ -2776,69 +2780,93 @@ const BrandManagementView = ({ onClose }: { onClose: () => void }) => {
     return (
         <div className="flex-1 flex flex-col bg-muted/40">
             <div className="flex-shrink-0 h-16 border-b flex items-center px-4 justify-between bg-card">
-                <h2 className="text-xl font-semibold">Brand Management</h2>
+                <h2 className="text-xl font-semibold">Global Brand Management</h2>
                 <div className="flex items-center gap-2">
                     <Button variant="ghost" onClick={onClose}>Cancel</Button>
                     <Button onClick={handleSave}>Save Branding</Button>
                 </div>
             </div>
             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 p-8 overflow-y-auto">
-                <div className="space-y-6">
-                    <Card>
-                        <CardHeader><CardTitle>Brand Logo</CardTitle></CardHeader>
-                        <CardContent className="flex items-center gap-4">
-                            {logo ? <Image src={logo} alt="brand logo" width={80} height={80} className="rounded-lg object-cover" /> : <div className="h-20 w-20 bg-muted rounded-lg flex items-center justify-center"><ImageIcon className="h-8 w-8 text-muted-foreground"/></div>}
-                            <Button variant="outline"><Upload className="mr-2 h-4 w-4"/> Change Logo</Button>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader><CardTitle>Colors</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center gap-4">
-                                <Label>Primary</Label>
-                                <Input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="w-12 h-12 p-1"/>
-                                <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} />
-                            </div>
-                             <div className="flex items-center gap-4">
-                                <Label>Background</Label>
-                                <Input type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="w-12 h-12 p-1"/>
-                                <Input value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} />
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader><CardTitle>Typography</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <Label>Headline Font</Label>
-                                <Select value={headlineFont} onValueChange={setHeadlineFont}>
-                                    <SelectTrigger><SelectValue /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Poppins">Poppins</SelectItem>
-                                        <SelectItem value="Lato">Lato</SelectItem>
-                                        <SelectItem value="Montserrat">Montserrat</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div>
-                                <Label>Body Font</Label>
-                                <Select value={bodyFont} onValueChange={setBodyFont}>
-                                    <SelectTrigger><SelectValue /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Inter">Inter</SelectItem>
-                                        <SelectItem value="Roboto">Roboto</SelectItem>
-                                        <SelectItem value="Open Sans">Open Sans</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-                <div className="bg-muted p-4 rounded-lg flex items-center justify-center">
-                   <div style={brandStyle} className="w-full max-w-sm">
-                       <ItemPreviewer item={mockMenuItems[0]} />
-                   </div>
-                </div>
+                {userMenus.length > 0 ? (
+                    <>
+                        <div className="space-y-6">
+                            <Card>
+                                <CardHeader><CardTitle>Global Logo</CardTitle></CardHeader>
+                                <CardContent className="flex items-center gap-4">
+                                    {logo ? <Image src={logo} alt="brand logo" width={80} height={80} className="rounded-lg object-cover" /> : <div className="h-20 w-20 bg-muted rounded-lg flex items-center justify-center"><ImageIcon className="h-8 w-8 text-muted-foreground"/></div>}
+                                    <Button variant="outline"><Upload className="mr-2 h-4 w-4"/> Change Logo</Button>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader><CardTitle>Global Colors</CardTitle></CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex items-center gap-4">
+                                        <Label>Primary</Label>
+                                        <Input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="w-12 h-12 p-1"/>
+                                        <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} />
+                                    </div>
+                                     <div className="flex items-center gap-4">
+                                        <Label>Background</Label>
+                                        <Input type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="w-12 h-12 p-1"/>
+                                        <Input value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader><CardTitle>Global Typography</CardTitle></CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div>
+                                        <Label>Headline Font</Label>
+                                        <Select value={headlineFont} onValueChange={setHeadlineFont}>
+                                            <SelectTrigger><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Poppins">Poppins</SelectItem>
+                                                <SelectItem value="Lato">Lato</SelectItem>
+                                                <SelectItem value="Montserrat">Montserrat</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <Label>Body Font</Label>
+                                        <Select value={bodyFont} onValueChange={setBodyFont}>
+                                            <SelectTrigger><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Inter">Inter</SelectItem>
+                                                <SelectItem value="Roboto">Roboto</SelectItem>
+                                                <SelectItem value="Open Sans">Open Sans</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                        <div className="bg-muted p-4 rounded-lg flex items-center justify-center">
+                           <div style={brandStyle} className="w-full max-w-sm">
+                               <ItemPreviewer item={mockMenuItems[0]} />
+                           </div>
+                        </div>
+                    </>
+                ) : (
+                    <div className="md:col-span-2 flex items-center justify-center">
+                        <Card className="text-center py-20 w-full max-w-lg">
+                            <CardHeader>
+                                <div className="mx-auto h-16 w-16 rounded-2xl bg-white flex items-center justify-center border shadow-sm mb-4">
+                                <Palette className="h-8 w-8 text-muted-foreground" />
+                                </div>
+                                <CardTitle className="text-2xl">No Menus Created Yet</CardTitle>
+                                <CardDescription>
+                                You need to create at least one menu before you can manage global branding.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Button onClick={onClose}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Create Your First Menu
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
             </div>
         </div>
     );
