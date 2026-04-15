@@ -41,6 +41,7 @@ import {
   Palette,
   ImageIcon,
   Upload,
+  Loader2
 } from 'lucide-react';
 import Image from 'next/image';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -72,12 +73,160 @@ const mockBranchData: any = {
 
 const PRESET_RATES = [10, 15, 20, 30];
 
+const SimplePreview = ({ primaryColor, backgroundColor, branchName, logo }: { primaryColor: string; backgroundColor: string; branchName: string; logo: string | null; }) => {
+    return (
+        <div className="w-full max-w-[340px] h-[720px] rounded-[32px] shadow-2xl p-2 border-4 border-black" style={{ backgroundColor: backgroundColor }}>
+            <div className="p-4 space-y-4 rounded-[26px] bg-white h-full">
+                <div className="flex flex-col items-center p-4">
+                  {logo ? 
+                    <Image src={logo} alt="branch logo" width={80} height={80} className="rounded-full object-cover mb-4" />
+                    :
+                    <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center mb-4"><ImageIcon className="h-8 w-8 text-muted-foreground"/></div>
+                  }
+                  <h1 className="text-2xl font-bold text-center" style={{ color: primaryColor }}>{branchName}</h1>
+                  <p className="text-sm text-muted-foreground">Preview of your branding</p>
+                </div>
+                <div className="mt-8 space-y-4">
+                    <Button style={{ backgroundColor: primaryColor, color: 'white' }} className="w-full h-12">Primary Button</Button>
+                    <Card style={{ backgroundColor: 'white', borderColor: primaryColor }} className="border-2">
+                        <CardContent className="p-4">
+                           <p>This is a card with your brand colors.</p>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        </div>
+    )
+};
+
+
+const BrandingEditor = ({ onBack, branch }: { onBack: () => void, branch: any }) => {
+  const [customBrandingEnabled, setCustomBrandingEnabled] = useState(false);
+  const [branchLogo, setBranchLogo] = useState<string | null>(null);
+  const [branchPrimaryColor, setBranchPrimaryColor] = useState('#0CB5A8');
+  const [branchBackgroundColor, setBranchBackgroundColor] = useState('#f9fafb');
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
+
+  const handleSaveBranding = async () => {
+    setIsSaving(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    toast({
+      title: "Branding Saved",
+      description: `Custom branding for ${branch.name} has been updated.`,
+    });
+    setIsSaving(false);
+    onBack();
+  }
+
+  return (
+    <div className="animate-in fade-in duration-500">
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={onBack} className="rounded-full">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="text-left">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Customize Branding</h1>
+            <p className="text-muted-foreground mt-1">Branch: {branch.name}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" className="gap-2 font-semibold" onClick={onBack}>
+            Cancel
+          </Button>
+          <Button onClick={handleSaveBranding} disabled={isSaving} className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin"/> : <Save className="h-4 w-4" />}
+            Save Branding
+          </Button>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="space-y-8">
+           <Card>
+              <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                      <div>
+                          <Label htmlFor="custom-branding-toggle" className="text-base font-medium">Customize Branding for this Branch</Label>
+                          <p className="text-sm text-muted-foreground">
+                              {customBrandingEnabled ? 'Custom styles are active.' : 'Using global brand styles.'}
+                          </p>
+                      </div>
+                      <Switch
+                          id="custom-branding-toggle"
+                          checked={customBrandingEnabled}
+                          onCheckedChange={setCustomBrandingEnabled}
+                      />
+                  </div>
+              </CardContent>
+          </Card>
+
+          {customBrandingEnabled && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                   <Button 
+                        variant="outline"
+                        onClick={() => setCustomBrandingEnabled(false)}
+                        disabled={!customBrandingEnabled}
+                        className="w-full"
+                    >
+                        Reset to Global Branding
+                    </Button>
+                  <Card>
+                      <CardHeader><CardTitle>Branch Logo</CardTitle></CardHeader>
+                      <CardContent className="flex items-center gap-4">
+                          {branchLogo ? <Image src={branchLogo} alt="branch logo" width={80} height={80} className="rounded-lg object-cover" /> : <div className="h-20 w-20 bg-muted rounded-lg flex items-center justify-center"><ImageIcon className="h-8 w-8 text-muted-foreground"/></div>}
+                          <Button variant="outline" asChild><label htmlFor="logo-upload-branch" className="cursor-pointer"><Upload className="mr-2 h-4 w-4"/> Change Logo</label></Button>
+                          <Input id="logo-upload-branch" className="hidden" type="file" onChange={(e) => {
+                              if(e.target.files?.[0]) {
+                                const reader = new FileReader();
+                                reader.onload = (event) => setBranchLogo(event.target?.result as string);
+                                reader.readAsDataURL(e.target.files[0]);
+                              }
+                          }}/>
+                      </CardContent>
+                  </Card>
+                  <Card>
+                      <CardHeader><CardTitle>Branch Colors</CardTitle></CardHeader>
+                      <CardContent className="space-y-4">
+                          <div className="flex items-center gap-4">
+                              <Label>Primary</Label>
+                              <Input type="color" value={branchPrimaryColor} onChange={(e) => setBranchPrimaryColor(e.target.value)} className="w-12 h-12 p-1"/>
+                              <Input value={branchPrimaryColor} onChange={(e) => setBranchPrimaryColor(e.target.value)} />
+                          </div>
+                           <div className="flex items-center gap-4">
+                              <Label>Background</Label>
+                              <Input type="color" value={branchBackgroundColor} onChange={(e) => setBranchBackgroundColor(e.target.value)} className="w-12 h-12 p-1"/>
+                              <Input value={branchBackgroundColor} onChange={(e) => setBranchBackgroundColor(e.target.value)} />
+                          </div>
+                      </CardContent>
+                  </Card>
+              </div>
+          )}
+        </div>
+        <div className="lg:sticky lg:top-24 h-fit">
+          <div className="bg-muted p-4 rounded-lg flex items-center justify-center">
+             <SimplePreview 
+              primaryColor={branchPrimaryColor}
+              backgroundColor={branchBackgroundColor}
+              branchName={branch.name}
+              logo={branchLogo}
+             />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 export default function EditBranchPage() {
   const router = useRouter();
   const params = useParams();
   const branchId = params.id as string;
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('basic');
+  const [isBrandingMode, setIsBrandingMode] = useState(false);
 
   const branch = useMemo(() => mockBranchData[branchId] || { name: 'Unknown Branch' }, [branchId]);
 
@@ -105,13 +254,6 @@ export default function EditBranchPage() {
   const [suggestedRates, setSuggestedRates] = useState([10, 15, 20]);
   const [quickTagSearch, setQuickTagSearch] = useState('');
   const [popularRate, setPopularRate] = useState<number | null>(15);
-
-  // Branding State
-  const [customBrandingEnabled, setCustomBrandingEnabled] = useState(false);
-  const [branchLogo, setBranchLogo] = useState<string | null>(null);
-  const [branchPrimaryColor, setBranchPrimaryColor] = useState('#0CB5A8');
-  const [branchBackgroundColor, setBranchBackgroundColor] = useState('#f9fafb');
-
 
   const currencySymbols: { [key: string]: string } = {
     AED: 'د.إ',
@@ -201,528 +343,474 @@ export default function EditBranchPage() {
       <DashboardHeader />
       <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/30 min-h-[calc(100vh-4rem)]">
         <div className="max-w-5xl mx-auto">
-          <Breadcrumbs items={breadcrumbItems} />
-          
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div className="text-left">
-                <h1 className="text-3xl font-bold tracking-tight text-foreground">Edit Branch</h1>
-                <p className="text-muted-foreground mt-1">Update details for {branch.name}</p>
+
+         {isBrandingMode ? (
+            <BrandingEditor branch={branch} onBack={() => setIsBrandingMode(false)} />
+          ) : (
+           <>
+              <Breadcrumbs items={breadcrumbItems} />
+              
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                <div className="flex items-center gap-4">
+                  <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                  <div className="text-left">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Edit Branch</h1>
+                    <p className="text-muted-foreground mt-1">Update details for {branch.name}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button variant="outline" className="gap-2 font-semibold" onClick={() => router.back()}>
+                    Cancel
+                  </Button>
+                  <Button variant="outline" className="gap-2 font-semibold" onClick={() => setIsBrandingMode(true)}>
+                    <Palette className="h-4 w-4" />
+                    Branding
+                  </Button>
+                  <Button variant="outline" className="gap-2 font-semibold" onClick={handleSave}>
+                    <Save className="h-4 w-4" />
+                    Save
+                  </Button>
+                  <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold" onClick={handlePublish}>
+                    <Rocket className="h-4 w-4" />
+                    Publish
+                  </Button>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" className="gap-2 font-semibold" onClick={() => router.back()}>
-                Cancel
-              </Button>
-              <Button variant="outline" className="gap-2 font-semibold" onClick={handleSave}>
-                <Save className="h-4 w-4" />
-                Save
-              </Button>
-              <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold" onClick={handlePublish}>
-                <Rocket className="h-4 w-4" />
-                Publish
-              </Button>
-            </div>
-          </div>
 
-          <Card className="shadow-smooth border-0 overflow-hidden">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full grid grid-cols-4 rounded-none border-b bg-background p-0 h-14 sticky top-0 z-20">
-                <TabsTrigger 
-                  value="basic" 
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none h-full gap-2 text-sm font-semibold"
-                >
-                  <Info className="h-4 w-4" /> Basic Information
-                </TabsTrigger>
-                <TabsTrigger value="hours" className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none h-full gap-2 text-sm font-semibold">
-                  <Clock className="h-4 w-4" /> Opening Hours
-                </TabsTrigger>
-                <TabsTrigger value="tip-fee" className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none h-full gap-2 text-sm font-semibold">
-                  <HandCoins className="h-4 w-4" /> Tip Fee
-                </TabsTrigger>
-                <TabsTrigger value="branding" className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none h-full gap-2 text-sm font-semibold">
-                  <Palette className="h-4 w-4" /> Branding
-                </TabsTrigger>
-              </TabsList>
+              <Card className="shadow-smooth border-0 overflow-hidden">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="w-full grid grid-cols-3 rounded-none border-b bg-background p-0 h-14 sticky top-0 z-20">
+                    <TabsTrigger 
+                      value="basic" 
+                      className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none h-full gap-2 text-sm font-semibold"
+                    >
+                      <Info className="h-4 w-4" /> Basic Information
+                    </TabsTrigger>
+                    <TabsTrigger value="hours" className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none h-full gap-2 text-sm font-semibold">
+                      <Clock className="h-4 w-4" /> Opening Hours
+                    </TabsTrigger>
+                    <TabsTrigger value="tip-fee" className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none h-full gap-2 text-sm font-semibold">
+                      <HandCoins className="h-4 w-4" /> Tip Fee
+                    </TabsTrigger>
+                  </TabsList>
 
-              <TabsContent value="basic" className="p-8 space-y-10 focus-visible:ring-0 mt-0 bg-background">
-                <section className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-bold">Restaurant Details</h3>
-                    <div className="flex items-center gap-3">
-                      <Label htmlFor="branch-active" className="text-sm font-medium">Active Status</Label>
-                      <Switch id="branch-active" defaultChecked />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-                    <div className="space-y-2">
-                      <Label className="font-semibold text-muted-foreground text-xs">Restaurant Name</Label>
-                      <Input defaultValue={branch.name} className="bg-background" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-semibold text-muted-foreground text-xs">Cuisine Type</Label>
-                      <Select defaultValue={branch.type}>
-                        <SelectTrigger className="bg-background">
-                          <SelectValue placeholder="Select cuisine" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {cuisines.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 text-left">
-                    <Label className="font-semibold text-muted-foreground text-xs">Description</Label>
-                    <Textarea 
-                      placeholder="Enter restaurant description..." 
-                      className="min-h-[120px] resize-none bg-background"
-                      defaultValue="Updated description for this branch."
-                    />
-                  </div>
-                </section>
-
-                <section className="space-y-6">
-                  <h3 className="text-lg font-bold border-t pt-8 text-left">Address & Location</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2 text-left">
-                      <Label className="font-semibold text-muted-foreground text-xs">Street Address</Label>
-                      <Input defaultValue={branch.address} className="bg-background" />
-                    </div>
-                    <div className="space-y-2 text-left">
-                      <Label className="font-semibold text-muted-foreground text-xs">City</Label>
-                      <Input defaultValue={branch.location} className="bg-background" />
-                    </div>
-                  </div>
-                </section>
-              </TabsContent>
-
-              <TabsContent value="hours" className="p-8 space-y-12 focus-visible:ring-0 mt-0 bg-background">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
-                  <div className="space-y-1.5 text-left max-w-2xl">
-                    <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
-                      Operating Schedule <HelpCircle className="h-4 w-4 text-muted-foreground/40" />
-                    </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      Define when your branch is open. These hours dictate when customers can view and place orders from your Digital eMenu.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-3 shrink-0">
-                    <Button variant="outline" size="sm" className="gap-2 font-semibold text-xs h-10 px-4" onClick={handleCopyToAllDays}>
-                      <Copy className="h-3.5 w-3.5" /> Apply Monday to All Days
-                    </Button>
-                    <Button variant="ghost" size="sm" className="gap-2 font-semibold text-xs h-10 px-4 text-muted-foreground" onClick={handleResetHours}>
-                      <RotateCcw className="h-3.5 w-3.5" /> Reset Schedule
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Clock className="h-4 w-4 text-primary" />
-                    </div>
-                    <h4 className="text-sm font-bold text-foreground">Weekly Routine</h4>
-                  </div>
-
-                  <Card className="border shadow-none overflow-hidden bg-muted/10">
-                    <CardHeader className="bg-white border-b py-4 px-8 flex flex-row items-center justify-between space-y-0">
-                      <div className="space-y-0.5">
-                        <CardTitle className="text-sm font-bold text-foreground">Standard Hours</CardTitle>
-                        <p className="text-xs text-muted-foreground font-medium">Set your recurring weekly availability</p>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-0 divide-y bg-white">
-                      {regularHours.map((hour, index) => (
-                        <div key={hour.day} className={cn(
-                          "flex flex-col sm:flex-row sm:items-center gap-6 py-5 px-8 transition-colors",
-                          hour.closed ? "bg-muted/20 opacity-60" : "hover:bg-muted/5"
-                        )}>
-                          <div className="w-32 shrink-0 text-left">
-                            <span className="font-bold text-base text-foreground">{hour.day}</span>
-                          </div>
-                          
-                          <div className="flex-1 flex flex-wrap items-center gap-4">
-                            <div className={cn("flex items-center gap-3 transition-opacity", hour.closed && "pointer-events-none")}>
-                              <div className="space-y-1.5 text-left">
-                                <Label className="text-xs font-semibold text-muted-foreground ml-1">Open At</Label>
-                                <Select value={hour.open} onValueChange={(val) => handleUpdateRegularHour(index, 'open', val)}>
-                                  <SelectTrigger className="w-36 h-10 bg-background font-medium">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <span className="text-xs font-medium text-muted-foreground mt-6">until</span>
-                              <div className="space-y-1.5 text-left">
-                                <Label className="text-xs font-semibold text-muted-foreground ml-1">Close At</Label>
-                                <Select value={hour.close} onValueChange={(val) => handleUpdateRegularHour(index, 'close', val)}>
-                                  <SelectTrigger className="w-36 h-10 bg-background font-medium">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-3 self-end sm:self-center pt-2 sm:pt-0">
-                            <div className={cn(
-                              "flex items-center gap-3 px-4 py-2 rounded-xl border transition-all",
-                              hour.closed ? "bg-destructive/5 border-destructive/20" : "bg-green-50/50 border-green-100"
-                            )}>
-                              <Checkbox 
-                                id={`closed-edit-${hour.day}`} 
-                                checked={hour.closed} 
-                                onCheckedChange={(checked) => handleUpdateRegularHour(index, 'closed', !!checked)} 
-                                className="h-5 w-5 rounded-md"
-                              />
-                              <label htmlFor={`closed-edit-${hour.day}`} className={cn(
-                                "text-xs font-bold cursor-pointer",
-                                hour.closed ? "text-destructive" : "text-green-700"
-                              )}>
-                                {hour.closed ? 'Closed Today' : 'Store Open'}
-                              </label>
-                            </div>
-                          </div>
+                  <TabsContent value="basic" className="p-8 space-y-10 focus-visible:ring-0 mt-0 bg-background">
+                    <section className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-bold">Restaurant Details</h3>
+                        <div className="flex items-center gap-3">
+                          <Label htmlFor="branch-active" className="text-sm font-medium">Active Status</Label>
+                          <Switch id="branch-active" defaultChecked />
                         </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-orange-100 flex items-center justify-center">
-                        <CalendarDays className="h-4 w-4 text-orange-600" />
                       </div>
-                      <h4 className="text-sm font-bold text-foreground">Holiday Exceptions</h4>
-                    </div>
-                    <Button size="sm" className="bg-primary text-primary-foreground font-bold h-10 px-5 rounded-xl text-xs shadow-lg shadow-primary/20" onClick={handleAddSpecialHour}>
-                      <Plus className="h-4 w-4 mr-2" /> Add Holiday Date
-                    </Button>
-                  </div>
 
-                  <Card className="border shadow-none overflow-hidden bg-muted/10">
-                    <CardHeader className="bg-white border-b py-4 px-8">
-                      <div className="space-y-0.5">
-                        <CardTitle className="text-sm font-bold text-foreground">Specific Dates</CardTitle>
-                        <p className="text-xs text-muted-foreground font-medium">Override regular hours for public holidays or events</p>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-0 divide-y bg-white">
-                      {specialHours.length > 0 ? specialHours.map((item) => (
-                        <div key={item.id} className={cn(
-                          "flex flex-col md:flex-row md:items-center gap-8 py-6 px-8 transition-colors",
-                          item.closed ? "bg-destructive/[0.02]" : "hover:bg-muted/5"
-                        )}>
-                          <div className="w-48 shrink-0 text-left space-y-1">
-                            <Input 
-                              value={item.date} 
-                              onChange={(e) => handleUpdateSpecialHour(item.id, 'date', e.target.value)}
-                              className="h-9 font-bold text-base bg-transparent border-none p-0 focus-visible:ring-0 text-foreground" 
-                            />
-                            <Input 
-                              value={item.name} 
-                              onChange={(e) => handleUpdateSpecialHour(item.id, 'name', e.target.value)}
-                              className="h-6 text-xs font-semibold text-muted-foreground bg-transparent border-none p-0 focus-visible:ring-0" 
-                            />
-                          </div>
-                          
-                          <div className="flex-1 flex items-center gap-4">
-                            {item.closed ? (
-                              <div className="flex items-center gap-3 px-4 py-2 bg-destructive/10 rounded-xl border border-destructive/20">
-                                <span className="text-xs font-bold text-destructive italic">Closed All Day</span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-3">
-                                <div className="space-y-1.5 text-left">
-                                  <Label className="text-xs font-semibold text-muted-foreground ml-1">From</Label>
-                                  <Select value={item.from} onValueChange={(val) => handleUpdateSpecialHour(item.id, 'from', val)}>
-                                    <SelectTrigger className="w-36 h-10 bg-background font-medium">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <span className="text-xs font-medium text-muted-foreground mt-6">to</span>
-                                <div className="space-y-1.5 text-left">
-                                  <Label className="text-xs font-semibold text-muted-foreground ml-1">Until</Label>
-                                  <Select value={item.to} onValueChange={(val) => handleUpdateSpecialHour(item.id, 'to', val)}>
-                                    <SelectTrigger className="w-36 h-10 bg-background font-medium">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-6 self-end md:self-center">
-                            <div className="flex items-center gap-3 px-4 py-2 rounded-xl border bg-background">
-                              <Checkbox 
-                                id={`special-closed-${item.id}`}
-                                checked={item.closed} 
-                                onCheckedChange={(checked) => handleUpdateSpecialHour(item.id, 'closed', !!checked)} 
-                                className="h-5 w-5 rounded-md"
-                              />
-                              <label htmlFor={`special-closed-${item.id}`} className="text-xs font-bold text-muted-foreground cursor-pointer">Closed</label>
-                            </div>
-                            <Button variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-xl" onClick={() => handleRemoveSpecialHour(item.id)}>
-                              <Trash2 className="h-5 w-5" />
-                            </Button>
-                          </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+                        <div className="space-y-2">
+                          <Label className="font-semibold text-muted-foreground text-xs">Restaurant Name</Label>
+                          <Input defaultValue={branch.name} className="bg-background" />
                         </div>
-                      )) : (
-                        <div className="p-16 text-center">
-                          <p className="text-sm font-medium text-muted-foreground">No holiday overrides added yet.</p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="tip-fee" className="p-8 space-y-10 focus-visible:ring-0 mt-0 bg-background">
-                <section className="space-y-8">
-                  <div className="flex items-center justify-between border-b pb-6">
-                    <div>
-                      <h3 className="text-xl font-bold">Gratuity Settings</h3>
-                      <p className="text-sm text-muted-foreground">Configure how customers can add tips to their orders.</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Label htmlFor="tip-fee-enabled" className="text-sm font-bold">Enable Tipping</Label>
-                      <Switch id="tip-fee-enabled" checked={tipFeeEnabled} onCheckedChange={setTipFeeEnabled} />
-                    </div>
-                  </div>
-
-                  <div className={cn(!tipFeeEnabled && "opacity-40 pointer-events-none", "space-y-8")}>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Core Configuration</CardTitle>
-                        <CardDescription>Set the fundamental rules for how tips are calculated.</CardDescription>
-                      </CardHeader>
-                      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                        <div className="space-y-2 text-left">
-                          <Label>Currency</Label>
-                          <Select value={currency} onValueChange={setCurrency}>
-                            <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+                        <div className="space-y-2">
+                          <Label className="font-semibold text-muted-foreground text-xs">Cuisine Type</Label>
+                          <Select defaultValue={branch.type}>
+                            <SelectTrigger className="bg-background">
+                              <SelectValue placeholder="Select cuisine" />
+                            </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="AED">AED - UAE Dirham (د.إ)</SelectItem>
-                              <SelectItem value="USD">USD - US Dollar ($)</SelectItem>
-                              <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
+                              {cuisines.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                             </SelectContent>
                           </Select>
-                          <p className="text-xs text-muted-foreground pt-1">The currency used for all tip calculations.</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-left">
+                        <Label className="font-semibold text-muted-foreground text-xs">Description</Label>
+                        <Textarea 
+                          placeholder="Enter restaurant description..." 
+                          className="min-h-[120px] resize-none bg-background"
+                          defaultValue="Updated description for this branch."
+                        />
+                      </div>
+                    </section>
+
+                    <section className="space-y-6">
+                      <h3 className="text-lg font-bold border-t pt-8 text-left">Address & Location</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2 text-left">
+                          <Label className="font-semibold text-muted-foreground text-xs">Street Address</Label>
+                          <Input defaultValue={branch.address} className="bg-background" />
                         </div>
                         <div className="space-y-2 text-left">
-                          <Label>Tip Calculation Method</Label>
-                          <RadioGroup
-                            value={feeType}
-                            onValueChange={setFeeType}
-                            className="grid grid-cols-2 gap-1 rounded-lg border bg-muted p-1"
-                          >
-                            <div>
-                              <RadioGroupItem value="Percentage" id="fee-type-percentage-edit" className="sr-only" />
-                              <Label
-                                htmlFor="fee-type-percentage-edit"
-                                className={cn(
-                                  "flex h-9 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
-                                  feeType === 'Percentage'
-                                    ? "bg-background text-foreground shadow-sm"
-                                    : "text-muted-foreground hover:bg-background/50"
-                                )}
-                              >
-                                Percentage (%)
-                              </Label>
-                            </div>
-                            <div>
-                              <RadioGroupItem value="Fixed" id="fee-type-fixed-edit" className="sr-only" />
-                              <Label
-                                htmlFor="fee-type-fixed-edit"
-                                className={cn(
-                                  "flex h-9 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
-                                  feeType === 'Fixed'
-                                    ? "bg-background text-foreground shadow-sm"
-                                    : "text-muted-foreground hover:bg-background/50"
-                                )}
-                              >
-                                Fixed Amount
-                              </Label>
-                            </div>
-                          </RadioGroup>
-                          <p className="text-xs text-muted-foreground pt-1">Calculate tip based on the total bill or as a flat rate.</p>
+                          <Label className="font-semibold text-muted-foreground text-xs">City</Label>
+                          <Input defaultValue={branch.location} className="bg-background" />
                         </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Customer Tipping Options</CardTitle>
-                        <CardDescription>Control the options and limits your customers see during checkout.</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-6 pt-2">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                              <div className="space-y-2 text-left">
-                              <Label>Max Tip Amount Allowed ({feeType === 'Percentage' ? '%' : currencySymbols[currency]})</Label>
-                              <Input value={maxRate} onChange={(e) => setMaxRate(e.target.value)} placeholder="e.g. 100" className="bg-background"/>
-                              <p className="text-xs text-muted-foreground pt-1">Set a maximum limit for tips to prevent errors.</p>
-                              </div>
-                              <div className="space-y-2 text-left">
-                              <Label>Allow Custom Tip</Label>
-                              <div className="flex items-center justify-between rounded-lg border p-3 h-[60px] bg-background">
-                                  <p className="text-sm text-muted-foreground">Let customers enter their own amount.</p>
-                                  <Switch id="custom-entry-enabled" checked={customEntryEnabled} onCheckedChange={setCustomEntryEnabled} />
-                              </div>
-                              </div>
-                          </div>
-
-                          <div className="space-y-2 text-left pt-4 border-t">
-                              <div className="flex justify-between items-center">
-                                  <Label>Suggested Rates</Label>
-                                  {suggestedRates.length > 0 && (
-                                  <Button type="button" variant="link" className="p-0 h-auto text-xs text-muted-foreground hover:text-destructive" onClick={() => { setSuggestedRates([]); setPopularRate(null); }}>
-                                      Clear All
-                                  </Button>
-                                  )}
-                              </div>
-                              <p className="text-xs text-muted-foreground">Provide customers with quick-select tip options.</p>
-                              <TooltipProvider>
-                                <div className="flex flex-wrap items-center gap-2 min-h-[44px] rounded-lg border bg-background p-3">
-                                    {suggestedRates.map((rate, index) => (
-                                      <Badge key={index} className={cn("text-sm p-2 rounded-md font-semibold flex items-center gap-1 transition-all", popularRate === rate ? "bg-yellow-400 text-yellow-900 shadow-lg border-2 border-white/50" : "bg-primary/80 hover:bg-primary/70 text-white")}>
-                                        <span>{rate}{feeType === 'Percentage' && '%'}</span>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <button type="button" onClick={() => setPopularRate(rate === popularRate ? null : rate)} className="rounded-full hover:bg-black/20 p-0.5">
-                                              <Star className={cn("h-3.5 w-3.5 transition-colors", popularRate === rate ? "fill-yellow-900 text-yellow-900" : "text-white/50 hover:text-white")} />
-                                            </button>
-                                          </TooltipTrigger>
-                                          <TooltipContent>
-                                            <p>Set as Popular</p>
-                                          </TooltipContent>
-                                        </Tooltip>
-                                        <button type="button" onClick={() => setSuggestedRates(rates => rates.filter((_, i) => i !== index))} className="ml-1 rounded-full hover:bg-black/20 p-0.5">
-                                          <X className="h-3.5 w-3.5" />
-                                        </button>
-                                      </Badge>
-                                    ))}
-                                    {suggestedRates.length === 0 && <p className="text-sm text-muted-foreground italic">No suggested rates added yet.</p>}
-                                </div>
-                              </TooltipProvider>
-                              <Popover>
-                                  <PopoverTrigger asChild>
-                                  <Input type="text" placeholder="Select or enter custom rate..." value={quickTagSearch} onChange={(e) => setQuickTagSearch(e.target.value)} onKeyDown={handleAddSuggestedRate} className="bg-background mt-2 placeholder:text-muted-foreground" />
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-[--radix-popover-trigger-width] p-1">
-                                  <div className="grid grid-cols-4 gap-1">
-                                      {PRESET_RATES.map((rate) => (
-                                      <Button key={rate} type="button" variant="ghost" className="font-semibold" onClick={() => { handleAddRate(rate); }}>
-                                          {rate}%
-                                      </Button>
-                                      ))}
-                                  </div>
-                                  </PopoverContent>
-                              </Popover>
-                          </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </section>
-              </TabsContent>
-
-              <TabsContent value="branding" className="p-8 space-y-10 focus-visible:ring-0 mt-0 bg-background">
-                <section className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                        <h3 className="text-xl font-bold">Branch Branding</h3>
-                        <p className="text-sm text-muted-foreground">Override global brand settings for this branch only.</p>
-                    </div>
-                    <Button 
-                        variant="outline"
-                        onClick={() => setCustomBrandingEnabled(false)}
-                        disabled={!customBrandingEnabled}
-                    >
-                        Reset to Global Branding
-                    </Button>
-                  </div>
-
-                  <Card>
-                      <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                              <div>
-                                  <Label htmlFor="custom-branding-toggle" className="text-base font-medium">Customize Branding for this Branch</Label>
-                                  <p className="text-sm text-muted-foreground">
-                                      {customBrandingEnabled ? 'Custom styles are active.' : 'Using global brand styles.'}
-                                  </p>
-                              </div>
-                              <Switch
-                                  id="custom-branding-toggle"
-                                  checked={customBrandingEnabled}
-                                  onCheckedChange={setCustomBrandingEnabled}
-                              />
-                          </div>
-                      </CardContent>
-                  </Card>
-
-                  {customBrandingEnabled && (
-                      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                          <Card>
-                              <CardHeader><CardTitle>Branch Logo</CardTitle></CardHeader>
-                              <CardContent className="flex items-center gap-4">
-                                  {branchLogo ? <Image src={branchLogo} alt="branch logo" width={80} height={80} className="rounded-lg object-cover" /> : <div className="h-20 w-20 bg-muted rounded-lg flex items-center justify-center"><ImageIcon className="h-8 w-8 text-muted-foreground"/></div>}
-                                  <Button variant="outline"><Upload className="mr-2 h-4 w-4"/> Change Logo</Button>
-                              </CardContent>
-                          </Card>
-                          <Card>
-                              <CardHeader><CardTitle>Branch Colors</CardTitle></CardHeader>
-                              <CardContent className="space-y-4">
-                                  <div className="flex items-center gap-4">
-                                      <Label>Primary</Label>
-                                      <Input type="color" value={branchPrimaryColor} onChange={(e) => setBranchPrimaryColor(e.target.value)} className="w-12 h-12 p-1"/>
-                                      <Input value={branchPrimaryColor} onChange={(e) => setBranchPrimaryColor(e.target.value)} />
-                                  </div>
-                                   <div className="flex items-center gap-4">
-                                      <Label>Background</Label>
-                                      <Input type="color" value={branchBackgroundColor} onChange={(e) => setBranchBackgroundColor(e.target.value)} className="w-12 h-12 p-1"/>
-                                      <Input value={branchBackgroundColor} onChange={(e) => setBranchBackgroundColor(e.target.value)} />
-                                  </div>
-                              </CardContent>
-                          </Card>
                       </div>
-                  )}
-                </section>
-              </TabsContent>
-            </Tabs>
-          </Card>
+                    </section>
+                  </TabsContent>
 
-          <div className="mt-8 flex justify-end gap-3">
-            <Button variant="outline" className="px-8 h-12 font-bold rounded-xl" onClick={() => router.back()}>
-              Cancel
-            </Button>
-            <Button variant="outline" className="px-8 h-12 font-bold gap-2 rounded-xl" onClick={handleSave}>
-              <Save className="h-4 w-4" />
-              Save Changes
-            </Button>
-            <Button className="px-10 h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-bold gap-2 rounded-xl shadow-xl shadow-primary/20" onClick={handlePublish}>
-              <Rocket className="h-4 w-4" />
-              Publish
-            </Button>
-          </div>
+                  <TabsContent value="hours" className="p-8 space-y-12 focus-visible:ring-0 mt-0 bg-background">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
+                      <div className="space-y-1.5 text-left max-w-2xl">
+                        <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
+                          Operating Schedule <HelpCircle className="h-4 w-4 text-muted-foreground/40" />
+                        </h3>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          Define when your branch is open. These hours dictate when customers can view and place orders from your Digital eMenu.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3 shrink-0">
+                        <Button variant="outline" size="sm" className="gap-2 font-semibold text-xs h-10 px-4" onClick={handleCopyToAllDays}>
+                          <Copy className="h-3.5 w-3.5" /> Apply Monday to All Days
+                        </Button>
+                        <Button variant="ghost" size="sm" className="gap-2 font-semibold text-xs h-10 px-4 text-muted-foreground" onClick={handleResetHours}>
+                          <RotateCcw className="h-3.5 w-3.5" /> Reset Schedule
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Clock className="h-4 w-4 text-primary" />
+                        </div>
+                        <h4 className="text-sm font-bold text-foreground">Weekly Routine</h4>
+                      </div>
+
+                      <Card className="border shadow-none overflow-hidden bg-muted/10">
+                        <CardHeader className="bg-white border-b py-4 px-8 flex flex-row items-center justify-between space-y-0">
+                          <div className="space-y-0.5">
+                            <CardTitle className="text-sm font-bold text-foreground">Standard Hours</CardTitle>
+                            <p className="text-xs text-muted-foreground font-medium">Set your recurring weekly availability</p>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-0 divide-y bg-white">
+                          {regularHours.map((hour, index) => (
+                            <div key={hour.day} className={cn(
+                              "flex flex-col sm:flex-row sm:items-center gap-6 py-5 px-8 transition-colors",
+                              hour.closed ? "bg-muted/20 opacity-60" : "hover:bg-muted/5"
+                            )}>
+                              <div className="w-32 shrink-0 text-left">
+                                <span className="font-bold text-base text-foreground">{hour.day}</span>
+                              </div>
+                              
+                              <div className="flex-1 flex flex-wrap items-center gap-4">
+                                <div className={cn("flex items-center gap-3 transition-opacity", hour.closed && "pointer-events-none")}>
+                                  <div className="space-y-1.5 text-left">
+                                    <Label className="text-xs font-semibold text-muted-foreground ml-1">Open At</Label>
+                                    <Select value={hour.open} onValueChange={(val) => handleUpdateRegularHour(index, 'open', val)}>
+                                      <SelectTrigger className="w-36 h-10 bg-background font-medium">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <span className="text-xs font-medium text-muted-foreground mt-6">until</span>
+                                  <div className="space-y-1.5 text-left">
+                                    <Label className="text-xs font-semibold text-muted-foreground ml-1">Close At</Label>
+                                    <Select value={hour.close} onValueChange={(val) => handleUpdateRegularHour(index, 'close', val)}>
+                                      <SelectTrigger className="w-36 h-10 bg-background font-medium">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-3 self-end sm:self-center pt-2 sm:pt-0">
+                                <div className={cn(
+                                  "flex items-center gap-3 px-4 py-2 rounded-xl border transition-all",
+                                  hour.closed ? "bg-destructive/5 border-destructive/20" : "bg-green-50/50 border-green-100"
+                                )}>
+                                  <Checkbox 
+                                    id={`closed-edit-${hour.day}`} 
+                                    checked={hour.closed} 
+                                    onCheckedChange={(checked) => handleUpdateRegularHour(index, 'closed', !!checked)} 
+                                    className="h-5 w-5 rounded-md"
+                                  />
+                                  <label htmlFor={`closed-edit-${hour.day}`} className={cn(
+                                    "text-xs font-bold cursor-pointer",
+                                    hour.closed ? "text-destructive" : "text-green-700"
+                                  )}>
+                                    {hour.closed ? 'Closed Today' : 'Store Open'}
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                            <CalendarDays className="h-4 w-4 text-orange-600" />
+                          </div>
+                          <h4 className="text-sm font-bold text-foreground">Holiday Exceptions</h4>
+                        </div>
+                        <Button size="sm" className="bg-primary text-primary-foreground font-bold h-10 px-5 rounded-xl text-xs shadow-lg shadow-primary/20" onClick={handleAddSpecialHour}>
+                          <Plus className="h-4 w-4 mr-2" /> Add Holiday Date
+                        </Button>
+                      </div>
+
+                      <Card className="border shadow-none overflow-hidden bg-muted/10">
+                        <CardHeader className="bg-white border-b py-4 px-8">
+                          <div className="space-y-0.5">
+                            <CardTitle className="text-sm font-bold text-foreground">Specific Dates</CardTitle>
+                            <p className="text-xs text-muted-foreground font-medium">Override regular hours for public holidays or events</p>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-0 divide-y bg-white">
+                          {specialHours.length > 0 ? specialHours.map((item) => (
+                            <div key={item.id} className={cn(
+                              "flex flex-col md:flex-row md:items-center gap-8 py-6 px-8 transition-colors",
+                              item.closed ? "bg-destructive/[0.02]" : "hover:bg-muted/5"
+                            )}>
+                              <div className="w-48 shrink-0 text-left space-y-1">
+                                <Input 
+                                  value={item.date} 
+                                  onChange={(e) => handleUpdateSpecialHour(item.id, 'date', e.target.value)}
+                                  className="h-9 font-bold text-base bg-transparent border-none p-0 focus-visible:ring-0 text-foreground" 
+                                />
+                                <Input 
+                                  value={item.name} 
+                                  onChange={(e) => handleUpdateSpecialHour(item.id, 'name', e.target.value)}
+                                  className="h-6 text-xs font-semibold text-muted-foreground bg-transparent border-none p-0 focus-visible:ring-0" 
+                                />
+                              </div>
+                              
+                              <div className="flex-1 flex items-center gap-4">
+                                {item.closed ? (
+                                  <div className="flex items-center gap-3 px-4 py-2 bg-destructive/10 rounded-xl border border-destructive/20">
+                                    <span className="text-xs font-bold text-destructive italic">Closed All Day</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-3">
+                                    <div className="space-y-1.5 text-left">
+                                      <Label className="text-xs font-semibold text-muted-foreground ml-1">From</Label>
+                                      <Select value={item.from} onValueChange={(val) => handleUpdateSpecialHour(item.id, 'from', val)}>
+                                        <SelectTrigger className="w-36 h-10 bg-background font-medium">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <span className="text-xs font-medium text-muted-foreground mt-6">to</span>
+                                    <div className="space-y-1.5 text-left">
+                                      <Label className="text-xs font-semibold text-muted-foreground ml-1">Until</Label>
+                                      <Select value={item.to} onValueChange={(val) => handleUpdateSpecialHour(item.id, 'to', val)}>
+                                        <SelectTrigger className="w-36 h-10 bg-background font-medium">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-6 self-end md:self-center">
+                                <div className="flex items-center gap-3 px-4 py-2 rounded-xl border bg-background">
+                                  <Checkbox 
+                                    id={`special-closed-${item.id}`}
+                                    checked={item.closed} 
+                                    onCheckedChange={(checked) => handleUpdateSpecialHour(item.id, 'closed', !!checked)} 
+                                    className="h-5 w-5 rounded-md"
+                                  />
+                                  <label htmlFor={`special-closed-${item.id}`} className="text-xs font-bold text-muted-foreground cursor-pointer">Closed</label>
+                                </div>
+                                <Button variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-xl" onClick={() => handleRemoveSpecialHour(item.id)}>
+                                  <Trash2 className="h-5 w-5" />
+                                </Button>
+                              </div>
+                            </div>
+                          )) : (
+                            <div className="p-16 text-center">
+                              <p className="text-sm font-medium text-muted-foreground">No holiday overrides added yet.</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="tip-fee" className="p-8 space-y-10 focus-visible:ring-0 mt-0 bg-background">
+                    <section className="space-y-8">
+                      <div className="flex items-center justify-between border-b pb-6">
+                        <div>
+                          <h3 className="text-xl font-bold">Gratuity Settings</h3>
+                          <p className="text-sm text-muted-foreground">Configure how customers can add tips to their orders.</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Label htmlFor="tip-fee-enabled" className="text-sm font-bold">Enable Tipping</Label>
+                          <Switch id="tip-fee-enabled" checked={tipFeeEnabled} onCheckedChange={setTipFeeEnabled} />
+                        </div>
+                      </div>
+
+                      <div className={cn(!tipFeeEnabled && "opacity-40 pointer-events-none", "space-y-8")}>
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Core Configuration</CardTitle>
+                            <CardDescription>Set the fundamental rules for how tips are calculated.</CardDescription>
+                          </CardHeader>
+                          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                            <div className="space-y-2 text-left">
+                              <Label>Currency</Label>
+                              <Select value={currency} onValueChange={setCurrency}>
+                                <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="AED">AED - UAE Dirham (د.إ)</SelectItem>
+                                  <SelectItem value="USD">USD - US Dollar ($)</SelectItem>
+                                  <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <p className="text-xs text-muted-foreground pt-1">The currency used for all tip calculations.</p>
+                            </div>
+                            <div className="space-y-2 text-left">
+                              <Label>Tip Calculation Method</Label>
+                              <RadioGroup
+                                value={feeType}
+                                onValueChange={setFeeType}
+                                className="grid grid-cols-2 gap-1 rounded-lg border bg-muted p-1"
+                              >
+                                <div>
+                                  <RadioGroupItem value="Percentage" id="fee-type-percentage-edit" className="sr-only" />
+                                  <Label
+                                    htmlFor="fee-type-percentage-edit"
+                                    className={cn(
+                                      "flex h-9 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
+                                      feeType === 'Percentage'
+                                        ? "bg-background text-foreground shadow-sm"
+                                        : "text-muted-foreground hover:bg-background/50"
+                                    )}
+                                  >
+                                    Percentage (%)
+                                  </Label>
+                                </div>
+                                <div>
+                                  <RadioGroupItem value="Fixed" id="fee-type-fixed-edit" className="sr-only" />
+                                  <Label
+                                    htmlFor="fee-type-fixed-edit"
+                                    className={cn(
+                                      "flex h-9 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
+                                      feeType === 'Fixed'
+                                        ? "bg-background text-foreground shadow-sm"
+                                        : "text-muted-foreground hover:bg-background/50"
+                                    )}
+                                  >
+                                    Fixed Amount
+                                  </Label>
+                                </div>
+                              </RadioGroup>
+                              <p className="text-xs text-muted-foreground pt-1">Calculate tip based on the total bill or as a flat rate.</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Customer Tipping Options</CardTitle>
+                            <CardDescription>Control the options and limits your customers see during checkout.</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-6 pt-2">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                                  <div className="space-y-2 text-left">
+                                  <Label>Max Tip Amount Allowed ({feeType === 'Percentage' ? '%' : currencySymbols[currency]})</Label>
+                                  <Input value={maxRate} onChange={(e) => setMaxRate(e.target.value)} placeholder="e.g. 100" className="bg-background"/>
+                                  <p className="text-xs text-muted-foreground pt-1">Set a maximum limit for tips to prevent errors.</p>
+                                  </div>
+                                  <div className="space-y-2 text-left">
+                                  <Label>Allow Custom Tip</Label>
+                                  <div className="flex items-center justify-between rounded-lg border p-3 h-[60px] bg-background">
+                                      <p className="text-sm text-muted-foreground">Let customers enter their own amount.</p>
+                                      <Switch id="custom-entry-enabled" checked={customEntryEnabled} onCheckedChange={setCustomEntryEnabled} />
+                                  </div>
+                                  </div>
+                              </div>
+
+                              <div className="space-y-2 text-left pt-4 border-t">
+                                  <div className="flex justify-between items-center">
+                                      <Label>Suggested Rates</Label>
+                                      {suggestedRates.length > 0 && (
+                                      <Button type="button" variant="link" className="p-0 h-auto text-xs text-muted-foreground hover:text-destructive" onClick={() => { setSuggestedRates([]); setPopularRate(null); }}>
+                                          Clear All
+                                      </Button>
+                                      )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">Provide customers with quick-select tip options.</p>
+                                  <TooltipProvider>
+                                    <div className="flex flex-wrap items-center gap-2 min-h-[44px] rounded-lg border bg-background p-3">
+                                        {suggestedRates.map((rate, index) => (
+                                          <Badge key={index} className={cn("text-sm p-2 rounded-md font-semibold flex items-center gap-1 transition-all", popularRate === rate ? "bg-yellow-400 text-yellow-900 shadow-lg border-2 border-white/50" : "bg-primary/80 hover:bg-primary/70 text-white")}>
+                                            <span>{rate}{feeType === 'Percentage' && '%'}</span>
+                                            <Tooltip>
+                                              <TooltipTrigger asChild>
+                                                <button type="button" onClick={() => setPopularRate(rate === popularRate ? null : rate)} className="rounded-full hover:bg-black/20 p-0.5">
+                                                  <Star className={cn("h-3.5 w-3.5 transition-colors", popularRate === rate ? "fill-yellow-900 text-yellow-900" : "text-white/50 hover:text-white")} />
+                                                </button>
+                                              </TooltipTrigger>
+                                              <TooltipContent>
+                                                <p>Set as Popular</p>
+                                              </TooltipContent>
+                                            </Tooltip>
+                                            <button type="button" onClick={() => setSuggestedRates(rates => rates.filter((_, i) => i !== index))} className="ml-1 rounded-full hover:bg-black/20 p-0.5">
+                                              <X className="h-3.5 w-3.5" />
+                                            </button>
+                                          </Badge>
+                                        ))}
+                                        {suggestedRates.length === 0 && <p className="text-sm text-muted-foreground italic">No suggested rates added yet.</p>}
+                                    </div>
+                                  </TooltipProvider>
+                                  <Popover>
+                                      <PopoverTrigger asChild>
+                                      <Input type="text" placeholder="Select or enter custom rate..." value={quickTagSearch} onChange={(e) => setQuickTagSearch(e.target.value)} onKeyDown={handleAddSuggestedRate} className="bg-background mt-2 placeholder:text-muted-foreground" />
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-[--radix-popover-trigger-width] p-1">
+                                      <div className="grid grid-cols-4 gap-1">
+                                          {PRESET_RATES.map((rate) => (
+                                          <Button key={rate} type="button" variant="ghost" className="font-semibold" onClick={() => { handleAddRate(rate); }}>
+                                              {rate}%
+                                          </Button>
+                                          ))}
+                                      </div>
+                                      </PopoverContent>
+                                  </Popover>
+                              </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </section>
+                  </TabsContent>
+
+                </Tabs>
+              </Card>
+
+              <div className="mt-8 flex justify-end gap-3">
+                <Button variant="outline" className="px-8 h-12 font-bold rounded-xl" onClick={() => router.back()}>
+                  Cancel
+                </Button>
+                <Button variant="outline" className="px-8 h-12 font-bold gap-2 rounded-xl" onClick={handleSave}>
+                  <Save className="h-4 w-4" />
+                  Save Changes
+                </Button>
+                <Button className="px-10 h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-bold gap-2 rounded-xl shadow-xl shadow-primary/20" onClick={handlePublish}>
+                  <Rocket className="h-4 w-4" />
+                  Publish
+                </Button>
+              </div>
+          </>
+        )}
         </div>
       </main>
     </>
