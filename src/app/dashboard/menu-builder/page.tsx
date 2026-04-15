@@ -61,7 +61,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import NextLink from 'next/link';
 import { Search } from 'lucide-react';
-import type { VariationGroup, ProductVariationGroup } from '@/app/dashboard/catalog/variations/types';
+import type { ProductVariationGroup } from '@/app/dashboard/catalog/variations/types';
 import { mockCategories, mockVariationGroups, mockComboGroupNames } from '@/lib/mock-data-store';
 import { getCategoryNameOptions } from '@/app/dashboard/categories/utils';
 import dynamic from 'next/dynamic';
@@ -72,7 +72,7 @@ const BuilderSidebar = ({ view, setView }: { view: 'menus' | 'branding', setView
         <aside className="w-80 bg-white border-r flex flex-col">
             <div className="h-16 border-b flex items-center px-4 shrink-0">
                 <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 bg-sidebar-primary-foreground/10 rounded-md flex items-center justify-center">
+                    <div className="h-8 w-8 bg-sidebar-primary/80 rounded-md flex items-center justify-center">
                         <List className="h-5 w-5 text-sidebar-primary-foreground" />
                     </div>
                     <h2 className="text-base font-bold tracking-wider">MENU BUILDER</h2>
@@ -1375,7 +1375,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave, onOpenEdit
         <AlertDialog open={isConfirmingClose} onOpenChange={setIsConfirmingClose}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>You have unsaved changes</AlertDialogTitle>
+              <AlertDialogTitleComponent>You have unsaved changes</AlertDialogTitleComponent>
               <AlertDialogDescription>
                 Are you sure you want to discard your changes? This action cannot be undone.
               </AlertDialogDescription>
@@ -2730,7 +2730,7 @@ const BrandManagementView = ({ onClose, userMenus }: { onClose: () => void; user
     const { toast } = useToast();
     const [logo, setLogo] = useState<string | null>('https://picsum.photos/seed/brandlogo/200');
     const [primaryColor, setPrimaryColor] = useState('#0CB5A8');
-    const [backgroundColor, setBackgroundColor] = useState('#f9fafb');
+    const [backgroundColor, setBackgroundColor] = useState('#F0FDFA');
     const [headlineFont, setHeadlineFont] = useState('Poppins');
     const [bodyFont, setBodyFont] = useState('Inter');
 
