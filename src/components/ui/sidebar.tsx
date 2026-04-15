@@ -720,7 +720,7 @@ const SidebarMenuSubButton = React.forwardRef<
       data-size={size}
       data-active={isActive}
       className={cn(
-        "relative flex h-7 items-center gap-2 rounded-md py-1 px-2 text-xs text-muted-foreground outline-none ring-sidebar-ring transition-colors hover:text-sidebar-foreground focus-visible:ring-2 before:content-[''] before:absolute before:top-1/2 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-full before:transition-colors",
+        "relative flex h-7 items-center gap-2 rounded-md py-1 px-2 text-xs text-muted-foreground outline-none ring-sidebar-ring transition-colors hover:text-sidebar-accent-foreground focus-visible:ring-2 before:content-[''] before:absolute before:top-1/2 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-full before:transition-colors",
         "before:-left-[22px]",
         "data-[active=true]:before:bg-teal-500 data-[active=true]:font-semibold data-[active=true]:text-sidebar-foreground",
         "group-data-[collapsible=icon]:hidden",
