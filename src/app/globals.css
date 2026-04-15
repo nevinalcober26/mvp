@@ -37,9 +37,9 @@ body {
     --radius: 0.5rem;
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 12% 10%;
-    --sidebar-primary: 220 70% 94%;
-    --sidebar-primary-foreground: 220 76% 26%;
-    --sidebar-accent: 166 83% 97%;
+    --sidebar-primary: 167 83% 97%;
+    --sidebar-primary-foreground: 175 77% 26%;
+    --sidebar-accent: 167 83% 97%;
     --sidebar-accent-foreground: 175 77% 26%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 220 80% 40%;
